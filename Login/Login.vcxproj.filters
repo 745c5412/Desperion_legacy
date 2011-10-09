@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="GameServer.cpp" />
+    <ClCompile Include="main.cpp">
+      <Filter>Desperion\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Desperion\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="World.cpp">
+      <Filter>Desperion\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="GameSession.cpp">
+      <Filter>Network\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Session.cpp">
+      <Filter>Network\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Master.cpp">
+      <Filter>Desperion\CPP</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GameServer.h" />
+    <ClInclude Include="ConfigDefaults.h">
+      <Filter>Desperion\H</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Desperion\H</Filter>
+    </ClInclude>
+    <ClInclude Include="World.h">
+      <Filter>Desperion\H</Filter>
+    </ClInclude>
+    <ClInclude Include="GameSession.h">
+      <Filter>Network\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Session.h">
+      <Filter>Network\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Master.h">
+      <Filter>Desperion\H</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectedServerDataMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="IdentificationFailedMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="IdentificationMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="IdentificationSuccessMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ServersListMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="Version.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="GameServerInformations.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="ProtocolRequired.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="HelloConnectMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectedServerRefusedMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerSelectionMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerStatusUpdateMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Network">
+      <UniqueIdentifier>{80089413-a734-4f08-b7a8-6fe0ad6062ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network\CPP">
+      <UniqueIdentifier>{bf45142d-7be5-4e6b-909a-069a2702fb9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network\H">
+      <UniqueIdentifier>{0b0da25a-07ae-48ce-aff1-756130574d28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Desperion">
+      <UniqueIdentifier>{92def853-57c1-4369-ab04-03f8c885943f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Desperion\CPP">
+      <UniqueIdentifier>{721014a2-be97-4cd8-a8eb-69387d72885e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Desperion\H">
+      <UniqueIdentifier>{b4426656-7ce3-406a-80a6-08e9c92737fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Messages">
+      <UniqueIdentifier>{509a528b-500f-47f7-bedd-5658ddfb4f83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Models">
+      <UniqueIdentifier>{9b5a65e6-0280-4053-bad2-a9923fa8b682}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

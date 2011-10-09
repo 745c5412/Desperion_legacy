@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Config.cpp">
+      <Filter>Shared\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Log.cpp">
+      <Filter>Shared\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Shared\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Database.cpp">
+      <Filter>Network\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="md5.c">
+      <Filter>Utils\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="MersenneTwister.cpp">
+      <Filter>Utils\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgressBar.cpp">
+      <Filter>Utils\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>Utils\CPP</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ByteBuffer.h">
+      <Filter>Network\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet.h">
+      <Filter>Network\H</Filter>
+    </ClInclude>
+    <ClInclude Include="SocketListener.h">
+      <Filter>Network\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>Shared\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>Shared\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Log.h">
+      <Filter>Shared\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Singleton.h">
+      <Filter>Shared\H</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Shared\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Database.h">
+      <Filter>Network\H</Filter>
+    </ClInclude>
+    <ClInclude Include="md5.h">
+      <Filter>Utils\H</Filter>
+    </ClInclude>
+    <ClInclude Include="MersenneTwister.h">
+      <Filter>Utils\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgressBar.h">
+      <Filter>Utils\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Utils\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
+      <Filter>Utils\H</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseSession.h">
+      <Filter>Network\H</Filter>
+    </ClInclude>
+    <ClInclude Include="BooleanByteWrapper.h">
+      <Filter>Network\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerError.h">
+      <Filter>Shared\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Opcodes.h">
+      <Filter>Network\H</Filter>
+    </ClInclude>
+    <ClInclude Include="DofusMessage.h">
+      <Filter>Network\H</Filter>
+    </ClInclude>
+    <ClInclude Include="DofusModel.h">
+      <Filter>Network\H</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Network">
+      <UniqueIdentifier>{306efe79-1ba3-45c3-b866-a5ea814bacb4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network\CPP">
+      <UniqueIdentifier>{76f5d267-7990-40ac-ba17-64f1a81ab572}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network\H">
+      <UniqueIdentifier>{dd4da596-3e00-440b-a33b-71127982538d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{47b8f431-9057-47c1-84a1-83d9b0a53681}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\CPP">
+      <UniqueIdentifier>{5e728945-9b37-418d-922e-271836cff19f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\H">
+      <UniqueIdentifier>{e821cf5a-fff1-4e50-8bc2-31fa4b270ddd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shared">
+      <UniqueIdentifier>{0e3064da-78c4-4720-85ca-03d9a97ef18c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shared\CPP">
+      <UniqueIdentifier>{5ba02a6d-0323-4749-ad21-e0bc5564c048}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shared\H">
+      <UniqueIdentifier>{9f3df2c5-f009-4447-b2c7-f445cc6cd008}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
