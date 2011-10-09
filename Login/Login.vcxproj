@@ -80,6 +80,9 @@
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AcquaintanceSearchErrorMessage.h" />
+    <ClInclude Include="AcquaintanceSearchMessage.h" />
+    <ClInclude Include="AcquaintanceServerListMessage.h" />
     <ClInclude Include="ConfigDefaults.h" />
     <ClInclude Include="GameServer.h" />
     <ClInclude Include="GameServerInformations.h" />

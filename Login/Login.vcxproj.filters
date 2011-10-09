@@ -77,6 +77,15 @@
     <ClInclude Include="ServerStatusUpdateMessage.h">
       <Filter>Messages</Filter>
     </ClInclude>
+    <ClInclude Include="AcquaintanceSearchErrorMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="AcquaintanceSearchMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="AcquaintanceServerListMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Network">
