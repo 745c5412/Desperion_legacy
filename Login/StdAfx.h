@@ -20,6 +20,9 @@
 #include "SelectedServerRefusedMessage.h"
 #include "ServerSelectionMessage.h"
 #include "ServerStatusUpdateMessage.h"
+#include "AcquaintanceSearchErrorMessage.h"
+#include "AcquaintanceSearchMessage.h"
+#include "AcquaintanceServerListMessage.h"
 
 #include "Session.h"
 #include "GameSession.h"

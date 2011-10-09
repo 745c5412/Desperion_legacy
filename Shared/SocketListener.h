@@ -38,8 +38,10 @@ public:
 		delete m_socket;
 	}
 
-	void OnAccept( const boost::system::error_code& error)
+	void OnAccept(const boost::system::error_code& error)
 	{
+		if(error)
+			return;
 		T* session = new T;
 		session->Init(m_socket);
 		m_socket = new Socket(m_service);

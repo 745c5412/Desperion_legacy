@@ -45,30 +45,26 @@ bool IsAccountBanned(uint32 guid)
 
 void Session::HandleAcquaintanceSearchMessage(ByteBuffer& packet)
 {
-	std::string nickName;
-	packet>>nickName;
+	AcquaintanceSearchMessage data(packet);
 
 	const char* query = "SELECT serverID FROM character_counts INNER JOIN accounts ON accounts.guid = character_counts.accountGuid "\
-		"WHERE accounts.pseudo='%s';";
-	QueryResult* QR = Desperion::sDatabase->Query(query, nickName.c_str());
+		"WHERE LOWER(accounts.pseudo)=LOWER('%s');";
+	QueryResult* QR = Desperion::sDatabase->Query(query, Desperion::sDatabase->EscapeString(data.nickName).c_str());
 	if(!QR)
 	{
-		Packet error(SMSG_ACQUAINTANCE_SEARCH_ERROR);
-		error<<uint8(0);
-		Send(error);
+		Send(AcquaintanceSearchErrorMessage(2));
 		return;
 	}
 
-	Packet data(SMSG_ACQUAINTANCE_SERVER_LIST);
-	data<<QR->GetRowCount();
+	std::vector<int16> results;
 	do
 	{
 		Field* fields = QR->Fetch();
-		uint16 id = fields[0].GetUInt16();
-		data<<id;
+		int16 id = fields[0].GetInt16();
+		results.push_back(id);
 	}while(QR->NextRow());
 	delete QR;
-	Send(data);
+	Send(AcquaintanceServerListMessage(results));
 }
 
 void Session::HandleServerSelectionMessage(ByteBuffer& packet)
@@ -79,7 +75,7 @@ void Session::HandleServerSelectionMessage(ByteBuffer& packet)
 	if(G == NULL)
 		return;
 
-	uint8 state = G->GetState(m_data[FLAG_LEVEL].intValue, m_subscribeTime > 0);
+	uint8 state = G->GetState(m_data[FLAG_LEVEL].intValue, IsSubscriber());
 	if(!CanSelect(state))
 	{
 		uint8 reason;
@@ -96,7 +92,7 @@ void Session::HandleServerSelectionMessage(ByteBuffer& packet)
 			break;
 		}
 		
-		Send(SelectedServerRefusedMessage(G->GetID(), reason, G->GetState(m_data[FLAG_LEVEL].intValue, m_subscribeTime > 0)));
+		Send(SelectedServerRefusedMessage(G->GetID(), reason, G->GetState(m_data[FLAG_LEVEL].intValue, IsSubscriber())));
 		return;
 	}
 	//todo: restriction de communauté et de géolocalisation
@@ -104,7 +100,8 @@ void Session::HandleServerSelectionMessage(ByteBuffer& packet)
 	std::string ticket = GenerateRandomKey();
 	if(!Desperion::sDatabase->Execute("UPDATE accounts SET ticket='%s' WHERE guid=%u LIMIT 1;", ticket.c_str(), m_data[FLAG_GUID].intValue))
 	{
-		Send(SelectedServerRefusedMessage(G->GetID(), SERVER_CONNECTION_ERROR_NO_REASON, G->GetState(m_data[FLAG_LEVEL].intValue, m_subscribeTime > 0)));
+		Send(SelectedServerRefusedMessage(G->GetID(), SERVER_CONNECTION_ERROR_NO_REASON, 
+			G->GetState(m_data[FLAG_LEVEL].intValue, IsSubscriber())));
 		return;
 	}
 
@@ -114,7 +111,7 @@ void Session::HandleServerSelectionMessage(ByteBuffer& packet)
 
 GameServerInformations Session::GetServerStatusMessage(const GameServer* G, uint8 count)
 {
-	uint8 state = G->GetState(m_data[FLAG_LEVEL].intValue, m_subscribeTime > 0);;
+	uint8 state = G->GetState(m_data[FLAG_LEVEL].intValue, IsSubscriber());
 	return GameServerInformations(G->GetID(), state, 0,
 		CanSelect(state), count, uint64(0));
 }
@@ -134,7 +131,7 @@ void Session::HandleIdentificationMessage(ByteBuffer& packet)
 		throw ServerError("Bad Version");
 	}
 
-	const char* query = "SELECT password, guid, question, pseudo, logged, level, lastServer FROM accounts WHERE account='%s' LIMIT 1;";
+	const char* query = "SELECT password, guid, question, pseudo, logged, level, lastServer, subscriptionEnd FROM accounts WHERE account='%s' LIMIT 1;";
 	QueryResult* QR = Desperion::sDatabase->Query(query, data.userName.c_str());
 	
 	if(!QR)
@@ -177,6 +174,7 @@ void Session::HandleIdentificationMessage(ByteBuffer& packet)
 	}
 
 	uint16 lastServer = fields[6].GetUInt16();
+	m_subscriptionEnd = fields[7].GetUInt32();
 	m_data[FLAG_PSEUDO].stringValue = fields[3].GetString();
 	m_data[FLAG_GUID].intValue = guid;
 	m_data[FLAG_LEVEL].intValue = fields[5].GetUInt8();
@@ -184,26 +182,8 @@ void Session::HandleIdentificationMessage(ByteBuffer& packet)
 	m_data[FLAG_ACCOUNT].stringValue = data.userName;
 	delete QR;
 
-	QR = Desperion::sDatabase->Query("SELECT subscribeTime, subscribeDate FROM account_subscribes WHERE guid=%u", m_data[FLAG_GUID]);
-	if(QR)
-	{
-		time_t duree = fields[7].GetUInt64();
-		time_t date = fields[8].GetUInt64();
-		time_t subscribe = 0;
-		subscribe = duree - (time(NULL) - date);
-		if(subscribe <= 0)
-		{
-			Desperion::sDatabase->Execute("DELETE FROM account_subscribes WHERE guid=%u", m_data[FLAG_GUID]);
-			subscribe = 0;
-		}
-		m_subscribeTime = subscribe;
-	}
-	else
-		m_subscribeTime = 0;
-	delete QR;
-
 	Send(IdentificationSuccessMessage(m_data[FLAG_LEVEL].intValue, alreadyConnected, m_data[FLAG_PSEUDO].stringValue,
-		m_data[FLAG_GUID].intValue, m_data[FLAG_QUESTION].stringValue, m_subscribeTime));
+		m_data[FLAG_GUID].intValue, m_data[FLAG_QUESTION].stringValue, m_subscriptionEnd));
 
 	struct Count
 	{

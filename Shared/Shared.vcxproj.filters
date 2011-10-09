@@ -25,6 +25,9 @@
     <ClCompile Include="Utils.cpp">
       <Filter>Utils\CPP</Filter>
     </ClCompile>
+    <ClCompile Include="QueryResult.cpp">
+      <Filter>Network\CPP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ByteBuffer.h">
@@ -85,6 +88,9 @@
       <Filter>Network\H</Filter>
     </ClInclude>
     <ClInclude Include="DofusModel.h">
+      <Filter>Network\H</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryResult.h">
       <Filter>Network\H</Filter>
     </ClInclude>
   </ItemGroup>

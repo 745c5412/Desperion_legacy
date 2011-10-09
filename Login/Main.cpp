@@ -12,9 +12,12 @@ int main(int argc, char *argv[])
 	_CrtSetReportFile(_CRT_WARN, hLogFile);
 #endif
 	new Desperion::Master;
-	Desperion::Master::Instance().Run(argc, argv);
+	
+	if(Desperion::Master::Instance().Run(argc, argv))
+		Log::Instance().outString("Desperion is shutting down...");
+	else
+		Log::Instance().outError("#Abnormal Desperion termination#");
 
-	Log::Instance().outString("Desperion is shutting down...");
 	delete Desperion::Master::InstancePtr();
 	printf("Press any key to continue!");
 	std::getchar();

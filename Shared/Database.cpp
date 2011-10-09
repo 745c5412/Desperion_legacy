@@ -2,15 +2,15 @@
 
 Database::Database(uint8 number)
 {
-	m_connections_number = number;
-	m_connections = new Connection[m_connections_number];
-	for(uint8 a = 0; a < m_connections_number; ++a)
+	m_connectionsNumber = number;
+	m_connections = new Connection[m_connectionsNumber];
+	for(uint8 a = 0; a < m_connectionsNumber; ++a)
 		m_connections[a].conn = NULL;
 }
 
 Database::~Database()
 {
-	for(uint8 a = 0; a < m_connections_number; ++a)
+	for(uint8 a = 0; a < m_connectionsNumber; ++a)
 	{
 		if(!m_connections[a].conn)
 			continue;
@@ -22,16 +22,16 @@ Database::~Database()
 
 bool Database::Init(std::string host, uint16 port, std::string user, std::string pass, std::string name)
 {
-	m_host_name = host;
+	m_hostName = host;
 	m_port = port;
-	m_user_name = user;
+	m_userName = user;
 	m_password = pass;
-	m_database_name = name;
+	m_databaseName = name;
 
 	MYSQL* temp, * temp2;
 	my_bool my_true = true;
 
-	for(uint8 a = 0; a < m_connections_number; ++a)
+	for(uint8 a = 0; a < m_connectionsNumber; ++a)
 	{
 		temp = mysql_init( NULL );
 		if(mysql_options(temp, MYSQL_SET_CHARSET_NAME, "utf8"))
@@ -40,7 +40,7 @@ bool Database::Init(std::string host, uint16 port, std::string user, std::string
 		if (mysql_options(temp, MYSQL_OPT_RECONNECT, &my_true))
 			Log::Instance().outError("MySQLDatabase: MYSQL_OPT_RECONNECT could not be set, connection drops may occur but will be counteracted.");
 
-		temp2 = mysql_real_connect( temp, m_host_name.c_str(), m_user_name.c_str(), m_password.c_str(), m_database_name.c_str(), port, NULL, 0 );
+		temp2 = mysql_real_connect( temp, m_hostName.c_str(), m_userName.c_str(), m_password.c_str(), m_databaseName.c_str(), port, NULL, 0 );
 		if( temp2 == NULL )
 		{
 			Log::Instance().outError("MySQLDatabase: Connection failed due to: `%s`", mysql_error( temp ) );
@@ -56,7 +56,7 @@ bool Database::Reconnect(Connection * conn)
 	MYSQL * temp, *temp2;
 
 	temp = mysql_init( NULL );
-	temp2 = mysql_real_connect( temp, m_host_name.c_str(), m_user_name.c_str(), m_password.c_str(), m_database_name.c_str(), m_port, NULL , 0 );
+	temp2 = mysql_real_connect( temp, m_hostName.c_str(), m_userName.c_str(), m_password.c_str(), m_databaseName.c_str(), m_port, NULL , 0 );
 	if( temp2 == NULL )
 	{
 		Log::Instance().outError("Database: Could not reconnect to database because of `%s`", mysql_error( temp ) );
@@ -71,10 +71,10 @@ bool Database::Reconnect(Connection * conn)
 	return true;
 }
 
-bool Database::HandleError(Connection * con, uint32 ErrorNumber)
+bool Database::HandleError(Connection * con, uint32 errorNumber)
 {
 	// Handle errors that should cause a reconnect to the Database.
-	switch(ErrorNumber)
+	switch(errorNumber)
 	{
 	case 2006:  // Mysql server has gone away
 	case 2008:  // Client ran out of memory
@@ -108,8 +108,8 @@ Connection* Database::GetFreeConnection()
 	uint32 i = 0;
 	for(;;)
 	{
-		Connection * con = &m_connections[ ((i++) % m_connections_number) ];
-		if(con->mymutex.try_lock())
+		Connection * con = &m_connections[ ((i++) % m_connectionsNumber) ];
+		if(con->lock.try_lock())
 			return con;
 
 		if( !(i % 20) )
@@ -139,7 +139,7 @@ bool Database::_AsyncExecute(const char* query)
 {
 	Connection* con = GetFreeConnection();
 	bool result = SendQuery(con, query, false);
-	con->mymutex.unlock();
+	con->lock.unlock();
 
 	return result;
 }
@@ -155,7 +155,7 @@ bool Database::Execute(const char* QueryString, ...)
 
 	Connection* con = GetFreeConnection();
 	bool result = SendQuery(con, query, false);
-	con->mymutex.unlock();
+	con->lock.unlock();
 
 	return result;
 }
@@ -195,30 +195,23 @@ QueryResult * Database::Query(const char* QueryString, ...)
 
 	if(SendQuery(con, sql, false))
 		qResult = StoreResult(con);
-	con->mymutex.unlock();
+	con->lock.unlock();
 
 	return qResult;
 }
 
-QueryResult::QueryResult(MYSQL_RES *res, uint32 fields, uint32 rows) : mResult(res), mFieldCount(fields), mRowCount(rows)
+std::string Database::EscapeString(std::string str)
 {
-	mCurrentRow = new Field[fields];
-}
+	char a2[16384] = {0};
 
-QueryResult::~QueryResult()
-{
-	mysql_free_result(mResult);
-	delete [] mCurrentRow;
-}
+	Connection * con = GetFreeConnection();
+	const char * ret;
+	const char* escape = str.c_str();
+	if(mysql_real_escape_string(con->conn, a2, escape, (unsigned long)str.length()) == 0)
+		ret = escape;
+	else
+		ret = a2;
 
-bool QueryResult::NextRow()
-{
-	MYSQL_ROW row = mysql_fetch_row(mResult);
-	if(row == NULL)
-		return false;
-
-	for(uint32 i = 0; i < mFieldCount; ++i)
-		mCurrentRow[i].SetValue(row[i]);
-
-	return true;
+	con->lock.unlock();
+	return std::string(ret);
 }

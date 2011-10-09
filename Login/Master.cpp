@@ -110,7 +110,7 @@ namespace Desperion
 		sListener = new SocketListener<Session>(ios);
 		sListener->Init(Config::Instance().GetUInt(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
 		if(sListener->IsOpen())
-			Log::Instance().outNotice("Network", "Local socket running!");
+			Log::Instance().outNotice("Network", "Local socket running!\n");
 		else
 		{
 			Log::Instance().outError("Error: Local socket");
@@ -120,14 +120,14 @@ namespace Desperion
 		eListener = new SocketListener<GameSession>(ios);
 		eListener->Init(Config::Instance().GetUInt(DISTANT_SERVER_PORT_STRING, DISTANT_SERVER_PORT_DEFAULT));
 		if(eListener->IsOpen())
-			Log::Instance().outNotice("Network", "Distant socket running!");
+			Log::Instance().outNotice("Network", "Distant socket running!\n");
 		else
 		{
 			Log::Instance().outError("Error: Distant socket");
 			return false;
 		}
 	
-		Log::Instance().outColor(TBLUE, "\nUptime: %ums", getMSTime() - m_startTime);
+		Log::Instance().outColor(TBLUE, "Uptime: %ums", getMSTime() - m_startTime);
 		Log::Instance().outColor(TBLUE, "Type Ctrl+C to safely shutdown the server.\n");
 
 		sListener->Run();

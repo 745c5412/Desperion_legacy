@@ -108,7 +108,7 @@ class Session : public BaseSession<LoginPacketHandler>
 private:
 	AccountData m_data[FLAGS_NUMBER];
 	std::string m_key;
-	time_t m_subscribeTime;
+	time_t m_subscriptionEnd;
 
 	void HandleIdentificationMessage(ByteBuffer&);
 	void HandleServerSelectionMessage(ByteBuffer&);
@@ -119,6 +119,9 @@ public:
 
 	void OnData(LoginPacketHandler* hdl, ByteBuffer& packet)
 	{ (this->*hdl->Handler)(packet); }
+
+	bool IsSubscriber()
+	{ return true; }
 
 	bool IsAllowed(uint8 flag)
 	{
@@ -149,7 +152,7 @@ public:
 		case NOJOIN:
 			return m_data[FLAG_LEVEL].intValue > 0;
 		case FULL:
-			return m_subscribeTime > 0;
+			return IsSubscriber();
 		default:
 			return false;
 		}
@@ -169,8 +172,8 @@ public:
 	AccountData* GetAccount()
 	{ return m_data; }
 
-	time_t GetSubscribeTime() const
-	{ return m_subscribeTime; }
+	time_t GetSubscriptionEnd() const
+	{ return m_subscriptionEnd; }
 
 	GameServerInformations GetServerStatusMessage(const GameServer*, uint8);
 };

@@ -19,6 +19,7 @@
     </ClCompile>
     <ClCompile Include="MersenneTwister.cpp" />
     <ClCompile Include="ProgressBar.cpp" />
+    <ClCompile Include="QueryResult.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
@@ -39,6 +40,7 @@
     <ClInclude Include="Opcodes.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="ProgressBar.h" />
+    <ClInclude Include="QueryResult.h" />
     <ClInclude Include="ServerError.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="SocketListener.h" />

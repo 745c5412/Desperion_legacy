@@ -14,6 +14,7 @@
 #include "Packet.h"
 #include "SocketListener.h"
 #include "Log.h"
+#include "QueryResult.h"
 #include "Database.h"
 #include "md5.h"
 #include "Config.h"
