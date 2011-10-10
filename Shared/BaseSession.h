@@ -144,32 +144,30 @@ public:
 
 		Log::Instance().outDebug("Received: packet ID %u", m_opcode);
 		HandlerStorageMap::iterator it = BaseSession::m_handlers.find(m_opcode);
-
-		if(it == BaseSession::m_handlers.end())
+		
+		try
 		{
-			Send(Packet(SMSG_BASIC_NO_OPERATION));
-			Run();
-			return;
-		}
-			
-		ByteBuffer received;
-		received.AppendBytes(&m_buffer[0], m_buffer.size());
+			if(it != BaseSession::m_handlers.end())
+			{
+				ByteBuffer received;
+				size_t size = m_buffer.size();
+				if(size > 0)
+					received.AppendBytes(&m_buffer[0], size);
 
-		HandlerType* hdl = &it->second;
-		if(IsAllowed(hdl->Flag))
-		{
-			try
-			{
-				OnData(hdl, received);
-			}catch(const ServerError& error)
-			{
-				Log::Instance().outError(error.what());
-				m_dead = true;
-				return;
-			}catch(const std::exception& except)
-			{
-				Log::Instance().outError(except.what());
+				HandlerType* hdl = &it->second;
+				if(IsAllowed(hdl->Flag))
+					OnData(hdl, received);
 			}
+		}catch(const boost::exception&)
+		{
+		}catch(const ServerError& error)
+		{
+			Log::Instance().outError(error.what());
+			m_dead = true;
+			return;
+		}catch(const std::exception& except)
+		{
+			Log::Instance().outError(except.what());
 		}
 		
 		m_opcode = 0;

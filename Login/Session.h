@@ -21,44 +21,6 @@
 
 class GameServer;
 
-enum ServerConnectionError
-{
-	SERVER_CONNECTION_ERROR_DUE_TO_STATUS = 0,
-	SERVER_CONNECTION_ERROR_NO_REASON = 1,
-	SERVER_CONNECTION_ERROR_ACCOUNT_RESTRICTED = 2,
-	SERVER_CONNECTION_ERROR_COMMUNITY_RESTRICTED = 3,
-	SERVER_CONNECTION_ERROR_LOCATION_RESTRICTED = 4,
-	SERVER_CONNECTION_ERROR_SUBSCRIBERS_ONLY = 5,
-	SERVER_CONNECTION_ERROR_REGULAR_PLAYERS_ONLY = 6,
-};
-
-enum ServerStatus
-{
-	STATUS_UNKNOWN = 0,
-	OFFLINE = 1,
-	STARTING = 2,
-	ONLINE = 3,
-	NOJOIN = 4,
-	SAVING = 5,
-	STOPING = 6,
-	FULL = 7,
-};
-
-enum IdentificationFailureReason
-{
-	BAD_VERSION = 1,
-	WRONG_CREDENTIALS = 2,
-	BANNED = 3,
-	KICKED = 4,
-	IN_MAINTENANCE = 5,
-	TOO_MANY_ON_IP = 6,
-	TIME_OUT = 7,
-	BAD_IPRANGE = 8,
-	CREDENTIALS_RESET = 9,
-	UNKNOWN_AUTH_ERROR = 99,
-	SPARE = 100,
-};
-
 enum ReqFlag
 {
 	FLAG_NOT_CONNECTED,
@@ -138,7 +100,7 @@ public:
 	void OnData(LoginPacketHandler* hdl, ByteBuffer& packet)
 	{ (this->*hdl->Handler)(packet); }
 
-	bool IsSubscriber()
+	bool IsSubscriber() const
 	{ return true; }
 
 	bool IsAllowed(uint8 flag)

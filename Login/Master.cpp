@@ -128,7 +128,7 @@ namespace Desperion
 		sListener = new SocketListener<Session>(ios);
 		sListener->Init(Config::Instance().GetUInt(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
 		if(sListener->IsOpen())
-			Log::Instance().outNotice("Network", "Local socket running!\n");
+			Log::Instance().outNotice("Network", "Local socket running!");
 		else
 		{
 			Log::Instance().outError("Error: Local socket");
