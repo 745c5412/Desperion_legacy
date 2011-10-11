@@ -137,6 +137,7 @@ void World::Init()
 	Log::Instance().outNotice("World", "Loading world...");
 	tp.schedule(boost::bind(&World::LoadCharacterMinimals, this));
 	tp.schedule(boost::bind(&World::LoadItems, this));
+	tp.schedule(boost::bind(&World::LoadMaps, this));
 	tp.wait();
 	Log::Instance().outNotice("World", "World loaded!");
 
@@ -173,6 +174,23 @@ void World::LoadItems()
 	Log::Instance().outNotice("World", "%u items loaded in %ums!", Items.size(), getMSTime() - time);
 }
 
+void World::LoadMaps()
+{
+	uint32 time = getMSTime();
+	QueryResult* QR = Desperion::sDatabase->Query("SELECT * FROM d2o_map_position;");
+	if(!QR)
+		return;
+	do
+	{
+		Field* fields = QR->Fetch();
+		Map* map = new Map;
+		map->Init(fields);
+		Maps[map->GetId()] = map;
+	}while(QR->NextRow());
+	delete QR;
+	Log::Instance().outNotice("World", "%u maps loaded in %ums!", Maps.size(), getMSTime() - time);
+}
+
 void World::LoadCharacterMinimals()
 {
 	uint32 time = getMSTime();
@@ -182,7 +200,6 @@ void World::LoadCharacterMinimals()
 	do
 	{
 		Field* fields = QR->Fetch();
-
 		CharacterMinimals* ch = new CharacterMinimals;
 		ch->Init(fields);
 		Characters[ch->id] = ch;
@@ -215,6 +232,33 @@ void World::Update()
 		boost::thread(boost::bind(&GameClient::SendPlayers, GameClient::InstancePtr()));
 		GameClient::Instance().RefreshLastUpdate();
 	}
+}
+
+Map* World::GetMap(int id)
+{
+	Map* map = NULL;
+	MapsMutex.lock();
+	MapMap::iterator it = Maps.find(id);
+	if(it != Maps.end())
+		map = it->second;
+	MapsMutex.unlock();
+	return map;
+}
+
+Map* World::GetMapByCoords(int16 x, int16 y)
+{
+	Map* map = NULL;
+	MapsMutex.lock();
+	for(MapMap::iterator it = Maps.begin(); it != Maps.end(); ++it)
+	{
+		if(it->second->GetPosX() == x && it->second->GetPosY() == y)
+		{
+			map = it->second;
+			break;
+		}
+	}
+	MapsMutex.unlock();
+	return map;
 }
 
 void World::AddCharacterMinimals(CharacterMinimals* ch)

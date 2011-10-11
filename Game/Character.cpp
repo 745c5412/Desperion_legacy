@@ -18,82 +18,6 @@
 
 #include "StdAfx.h"
 
-ByteBuffer Character::SerializeActor() const
-{
-	ByteBuffer buffer;
-	buffer<<uint16(GAME_ROLE_PLAY_CHARACTER_INFORMATIONS)<<int(0); // int(0) => contextualId
-	buffer<<m_look.Serialize(const_cast<Character*>(this))<<uint16(ENTITY_DISPOSITION_INFORMATIONS)<<m_currentCell<<m_direction;
-	buffer<<m_name<<uint16(HUMAN_INFORMATIONS)<<uint16(0); // todo: HumanWithGuild, uint16(0) = sizeof(followingCharactersLook)
-	buffer<<uint8(0)<<uint64(0); // emoteId, emoteTimer
-	uint8 r1 = 0;
-	Desperion::BooleanByteWrapper::SetFlag(r1, 0, m_restrictions[cantBeAggressed]);
-	Desperion::BooleanByteWrapper::SetFlag(r1, 1, m_restrictions[cantBeChallenged]);
-	Desperion::BooleanByteWrapper::SetFlag(r1, 2, m_restrictions[cantTrade]);
-	Desperion::BooleanByteWrapper::SetFlag(r1, 3, m_restrictions[cantBeAttackedByMutant]);
-	Desperion::BooleanByteWrapper::SetFlag(r1, 4, m_restrictions[cantRun]);
-	Desperion::BooleanByteWrapper::SetFlag(r1, 5, m_restrictions[forceSlowWalk]);
-	Desperion::BooleanByteWrapper::SetFlag(r1, 6, m_restrictions[cantMinimize]);
-	Desperion::BooleanByteWrapper::SetFlag(r1, 7, m_restrictions[cantMove]);
-	buffer<<r1;
-	uint8 r2 = 0;
-	Desperion::BooleanByteWrapper::SetFlag(r2, 0, m_restrictions[cantAggress]);
-	Desperion::BooleanByteWrapper::SetFlag(r2, 1, m_restrictions[cantChallenge]);
-	Desperion::BooleanByteWrapper::SetFlag(r2, 2, m_restrictions[cantExchange]);
-	Desperion::BooleanByteWrapper::SetFlag(r2, 3, m_restrictions[cantAttack]);
-	Desperion::BooleanByteWrapper::SetFlag(r2, 4, m_restrictions[cantChat]);
-	Desperion::BooleanByteWrapper::SetFlag(r2, 5, m_restrictions[cantBeMerchant]);
-	Desperion::BooleanByteWrapper::SetFlag(r2, 6, m_restrictions[cantUseObject]);
-	Desperion::BooleanByteWrapper::SetFlag(r2, 7, m_restrictions[cantUseTaxCollector]);
-	buffer<<r2;
-	uint8 r3 = 0;
-	Desperion::BooleanByteWrapper::SetFlag(r3, 0, m_restrictions[cantUseInteractive]);
-	Desperion::BooleanByteWrapper::SetFlag(r3, 1, m_restrictions[cantSpeakToNPC]);
-	Desperion::BooleanByteWrapper::SetFlag(r3, 2, m_restrictions[cantChangeZone]);
-	Desperion::BooleanByteWrapper::SetFlag(r3, 3, m_restrictions[cantAttackMonster]);
-	Desperion::BooleanByteWrapper::SetFlag(r3, 4, m_restrictions[cantWalk8Directions]);
-	buffer<<r3;
-	buffer<<m_title<<std::string(""); // "" = titleParams
-	buffer<<m_stats.GetAlignmentSide()<<m_stats.GetAlignmentValue()<<m_stats.GetAlignmentGrade();
-	buffer<<m_stats.GetDishonor()<<m_stats.GetCharacterPower();
-	return buffer;
-}
-
-ByteBuffer Character::SerializeStats() const
-{
-	ByteBuffer buffer;
-	buffer<<m_stats.GetXp()<<uint64(0)<<uint64(0); // floor, ceil
-	buffer<<m_stats.GetKamas()<<m_stats.GetStatsPoints()<<m_stats.GetSpellsPoints();
-	buffer<<m_stats.GetAlignmentSide()<<m_stats.GetAlignmentValue()<<m_stats.GetAlignmentGrade();
-	buffer<<m_stats.GetDishonor()<<m_stats.GetCharacterPower()<<m_stats.GetHonor();
-	buffer<<uint16(0)<<uint16(0); // floor, ceil
-	buffer<<m_stats.IsPvpEnabled();
-
-	buffer<<GetCurrentLife();
-	buffer<<GetMaxLife();
-	buffer<<m_stats.GetEnergy();
-	buffer<<int16(10000); // energyMax
-	buffer<<m_stats.GetCurrentAp()<<m_stats.GetCurrentMp();
-	
-	buffer<<m_stats.initiative<<m_stats.prospecting<<m_stats.actionPoints<<m_stats.movementPoints;
-	buffer<<m_stats.strength<<m_stats.vitality<<m_stats.wisdom<<m_stats.chance<<m_stats.agility<<m_stats.intelligence;
-	buffer<<m_stats.range<<m_stats.summonableCreaturesBoost<<m_stats.reflect<<m_stats.criticalHit<<int16(50); // criticalHitWeapon
-	buffer<<m_stats.criticalMiss<<m_stats.healBonus<<m_stats.allDamagesBonus<<m_stats.weaponDamagesBonusPercent<<m_stats.damagesBonusPercent;
-	buffer<<m_stats.trapBonus<<m_stats.trapBonusPercent<<m_stats.permanentDamagePercent<<m_stats.tackleBlock<<m_stats.tackleEvade;
-	buffer<<m_stats.PAAttack<<m_stats.PMAttack<<m_stats.pushDamageBonus<<m_stats.criticalDamageBonus<<m_stats.neutralDamageBonus;
-	buffer<<m_stats.earthDamageBonus<<m_stats.waterDamageBonus<<m_stats.airDamageBonus<<m_stats.fireDamageBonus;
-	buffer<<m_stats.dodgePALostProbability<<m_stats.dodgePMLostProbability<<m_stats.neutralElementResistPercent;
-	buffer<<m_stats.earthElementResistPercent<<m_stats.waterElementResistPercent<<m_stats.airElementResistPercent;
-	buffer<<m_stats.fireElementResistPercent<<m_stats.neutralElementReduction<<m_stats.earthElementReduction;
-	buffer<<m_stats.waterElementReduction<<m_stats.airElementReduction<<m_stats.fireElementReduction;
-	buffer<<m_stats.pushDamageReduction<<m_stats.criticalDamageReduction<<m_stats.pvpNeutralElementResistPercent;
-	buffer<<m_stats.pvpEarthElementResistPercent<<m_stats.pvpWaterElementResistPercent<<m_stats.pvpAirElementResistPercent;
-	buffer<<m_stats.pvpFireElementResistPercent<<m_stats.pvpNeutralElementReduction<<m_stats.pvpEarthElementReduction;
-	buffer<<m_stats.pvpWaterElementReduction<<m_stats.pvpAirElementReduction<<m_stats.pvpFireElementReduction;
-	buffer<<uint16(0); // spellModifications
-
-	return buffer;
-}
-
 Character::~Character()
 {
 	CharacterMinimals* ch = World::Instance().GetCharacterMinimals(m_guid);
@@ -106,7 +30,11 @@ Character::~Character()
 
 void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 {
-	m_guid = fields[0].GetInt32();
+	DisplayableEntity::Init(fields[0].GetInt32(), ch->look, fields[3].GetInt16(), World::Instance().GetMap(fields[2].GetInt32()), 
+		DIRECTION_SOUTH_WEST);
+	NamedEntity::Init(ch->name);
+	HumanEntity::Init(0, 0, fields[11].GetInt16(), "");
+
 	std::string zaaps = fields[1].GetString();
 	{
 		ByteBuffer buffer = Desperion::DbToBuffer(zaaps);
@@ -119,8 +47,6 @@ void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 			m_zaaps.push_back(zaap);
 		}
 	}
-	m_currentMap = fields[2].GetInt32();
-	m_currentCell = fields[3].GetInt16();
 	//spells
 	m_saveMap = fields[5].GetInt32();
 	m_saveCell = fields[6].GetInt16();
@@ -128,7 +54,6 @@ void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 	m_mountXp = fields[8].GetInt8();
 	//mount
 	m_isDead = fields[10].GetBool();
-	m_title = fields[11].GetInt16();
 	m_isMerchant = fields[12].GetBool();
 	std::string emotes = fields[13].GetString();
 	{
@@ -144,14 +69,12 @@ void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 	}
 
 	m_level = ch->level;
-	m_name = ch->name;
 	m_breed = ch->breed;
 	m_sex = ch->sex;
 	m_account = ch->account;
-	m_look = ch->look;
 	m_session = session;
 	m_context = ROLE_PLAY;
-	m_direction = DIRECTION_SOUTH_WEST;
+	m_nextCell = -1;
 	ch->onlineCharacter = this;
 	InitItems();
 	m_stats.Init(fields, m_level);

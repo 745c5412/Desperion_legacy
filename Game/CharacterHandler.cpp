@@ -154,6 +154,7 @@ void Session::HandleCharacterSelectionMessage(ByteBuffer& packet)
 	delete QR;
 
 	Send(CharacterSelectedSuccessMessage(toSelect));
+	m_char->GetMap()->AddActor(m_char);
 }
 
 void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)

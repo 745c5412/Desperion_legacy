@@ -56,7 +56,7 @@ public:
 		delete m_socket;
 	}
 
-	void OnAccept(const boost::system::error_code& error)
+	void HandleAcceptSocket(const boost::system::error_code& error)
 	{
 		if(error)
 			return;
@@ -69,7 +69,7 @@ public:
 
 	void Run()
 	{
-		m_acceptor->async_accept(*m_socket, boost::bind(&SocketListener::OnAccept, this, boost::asio::placeholders::error));
+		m_acceptor->async_accept(*m_socket, boost::bind(&SocketListener::HandleAcceptSocket, this, boost::asio::placeholders::error));
 	}
 
 	bool IsOpen()

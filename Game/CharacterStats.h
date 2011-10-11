@@ -41,9 +41,7 @@ struct StatsRow
 
 	operator ByteBuffer() const
 	{
-		ByteBuffer buffer;
-		buffer<<base<<objects<<align<<context;
-		return buffer;
+		return CharacterBaseCharacteristic(base, objects, align, context);
 	}
 };
 
@@ -107,34 +105,37 @@ public:
 
 	void Init(Field* fields, uint8 level)
 	{
-		m_kamas = fields[14].GetInt32();
-		m_statsPoints = fields[15].GetInt32();
-		m_spellsPoints = fields[16].GetInt32();
-		m_alignmentSide = fields[17].GetInt8();
-		m_alignmentValue = fields[18].GetInt8();
-		m_alignmentGrade = fields[19].GetInt8();
-		m_characterPower = fields[20].GetInt32();
-		m_dishonor = fields[21].GetInt16();
-		m_honor = fields[22].GetInt16();
-		m_pvpEnabled = fields[23].GetBool();
-		m_energy = fields[24].GetInt16();
-		vitality.base = fields[25].GetInt16();
-		wisdom.base = fields[26].GetInt16();
-		strength.base = fields[27].GetInt16();
-		intelligence.base = fields[28].GetInt16();
-		chance.base = fields[29].GetInt16();
-		agility.base = fields[30].GetInt16();
-		m_xp = fields[31].GetUInt64();
+		m_kamas = fields[15].GetInt32();
+		m_statsPoints = fields[16].GetInt32();
+		m_spellsPoints = fields[17].GetInt32();
+		m_alignmentSide = fields[18].GetInt8();
+		m_alignmentValue = fields[19].GetInt8();
+		m_alignmentGrade = fields[20].GetInt8();
+		m_characterPower = fields[21].GetInt32();
+		m_dishonor = fields[22].GetInt16();
+		m_honor = fields[23].GetInt16();
+		m_pvpEnabled = fields[24].GetBool();
+		m_energy = fields[25].GetInt16();
+		vitality.base = fields[26].GetInt16();
+		wisdom.base = fields[27].GetInt16();
+		strength.base = fields[28].GetInt16();
+		intelligence.base = fields[29].GetInt16();
+		chance.base = fields[30].GetInt16();
+		agility.base = fields[31].GetInt16();
+		m_xp = fields[32].GetUInt64();
+		m_damages = fields[33].GetInt32();
 
 		initiative.base += strength.base;
 		initiative.base += intelligence.base;
 		initiative.base += chance.base;
 		initiative.base += agility.base;
 		
-		m_startLife = fields[34].GetUInt8();
-		prospecting.base = fields[36].GetInt16();
+		m_startLife = fields[36].GetUInt8();
+		prospecting.base = fields[38].GetInt16();
 		prospecting.base += (chance.Total() / 10);
 		actionPoints.base = (level > 100 ? 7 : 6);
+		movementPoints.base = 3;
+		weightBonus = 0;
 
 		m_usedAp = 0;
 		m_usedMp = 0;

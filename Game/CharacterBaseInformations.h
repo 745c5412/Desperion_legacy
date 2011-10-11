@@ -22,20 +22,12 @@
 class CharacterBaseInformations : public CharacterMinimalPlusLookInformations
 {
 public:
-	uint32 GetProtocol() const
+	virtual uint16 GetProtocol() const
 	{ return CHARACTER_BASE_INFORMATIONS; }
 
-	CharacterBaseInformations(int id, uint8 level, std::string name, DEntityLook& look, int8 breed, bool sex)
-		: CharacterMinimalPlusLookInformations(id, level, name, look)
-	{
-		m_buffer<<breed<<sex;
-	}
+	CharacterBaseInformations(int id, uint8 level, std::string name, DEntityLook& look, int8 breed, bool sex);
 
-	CharacterBaseInformations(int id, uint8 level, std::string name, DEntityLook& look, Character* ch, int8 breed, bool sex)
-		: CharacterMinimalPlusLookInformations(id, level, name, look, ch)
-	{
-		m_buffer<<breed<<sex;
-	}
+	CharacterBaseInformations(int id, uint8 level, std::string name, DEntityLook& look, Character* ch, int8 breed, bool sex);
 };
 
 #endif

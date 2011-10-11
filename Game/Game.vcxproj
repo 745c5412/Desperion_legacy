@@ -66,13 +66,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ActorRestrictionsInformations.cpp" />
     <ClCompile Include="Character.cpp" />
+    <ClCompile Include="CharacterBaseInformations.cpp" />
+    <ClCompile Include="CharacterCharacteristicsInformations.cpp" />
     <ClCompile Include="CharacterHandler.cpp" />
+    <ClCompile Include="CharacterMinimalPlusLookInformations.cpp" />
     <ClCompile Include="CharacterMinimals.cpp" />
     <ClCompile Include="ContextHandler.cpp" />
+    <ClCompile Include="Entity.cpp" />
+    <ClCompile Include="EntityLook.cpp" />
     <ClCompile Include="GameClient.cpp" />
+    <ClCompile Include="GameContextActorInformations.cpp" />
+    <ClCompile Include="GameRolePlayCharacterInformations.cpp" />
+    <ClCompile Include="GameRolePlayHumanoidInformations.cpp" />
+    <ClCompile Include="GameRolePlayNamedActorInformations.cpp" />
+    <ClCompile Include="HumanInformations.cpp" />
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Map.cpp" />
     <ClCompile Include="Master.cpp" />
     <ClCompile Include="PlayerItem.cpp" />
     <ClCompile Include="Session.cpp" />
@@ -84,11 +96,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AccountCapabilitiesMessage.h" />
+    <ClInclude Include="ActorAlignmentInformations.h" />
+    <ClInclude Include="ActorExtendedAlignmentInformations.h" />
+    <ClInclude Include="ActorRestrictionsInformations.h" />
+    <ClInclude Include="AdminCommandMessage.h" />
+    <ClInclude Include="AdminQuietCommandMessage.h" />
     <ClInclude Include="AuthenticationTicketAcceptedMessage.h" />
     <ClInclude Include="AuthenticationTicketMessage.h" />
     <ClInclude Include="AuthenticationTicketRefusedMessage.h" />
+    <ClInclude Include="BasicNoOperationMessage.h" />
+    <ClInclude Include="ChangeMapMessage.h" />
     <ClInclude Include="Character.h" />
+    <ClInclude Include="CharacterBaseCharacteristic.h" />
     <ClInclude Include="CharacterBaseInformations.h" />
+    <ClInclude Include="CharacterCharacteristicsInformations.h" />
     <ClInclude Include="CharacterDeletionErrorMessage.h" />
     <ClInclude Include="CharacterDeletionRequestMessage.h" />
     <ClInclude Include="CharacterMinimalInformations.h" />
@@ -103,17 +124,39 @@
     <ClInclude Include="CharactersListMessage.h" />
     <ClInclude Include="CharactersListRequestMessage.h" />
     <ClInclude Include="CharacterStats.h" />
+    <ClInclude Include="CharacterStatsListMessage.h" />
     <ClInclude Include="ConfigDefaults.h" />
+    <ClInclude Include="CurrentMapMessage.h" />
+    <ClInclude Include="Entity.h" />
+    <ClInclude Include="EntityDispositionInformations.h" />
     <ClInclude Include="EntityLook.h" />
     <ClInclude Include="GameClient.h" />
     <ClInclude Include="CharacterCreationRequestMessage.h" />
+    <ClInclude Include="GameContextActorInformations.h" />
+    <ClInclude Include="GameContextCreateMessage.h" />
+    <ClInclude Include="GameContextCreateRequestMessage.h" />
+    <ClInclude Include="GameContextDestroyMessage.h" />
+    <ClInclude Include="GameMapMovementConfirmMessage.h" />
+    <ClInclude Include="GameMapMovementMessage.h" />
+    <ClInclude Include="GameMapMovementRequestMessage.h" />
+    <ClInclude Include="GameRolePlayActorInformations.h" />
+    <ClInclude Include="GameRolePlayCharacterInformations.h" />
+    <ClInclude Include="GameRolePlayHumanoidInformations.h" />
+    <ClInclude Include="GameRolePlayNamedActorInformations.h" />
     <ClInclude Include="HelloGame.h" />
+    <ClInclude Include="HumanInformations.h" />
+    <ClInclude Include="InventoryContentMessage.h" />
+    <ClInclude Include="InventoryWeightMessage.h" />
     <ClInclude Include="Item.h" />
+    <ClInclude Include="Map.h" />
+    <ClInclude Include="MapComplementaryInformationsDataMessage.h" />
+    <ClInclude Include="MapInformationsRequestMessage.h" />
     <ClInclude Include="Master.h" />
     <ClInclude Include="PlayerItem.h" />
     <ClInclude Include="ServerOptionalFeaturesMessage.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="TextInformationMessage.h" />
     <ClInclude Include="Weapon.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>

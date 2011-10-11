@@ -25,7 +25,7 @@ public:
 	uint8 major, minor, release, patch, buildType;
 	uint16 rev;
 
-	uint32 GetProtocol() const
+	virtual uint16 GetProtocol() const
 	{ return VERSION; }
 
 	Version()

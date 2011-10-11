@@ -20,52 +20,66 @@
 
 void Session::HandleMapInformationsRequestMessage(ByteBuffer& packet)
 {
-	Packet map(SMSG_MAP_COMPLEMENTARY_INFORMATIONS_DATA);
-	map<<int16(1)<<m_char->GetCurrentMap()<<int8(2)<<uint16(0); // subareaId, mapId, subareaAlignmentSide, sizeof(HouseInformations)
-	map<<uint16(1); // sizeof(GameRolePlayActorInformations)
-	map<<m_char->SerializeActor();
-	map<<uint16(0)<<uint16(0)<<uint16(0)<<uint16(0);
-	Send(map);
+	MapInformationsRequestMessage data(packet);
+
+	Map* map = m_char->GetMap();
+	Send(MapComplementaryInformationsDataMessage(map->GetSubareaId(), map->GetId(), 0, map->GetActors()));
 }
 
 void Session::HandleGameContextCreateRequestMessage(ByteBuffer& packet)
 {
-	Packet destroyContext(SMSG_GAME_CONTEXT_DESTROY);
-	Send(destroyContext);
+	GameContextCreateRequestMessage data(packet);
 
-	Packet createContext(SMSG_GAME_CONTEXT_CREATE);
-	createContext<<m_char->GetContextType();
-	Send(createContext);
-
-	Packet inventory(SMSG_INVENTORY_CONTENT);
-	const std::list<PlayerItem*>& items = m_char->GetItems();
-	inventory<<uint16(items.size());
-	for(std::list<PlayerItem*>::const_iterator it = items.begin(); it != items.end(); ++it)
-	{
-		const PlayerItem* item = *it;
-		inventory<<item->GetPos()<<item->GetItem()->GetId()<<uint16(0)<<false; // 0 --> powerRate, false --> overMax
-		inventory<<uint16(0); // effectSize
-		inventory<<item->GetGuid()<<item->GetQuantity();
-	}
-	inventory<<m_char->GetStats().GetKamas();
-	Send(inventory);
-
-	Packet weight(SMSG_INVENTORY_WEIGHT);
-	weight<<m_char->GetCurrentPods()<<m_char->GetMaxPods();
-	Send(weight);
-
-	/*Packet stats(SMSG_CHARACTER_STATS_LIST);
-	stats<<m_char->SerializeStats();
-	Send(stats);*/
+	Send(GameContextDestroyMessage());
+	Send(GameContextCreateMessage(m_char->GetContextType()));
+	Send(InventoryContentMessage(m_char->GetItems(), m_char->GetStats().GetKamas()));
+	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
+	Send(CharacterStatsListMessage(m_char));
 	
 	//spellList
 	//shortCuts
+	
+	Send(CurrentMapMessage(m_char->GetMap()->GetId()));
+	Send(TextInformationMessage(1, 89, std::vector<std::string>()));
+}
 
-	Packet map(SMSG_CURRENT_MAP);
-	map<<m_char->GetCurrentMap();
-	Send(map);
+void Session::HandleChangeMapMessage(ByteBuffer& packet)
+{
+	ChangeMapMessage data(packet);
 
-	Packet info(SMSG_TEXT_INFORMATION);
-	info<<int8(1)<<int16(89)<<uint16(0);
-	Send(info);
+	Map* newMap = World::Instance().GetMap(data.mapId);
+
+	if(m_char->GetNextCell() != -1)
+		return;
+	if(newMap == NULL)
+		return;
+
+	m_char->GetMap()->RemoveActor(m_char->GetGuid());
+	newMap->AddActor(m_char);
+	m_char->SetMap(newMap);
+	m_char->SetCell(211); // todo: en fonction de haut, bas, droite, gauche
+	Send(CurrentMapMessage(m_char->GetMap()->GetId()));
+}
+
+void Session::HandleGameMapMovementConfirmMessage(ByteBuffer& packet)
+{
+	GameMapMovementConfirmMessage data(packet);
+
+	if(m_char->GetNextCell() == -1)
+		return;
+
+	// todo: timer de vérification
+	m_char->SetCell(m_char->GetNextCell());
+	m_char->SetNextCell(-1);
+
+	Send(BasicNoOperationMessage());
+}
+
+void Session::HandleGameMapMovementRequestMessage(ByteBuffer& packet)
+{
+	GameMapMovementRequestMessage data(packet);
+
+	// todo: pathfinding
+	m_char->SetNextCell(data.keyMovements[data.keyMovements.size() - 1] & 0xff);
+	SendToMap(GameMapMovementMessage(data.keyMovements, m_char->GetGuid()), true);
 }

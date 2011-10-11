@@ -22,18 +22,12 @@
 class CharacterMinimalPlusLookInformations : public CharacterMinimalInformations
 {
 public:
-	uint32 GetProtocol() const
+	virtual uint16 GetProtocol() const
 	{ return CHARACTER_MINIMAL_PLUS_LOOK_INFORMATIONS; }
 
-	CharacterMinimalPlusLookInformations(int id, uint8 level, std::string name, DEntityLook& look) : CharacterMinimalInformations(id, level, name)
-	{
-		m_buffer<<EntityLook(look, id);
-	}
+	CharacterMinimalPlusLookInformations(int id, uint8 level, std::string name, DEntityLook& look);
 
-	CharacterMinimalPlusLookInformations(int id, uint8 level, std::string name, DEntityLook& look, Character* ch) : CharacterMinimalInformations(id, level, name)
-	{
-		m_buffer<<EntityLook(look, ch);
-	}
+	CharacterMinimalPlusLookInformations(int id, uint8 level, std::string name, DEntityLook& look, Character* ch);
 };
 
 #endif

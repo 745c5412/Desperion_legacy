@@ -22,32 +22,6 @@
 class Session;
 class PlayerItem;
 
-enum Restriction
-{
-	cantBeAggressed,
-	cantBeChallenged,
-	cantTrade,
-	cantBeAttackedByMutant,
-	cantRun,
-	forceSlowWalk,
-	cantMinimize,
-	cantMove,
-	cantAggress,
-	cantChallenge,
-	cantExchange,
-	cantAttack,
-	cantChat,
-	cantBeMerchant,
-	cantUseObject,
-	cantUseTaxCollector,
-	cantUseInteractive,
-	cantSpeakToNPC,
-	cantChangeZone,
-	cantAttackMonster,
-	cantWalk8Directions,
-	RESTRICTIONS_NUMBER,
-};
-
 enum Direction
 {
 	DIRECTION_EAST = 0,
@@ -95,43 +69,39 @@ enum GameContext
 	FIGHT = 2,
 };
 
-class Character
+class Character : public HumanEntity
 {
 private:
-	int m_guid;
 	Session* m_session;
-	DEntityLook m_look;
 	CharacterStats m_stats;
 	uint8 m_level;
-	std::string m_name;
 	int8 m_breed;
 	bool m_sex;
 	int m_account;
-	int m_currentMap;
-	int16 m_currentCell;
 	//spells
 	int m_saveMap;
 	int16 m_saveCell;
+	int16 m_nextCell;
 	//jobs
 	int8 m_mountXp;
 	//Mount*
 	bool m_isDead;
-	int16 m_title;
 	bool m_isMerchant;
 	std::vector<int8> m_emotes;
 	std::vector<int> m_zaaps;
 	std::list<PlayerItem*> m_items;
 	int8 m_context;
-	int8 m_direction;
-	bool m_restrictions[RESTRICTIONS_NUMBER];
 
 	void InitItems();
 public:
 	void Init(Field*, CharacterMinimals*, Session*);
 	~Character();
 
-	int16 GetCurrentCell() const
-	{ return m_currentCell; }
+	int16 GetNextCell() const
+	{ return m_nextCell; }
+
+	void SetNextCell(int16 cell)
+	{ m_nextCell = cell; }
 
 	int8 GetContextType() const
 	{ return m_context; }
@@ -142,20 +112,11 @@ public:
 	Session* GetSession()
 	{ return m_session; }
 
-	int GetGuid() const
-	{ return m_guid; }
-
-	DEntityLook& GetLook()
-	{ return m_look; }
-
 	CharacterStats& GetStats()
 	{ return m_stats; }
 
 	int GetLevel() const
 	{ return m_level; }
-
-	std::string GetName() const
-	{ return m_name; }
 
 	int8 GetBreed() const
 	{ return m_breed; }
@@ -176,6 +137,9 @@ public:
 		return 1000 + m_stats.strength.Total() * 5 + m_stats.weightBonus;
 	}
 
+	bool IsCharacter() const
+	{ return true; }
+
 	int GetMaxLife() const
 	{
 		return m_stats.GetStartLife() + m_stats.vitality.Total() + (m_level - 1) * 5;
@@ -190,11 +154,8 @@ public:
 		return currentLife;
 	}
 
-	int GetCurrentMap() const
-	{ return m_currentMap; }
-
-	ByteBuffer SerializeActor() const;
-	ByteBuffer SerializeStats() const;
+	virtual GameRolePlayActorInformationsPtr ToActor()
+	{ return GameRolePlayActorInformationsPtr(new GameRolePlayCharacterInformations(this)); }
 };
 
 #endif

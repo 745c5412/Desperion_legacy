@@ -24,7 +24,7 @@ class DofusModel
 protected:
 	ByteBuffer m_buffer;
 public:
-	virtual uint32 GetProtocol() const = 0;
+	virtual uint16 GetProtocol() const = 0;
 
 	operator ByteBuffer() const
 	{ return m_buffer; }

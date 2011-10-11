@@ -83,12 +83,18 @@ private:
 	// ContextHandler.cpp
 	void HandleGameContextCreateRequestMessage(ByteBuffer&);
 	void HandleMapInformationsRequestMessage(ByteBuffer&);
+	void HandleGameMapMovementRequestMessage(ByteBuffer&);
+	void HandleGameMapMovementConfirmMessage(ByteBuffer&);
+	void HandleChangeMapMessage(ByteBuffer&);
 
-	// ApproachHandler.cpp
+	// Session.cpp
 	void HandleAuthenticationTicketMessage(ByteBuffer&);
+	void HandleAdminCommandMessage(ByteBuffer&);
+	void HandleAdminQuietCommandMessage(ByteBuffer&);
 public:
 	static void InitHandlersTable();
 	void Start();
+	void SendToMap(const DofusMessage&, bool self = true);
 
 	void OnData(GamePacketHandler* hdl, ByteBuffer& packet)
 	{ (this->*hdl->Handler)(packet); }

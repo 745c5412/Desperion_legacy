@@ -24,6 +24,8 @@ void Session::InitHandlersTable()
 {
 	m_handlers[CMSG_AUTHENTICATION_TICKET].Handler = &Session::HandleAuthenticationTicketMessage;
 	m_handlers[CMSG_AUTHENTICATION_TICKET].Flag = FLAG_NOT_CONNECTED;
+	m_handlers[CMSG_ADMIN_COMMAND].Handler = &Session::HandleAdminCommandMessage;
+	m_handlers[CMSG_ADMIN_QUIET_COMMAND].Handler = &Session::HandleAdminQuietCommandMessage;
 
 	m_handlers[CMSG_CHARACTERS_LIST_REQUEST].Handler = &Session::HandleCharactersListRequestMessage;
 	m_handlers[CMSG_CHARACTERS_LIST_REQUEST].Flag = FLAG_OUT_OF_QUEUE;
@@ -38,6 +40,52 @@ void Session::InitHandlersTable()
 
 	m_handlers[CMSG_GAME_CONTEXT_CREATE_REQUEST].Handler = &Session::HandleGameContextCreateRequestMessage;
 	m_handlers[CMSG_MAP_INFORMATIONS_REQUEST].Handler = &Session::HandleMapInformationsRequestMessage;
+	m_handlers[CMSG_GAME_MAP_MOVEMENT_REQUEST].Handler = &Session::HandleGameMapMovementRequestMessage;
+	m_handlers[CMSG_GAME_MAP_MOVEMENT_CONFIRM].Handler = &Session::HandleGameMapMovementConfirmMessage;
+	m_handlers[CMSG_CHANGE_MAP].Handler = &Session::HandleChangeMapMessage;
+}
+
+void Session::HandleAdminCommandMessage(ByteBuffer& packet)
+{
+	if(m_data[FLAG_LEVEL].intValue < 1)
+		return;
+	AdminCommandMessage data(packet);
+}
+
+void Session::HandleAdminQuietCommandMessage(ByteBuffer& packet)
+{
+	if(m_data[FLAG_LEVEL].intValue < 1)
+		return;
+	AdminQuietCommandMessage data(packet);
+	// todo: faire un vrai système de commande comme pour desperion 1
+
+	std::vector<std::string> table;
+	Desperion::Split(table, data.content, ' ');
+	int mapId = atoi(table.at(1).c_str());
+	
+	Map* newMap = World::Instance().GetMap(mapId);
+	if(newMap == NULL)
+		return;
+
+	m_char->SetCell(211);
+	m_char->GetMap()->RemoveActor(m_char->GetGuid());
+	newMap->AddActor(m_char);
+	m_char->SetMap(newMap);
+	Send(CurrentMapMessage(m_char->GetMap()->GetId()));
+}
+
+void Session::SendToMap(const DofusMessage& data, bool self)
+{
+	std::list<DisplayableEntity*>& actors = m_char->GetMap()->GetActors();
+	for(std::list<DisplayableEntity*>::iterator it = actors.begin(); it != actors.end(); ++it)
+	{
+		if(!(*it)->IsCharacter())
+			continue;
+		Character* ch = ToCharacter(*it);
+		if(ch->GetGuid() == m_char->GetGuid() && !self)
+			continue;
+		ch->GetSession()->Send(data);
+	}
 }
 
 void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
@@ -143,7 +191,11 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 Session::~Session()
 {
 	Log::Instance().outDebug("Client %u disconnected", m_data[FLAG_GUID].intValue);
-	delete m_char;
+	if(m_char != NULL)
+	{
+		m_char->GetMap()->RemoveActor(m_char->GetGuid());
+		delete m_char;
+	}
 }
 
 void Session::Start()

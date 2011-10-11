@@ -22,18 +22,20 @@
 class EntityLook : public DofusModel
 {
 public:
-	uint32 GetProtocol() const
+	virtual uint16 GetProtocol() const
 	{ return ENTITY_LOOK; }
+
+	EntityLook(DEntityLook& look)
+	{
+		m_buffer<<look.Serialize(-1);
+	}
 
 	EntityLook(DEntityLook& look, int guid)
 	{
 		m_buffer<<look.Serialize(guid);
 	}
 
-	EntityLook(DEntityLook& look, Character* ch)
-	{
-		m_buffer<<look.Serialize(ch);
-	}
+	EntityLook(DEntityLook& look, Character* ch);
 };
 
 #endif

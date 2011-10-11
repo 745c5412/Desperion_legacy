@@ -46,6 +46,7 @@
 #include <fstream>
 #include <iostream>
 #include <mysql/mysql.h>
+#include <boost/shared_ptr.hpp>
 
 #if COMPILER == COMPILER_MICROSOFT
 

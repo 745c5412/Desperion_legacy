@@ -22,7 +22,7 @@
 class CharacterMinimalInformations : public DofusModel
 {
 public:
-	uint32 GetProtocol() const
+	virtual uint16 GetProtocol() const
 	{ return CHARACTER_MINIMAL_INFORMATIONS; }
 
 	CharacterMinimalInformations(int id, uint8 level, std::string name)
