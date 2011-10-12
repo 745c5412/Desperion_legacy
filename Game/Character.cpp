@@ -30,6 +30,14 @@ Character::~Character()
 
 void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 {
+	int mapId = fields[2].GetInt32();
+	Map* map = World::Instance().GetMap(mapId);
+	if(map == NULL)
+	{
+		std::ostringstream str;
+		str<<"Map "<<mapId<<" doesn't exist!";
+		throw ServerError(str.str().c_str());
+	}
 	DisplayableEntity::Init(fields[0].GetInt32(), ch->look, fields[3].GetInt16(), World::Instance().GetMap(fields[2].GetInt32()), 
 		DIRECTION_SOUTH_WEST);
 	NamedEntity::Init(ch->name);

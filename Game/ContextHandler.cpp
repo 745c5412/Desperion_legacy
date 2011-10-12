@@ -54,10 +54,22 @@ void Session::HandleChangeMapMessage(ByteBuffer& packet)
 	if(newMap == NULL)
 		return;
 
+	int16 newCell = m_char->GetCell();
+	if(newMap->GetId() == m_char->GetMap()->GetTopMap())
+		newCell += 532;
+	else if(newMap->GetId() == m_char->GetMap()->GetBottomMap())
+		newCell -= 532;
+	else if(newMap->GetId() == m_char->GetMap()->GetLeftMap())
+		newCell += 13;
+	else if(newMap->GetId() == m_char->GetMap()->GetRightMap())
+		newCell -= 13;
+	else
+		return;
+
 	m_char->GetMap()->RemoveActor(m_char->GetGuid());
 	newMap->AddActor(m_char);
 	m_char->SetMap(newMap);
-	m_char->SetCell(211); // todo: en fonction de haut, bas, droite, gauche
+	m_char->SetCell(newCell);
 	Send(CurrentMapMessage(m_char->GetMap()->GetId()));
 }
 
@@ -80,6 +92,6 @@ void Session::HandleGameMapMovementRequestMessage(ByteBuffer& packet)
 	GameMapMovementRequestMessage data(packet);
 
 	// todo: pathfinding
-	m_char->SetNextCell(data.keyMovements[data.keyMovements.size() - 1] & 0xff);
+	m_char->SetNextCell(data.keyMovements[data.keyMovements.size() - 1] & 0xfff);
 	SendToMap(GameMapMovementMessage(data.keyMovements, m_char->GetGuid()), true);
 }

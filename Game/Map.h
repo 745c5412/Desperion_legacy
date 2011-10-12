@@ -23,6 +23,21 @@
 
 class DisplayableEntity;
 
+inline std::vector<int> F(const char* str)
+{
+	std::vector<int> table;
+	Desperion::FastSplit<int, ','>(table, std::string(str), &atoi);
+	return table;
+}
+
+struct Cell
+{
+	int16 id;
+	uint8 losmov;
+	int8 speed;
+	uint8 mapChangeData;
+};
+
 class Map
 {
 public:
@@ -48,13 +63,47 @@ public:
 
 	std::list<DisplayableEntity*>& GetActors()
 	{ return m_actors; }
+
+	Cell GetCell(int16 index)
+	{
+		int number = 0;
+		try{
+			number = m_cells.at(index);
+		}catch(...)
+		{ index = -1; }
+		Cell c;
+		c.id = index;
+		uint8* bytes = (uint8*)number;
+		c.losmov = bytes[0];
+		c.mapChangeData = bytes[1];
+		c.speed = bytes[2];
+		return c;
+	}
+
+	int GetTopMap() const
+	{ return m_topMap; }
+
+	int GetBottomMap() const
+	{ return m_bottomMap; }
+
+	int GetRightMap() const
+	{ return m_rightMap; }
+
+	int GetLeftMap() const
+	{ return m_leftMap; }
 private:
+	std::string m_cellsString;
 	int m_id;
 	int16 m_posX;
 	int16 m_posY;
 	int16 m_subareaId;
+	int m_topMap;
+	int m_bottomMap;
+	int m_rightMap;
+	int m_leftMap;
 	int m_capabilities;
 	std::list<DisplayableEntity*> m_actors;
+	std::vector<int> m_cells;
 };
 
 #endif

@@ -177,7 +177,7 @@ void World::LoadItems()
 void World::LoadMaps()
 {
 	uint32 time = getMSTime();
-	QueryResult* QR = Desperion::sDatabase->Query("SELECT * FROM d2o_map_position;");
+	QueryResult* QR = Desperion::sDatabase->Query("SELECT * FROM maps JOIN d2o_map_position ON maps.id = d2o_map_position.id;");
 	if(!QR)
 		return;
 	do

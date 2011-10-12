@@ -21,10 +21,15 @@
 void Map::Init(Field* fields)
 {
 	m_id = fields[0].GetInt32();
-	m_posX = fields[1].GetInt16();
-	m_posY = fields[2].GetInt16();
-	m_capabilities = fields[4].GetInt32();
-	m_subareaId = fields[7].GetInt16();
+	Desperion::FastSplit<int, ','>(m_cells, fields[1].GetString(), &atoi);
+	m_topMap = fields[2].GetInt32();
+	m_bottomMap = fields[3].GetInt32();
+	m_rightMap = fields[4].GetInt32();
+	m_leftMap = fields[5].GetInt32();
+	m_posX = fields[8].GetInt16();
+	m_posY = fields[9].GetInt16();
+	m_capabilities = fields[11].GetInt32();
+	m_subareaId = fields[4].GetInt16();
 }
 
 void Map::AddActor(DisplayableEntity* actor)

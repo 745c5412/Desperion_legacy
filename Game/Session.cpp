@@ -67,7 +67,7 @@ void Session::HandleAdminQuietCommandMessage(ByteBuffer& packet)
 	if(newMap == NULL)
 		return;
 
-	m_char->SetCell(211);
+	m_char->SetCell(399);
 	m_char->GetMap()->RemoveActor(m_char->GetGuid());
 	newMap->AddActor(m_char);
 	m_char->SetMap(newMap);

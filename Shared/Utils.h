@@ -146,6 +146,57 @@ namespace Desperion
 
 	std::string ToLowerCase(std::string str);
 	void Split(std::vector<std::string>& vector, std::string str, char sep);
+
+	template<class T, char S>
+	inline void FastSplit(std::vector<T>& vector, std::string str)
+	{
+		bool reserved = false;
+		std::string temp = "";
+		for(uint16 a = 0; a < str.size(); ++a)
+		{
+			char b = str[a];
+			switch(b)
+			{
+			case S:
+				if(!reserved)
+					vector.reserve(atoi(temp.c_str()));
+				else
+					vector.push_back(temp);
+				reserved = true;
+				temp.clear();
+				break;
+			default:
+				temp += b;
+			}
+		}
+		vector.push_back(temp);
+	}
+
+	template<class T, char S>
+	inline void FastSplit(std::vector<T>& vector, std::string str, T(* callback)(const char*))
+	{
+		bool reserved = false;
+		std::string temp = "";
+		for(uint16 a = 0; a < str.size(); ++a)
+		{
+			char b = str[a];
+			switch(b)
+			{
+			case S:
+				if(!reserved)
+					vector.reserve(atoi(temp.c_str()));
+				else
+					vector.push_back((*callback)(temp.c_str()));
+				reserved = true;
+				temp.clear();
+				break;
+			default:
+				temp += b;
+			}
+		}
+		vector.push_back((*callback)(temp.c_str()));
+	}
+
 	std::string ToUpperCase(std::string str);
 	void SetApplicationTitle(std::string title); 
 	int IndexOf(std::string str, char tofind);

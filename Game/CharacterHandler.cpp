@@ -150,8 +150,17 @@ void Session::HandleCharacterSelectionMessage(ByteBuffer& packet)
 	}
 	Field* fields = QR->Fetch();
 	m_char = new Character;
-	m_char->Init(fields, toSelect, this);
-	delete QR;
+
+	try{
+		m_char->Init(fields, toSelect, this);
+		delete QR;
+	}catch(const ServerError&)
+	{ 
+		delete m_char;
+		delete QR;
+		m_char = NULL;
+		throw; 
+	}
 
 	Send(CharacterSelectedSuccessMessage(toSelect));
 	m_char->GetMap()->AddActor(m_char);
