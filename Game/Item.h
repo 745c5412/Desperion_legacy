@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,6 +41,22 @@ struct EffectInstanceDice : public EffectInstanceInteger
 	int diceSide;
 };
 
+inline void F(EffectInstanceDice& i, std::string& str)
+{
+	std::vector<int> table;
+	Desperion::FastSplit<int, ','>(table, str, &Desperion::SplitInt);
+	i.effectId = table[0];
+	i.diceNum = table[1];
+	i.duration = table[2];
+	i.hidden = table[3] == 1;
+	i.diceSide = table[4];
+	i.value = table[5];
+	i.random = table[6];
+	i.targetId = table[7];
+	i.zoneSize = table[8];
+	i.zoneShape = table[9];
+}
+
 class Item
 {
 protected:
@@ -58,7 +74,7 @@ protected:
 	int m_itemSetId;
 	std::string m_criteria;
 	int m_appearanceId;
-	std::vector<EffectInstance> m_possibleEffects;
+	std::vector<EffectInstanceDice> m_possibleEffects;
 	std::vector<int> m_favoriteSubAreas;
 	int m_favoriteSubAreaBonus;
 public:

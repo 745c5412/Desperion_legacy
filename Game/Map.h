@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,13 +22,6 @@
 #define ToCharacter(X) ((Character*)X)
 
 class DisplayableEntity;
-
-inline std::vector<int> F(const char* str)
-{
-	std::vector<int> table;
-	Desperion::FastSplit<int, ','>(table, std::string(str), &atoi);
-	return table;
-}
 
 struct Cell
 {
@@ -64,15 +57,18 @@ public:
 	std::list<DisplayableEntity*>& GetActors()
 	{ return m_actors; }
 
-	Cell GetCell(int16 index)
+	Cell GetCell(uint16 index)
 	{
-		int number = 0;
-		try{
-			number = m_cells.at(index);
-		}catch(...)
-		{ index = -1; }
 		Cell c;
-		c.id = index;
+		int number = 0;
+		try
+		{
+			number = m_cells.at(index);
+			c.id = index;
+		}catch(...)
+		{ 
+			c.id = -1; 
+		}
 		uint8* bytes = (uint8*)number;
 		c.losmov = bytes[0];
 		c.mapChangeData = bytes[1];

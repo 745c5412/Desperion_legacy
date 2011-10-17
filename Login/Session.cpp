@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -200,6 +200,8 @@ void Session::HandleIdentificationMessage(ByteBuffer& packet)
 	m_data[FLAG_ACCOUNT].stringValue = data.userName;
 	delete QR;
 
+	World::Instance().AddSession(this);
+
 	Send(IdentificationSuccessMessage(m_data[FLAG_LEVEL].intValue, alreadyConnected, m_data[FLAG_PSEUDO].stringValue,
 		m_data[FLAG_GUID].intValue, m_data[FLAG_QUESTION].stringValue, m_subscriptionEnd));
 
@@ -226,9 +228,9 @@ void Session::HandleIdentificationMessage(ByteBuffer& packet)
 	}
 	delete QR;
 
-	const World::GameServerStorageMap& servers = World::Instance().GetGameServers();
+	const World::GameServerMap& servers = World::Instance().GetGameServers();
 	std::vector<GameServerInformations> infos;
-	for(World::GameServerStorageMap::const_iterator it = servers.begin(); it != servers.end(); ++it)
+	for(World::GameServerMap::const_iterator it = servers.begin(); it != servers.end(); ++it)
 		infos.push_back(GetServerStatusMessage(it->second, counts[it->first].m_count));
 	Send(ServersListMessage(infos));
 }
@@ -247,6 +249,11 @@ void Session::InitHandlersTable()
 
 Session::~Session()
 {
+	if(m_data[FLAG_GUID].intValue != 0)
+	{
+		World::Instance().DeleteSession(m_data[FLAG_GUID].intValue);
+		Log::Instance().outDebug("Client %u disconnected", m_data[FLAG_GUID].intValue);
+	}
 }
 
 void Session::Start()

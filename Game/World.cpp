@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,9 +27,8 @@ World::World()
 
 World::~World()
 {
-	for(SessionSet::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
-		delete *it;
 	Sessions.clear();
+
 	for(CharacterMinimalsMap::iterator it = Characters.begin(); it != Characters.end(); ++it)
 		delete it->second;
 	Characters.clear();
@@ -37,6 +36,10 @@ World::~World()
 	for(ItemMap::iterator it = Items.begin(); it != Items.end(); ++it)
 		delete it->second;
 	Items.clear();
+
+	for(MapMap::iterator it = Maps.begin(); it != Maps.end(); ++it)
+		delete it->second;
+	Maps.clear();
 }
 
 /*void ReadData(D2oFile* file, std::string name)
@@ -139,7 +142,7 @@ void World::Init()
 	tp.schedule(boost::bind(&World::LoadItems, this));
 	tp.schedule(boost::bind(&World::LoadMaps, this));
 	tp.wait();
-	Log::Instance().outNotice("World", "World loaded!");
+	Log::Instance().outNotice("World", "World loaded!\n\n");
 
 	Session::InitHandlersTable();
 }
@@ -207,31 +210,6 @@ void World::LoadCharacterMinimals()
 	delete QR;
 
 	Log::Instance().outNotice("World", "%u character minimals loaded in %ums!", Characters.size(), getMSTime() - time);
-}
-
-void World::Update()
-{
-	SessionsMutex.lock();
-	std::list<SessionSet::iterator> toErase;
-	for(SessionSet::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
-	{
-		if((*it)->IsDead())
-		{
-			delete *it;
-			toErase.push_back(it);
-		}
-	}
-	for(std::list<SessionSet::iterator>::iterator it = toErase.begin(); it != toErase.end(); ++it)
-		Sessions.erase(*it);
-	SessionsMutex.unlock();
-
-	if(GameClient::Instance().IsDead())
-		GameClient::Instance().Connect();
-	else if(GameClient::Instance().GetLastUpdate() + 60 < time(NULL))
-	{
-		boost::thread(boost::bind(&GameClient::SendPlayers, GameClient::InstancePtr()));
-		GameClient::Instance().RefreshLastUpdate();
-	}
 }
 
 Map* World::GetMap(int id)
@@ -310,37 +288,30 @@ Item* World::GetItem(int id)
 	return i;
 }
 
-void World::AddSession(Session* r)
+void World::AddSession(Session* s)
 {
 	SessionsMutex.lock();
-	Sessions.insert(r);
+	Sessions[s->GetData(FLAG_GUID).intValue] = s;
 	if(Sessions.size() > m_maxPlayers)
 		m_maxPlayers = Sessions.size();
 	SessionsMutex.unlock();
 }
 
-Session* World::GetSession(uint32 guid)
+Session* World::GetSession(int guid)
 {
-	Session* R = NULL;
-	if(guid == 0)
-		return R;
+	Session* s = NULL;
 	SessionsMutex.lock();
-	for(SessionSet::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
-	{
-		if(guid == (*it)->GetData(FLAG_GUID).intValue)
-		{
-			R = *it;
-			break;
-		}
-	}
+	SessionMap::iterator it = Sessions.find(guid);
+	if(it != Sessions.end())
+		s = it->second;
 	SessionsMutex.unlock();
-	return R;
+	return s;
 }
 
-void World::DeleteSession(Session* s)
+void World::DeleteSession(int guid)
 {
 	SessionsMutex.lock();
-	SessionSet::iterator it = Sessions.find(s);
+	SessionMap::iterator it = Sessions.find(guid);
 	if(it != Sessions.end())
 		Sessions.erase(it);
 	SessionsMutex.unlock();

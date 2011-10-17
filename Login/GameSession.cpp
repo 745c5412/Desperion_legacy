@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -61,6 +61,7 @@ void GameSession::HandleConnectMessage(ByteBuffer& packet)
 		throw ServerError("Already connected");
 
 	m_server = G;
+	World::Instance().AddGameSession(this);
 }
 
 GameSession::~GameSession()
@@ -69,5 +70,7 @@ GameSession::~GameSession()
 	{
 		m_server->SetState(OFFLINE);
 		World::Instance().RefreshGameServer(m_server);
+		World::Instance().DeleteGameSession(m_server->GetID());
+		Log::Instance().outDebug("Client %u disconnected", m_server->GetID());
 	}
 }

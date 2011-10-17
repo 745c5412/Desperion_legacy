@@ -28,6 +28,9 @@
     <ClCompile Include="QueryResult.cpp">
       <Filter>Network\CPP</Filter>
     </ClCompile>
+    <ClCompile Include="ByteBuffer.cpp">
+      <Filter>Network\CPP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ByteBuffer.h">

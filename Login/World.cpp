@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,50 +19,18 @@
 #include "StdAfx.h"
 
 template <> World * Singleton<World>::m_singleton = NULL;
-AtomicLog World::Logger("World", TNORMAL);
 
 World::World()
 {
 	m_maxPlayers = 0;
 }
 
-void World::Update()
-{
-	SessionsMutex.lock();
-	std::list<SessionSet::iterator> toErase;
-	for(SessionSet::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
-	{
-		if((*it)->IsDead())
-		{
-			delete *it;
-			toErase.push_back(it);
-		}
-	}
-	for(std::list<SessionSet::iterator>::iterator it = toErase.begin(); it != toErase.end(); ++it)
-		Sessions.erase(*it);
-	SessionsMutex.unlock();
-
-	GameSessionsMutex.lock();
-	std::list<GameSessionSet::iterator> toErase2;
-	for(GameSessionSet::iterator it = GameSessions.begin(); it != GameSessions.end(); ++it)
-	{
-		if((*it)->IsDead())
-		{
-			delete *it;
-			toErase2.push_back(it);
-		}
-	}
-	for(std::list<GameSessionSet::iterator>::iterator it = toErase2.begin(); it != toErase2.end(); ++it)
-		GameSessions.erase(*it);
-	GameSessionsMutex.unlock();
-}
-
 void World::RefreshGameServer(GameServer* G)
 {
 	SessionsMutex.lock();
-	for(SessionSet::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
+	for(SessionMap::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
 	{
-		uint32 guid = (*it)->GetData(FLAG_GUID).intValue;
+		uint32 guid = it->second->GetData(FLAG_GUID).intValue;
 		if(guid == 0)
 			continue;
 		QueryResult* QR = Desperion::sDatabase->Query("SELECT count FROM character_counts WHERE accountGuid=%u and serverID=%u LIMIT 1;",
@@ -75,21 +43,17 @@ void World::RefreshGameServer(GameServer* G)
 		}
 		delete QR;
 
-		(*it)->Send(ServerStatusUpdateMessage((*it)->GetServerStatusMessage(G, count)));
+		it->second->Send(ServerStatusUpdateMessage(it->second->GetServerStatusMessage(G, count)));
 	}
 	SessionsMutex.unlock();
 }
 
 World::~World()
 {
-	for(SessionSet::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
-		delete *it;
 	Sessions.clear();
-	for(GameSessionSet::iterator it = GameSessions.begin(); it != GameSessions.end(); ++it)
-		delete *it;
 	GameSessions.clear();
 
-	for(GameServerStorageMap::iterator it = GameServers.begin(); it != GameServers.end(); ++it)
+	for(GameServerMap::iterator it = GameServers.begin(); it != GameServers.end(); ++it)
 		delete it->second;
 	GameServers.clear();
 }
@@ -122,82 +86,69 @@ void World::Init()
 	Log::Instance().outNotice("World", "World loaded!\n\n");
 }
 
-void World::AddSession(Session* r)
+void World::AddSession(Session* s)
 {
 	SessionsMutex.lock();
-	Sessions.insert(r);
+	Sessions[s->GetData(FLAG_GUID).intValue] = s;
 	if(Sessions.size() > m_maxPlayers)
 		m_maxPlayers = Sessions.size();
 	SessionsMutex.unlock();
 }
 
-void World::AddGameSession(GameSession* r)
+Session* World::GetSession(int guid)
 {
-	GameSessionsMutex.lock();
-	GameSessions.insert(r);
-	GameSessionsMutex.unlock();
+	Session* s = NULL;
+	SessionsMutex.lock();
+	SessionMap::iterator it = Sessions.find(guid);
+	if(it != Sessions.end())
+		s = it->second;
+	SessionsMutex.unlock();
+	return s;
+}
+
+void World::DeleteSession(int guid)
+{
+	SessionsMutex.lock();
+	SessionMap::iterator it = Sessions.find(guid);
+	if(it != Sessions.end())
+		Sessions.erase(it);
+	SessionsMutex.unlock();
 }
 
 GameServer* World::GetGameServer(uint16 Guid)
 {
 	GameServer* G = NULL;
 	GameServersMutex.lock();
-	GameServerStorageMap::iterator it = GameServers.find(Guid);
+	GameServerMap::iterator it = GameServers.find(Guid);
 	if(it != GameServers.end())
 		G = it->second;
 	GameServersMutex.unlock();
 	return G;
 }
 
-GameSession* World::GetGameSession(uint16 id)
+void World::AddGameSession(GameSession* s)
 {
-	GameSession* R = NULL;
 	GameSessionsMutex.lock();
-	for(GameSessionSet::iterator it = GameSessions.begin(); it != GameSessions.end(); ++it)
-	{
-		GameServer* G = (*it)->GetServer();
-		if(G != NULL && id == G->GetID())
-		{
-			R = *it;
-			break;
-		}
-	}
+	GameSessions[s->GetServer()->GetID()] = s;
 	GameSessionsMutex.unlock();
-	return R;
 }
 
-void World::DeleteGameSession(GameSession* s)
+GameSession* World::GetGameSession(uint16 guid)
+{
+	GameSession* s = NULL;
+	GameSessionsMutex.lock();
+	GameSessionMap::iterator it = GameSessions.find(guid);
+	if(it != GameSessions.end())
+		s = it->second;
+	GameSessionsMutex.unlock();
+	return s;
+}
+
+void World::DeleteGameSession(uint16 guid)
 {
 	GameSessionsMutex.lock();
-	GameSessionSet::iterator it = GameSessions.find(s);
+	GameSessionMap::iterator it = GameSessions.find(guid);
 	if(it != GameSessions.end())
 		GameSessions.erase(it);
 	GameSessionsMutex.unlock();
-}
-
-Session* World::GetSession(uint32 guid)
-{
-	Session* R = NULL;
-	if(guid == 0)
-		return R;
-	SessionsMutex.lock();
-	for(SessionSet::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
-	{
-		if(guid == (*it)->GetData(FLAG_GUID).intValue)
-		{
-			R = *it;
-			break;
-		}
-	}
-	SessionsMutex.unlock();
-	return R;
-}
-
-void World::DeleteSession(Session* s)
-{
-	SessionsMutex.lock();
-	SessionSet::iterator it = Sessions.find(s);
-	if(it != Sessions.end())
-		Sessions.erase(it);
-	SessionsMutex.unlock();
 }

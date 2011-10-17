@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,6 +33,9 @@ class GameClient : public BaseSession<ComPacketHandler>, public Singleton<GameCl
 private:
 	uint8 m_state;
 	time_t m_lastUpdate;
+	boost::asio::deadline_timer* m_timer;
+
+	void HandleConnect(const boost::system::error_code&);
 public:
 	uint8 GetState() const
 	{ return m_state; }
@@ -44,13 +47,34 @@ public:
 		Send(data);
 	}
 
+	void OnClose()
+	{
+		Stop();
+		Launch(); 
+	}
+
+	void Wait()
+	{
+		SendPlayers();
+		m_timer->expires_from_now(boost::posix_time::seconds(60));
+		m_timer->async_wait(boost::bind(&GameClient::SendPlayers, this));
+	}
+
 	bool IsAllowed(uint8 flag)
 	{ return true; }
+
+	void Stop()
+	{
+		m_timer->cancel();
+		delete m_timer;
+		m_timer = NULL;
+	}
 
 	GameClient()
 	{
 		m_state = 3;
 		m_lastUpdate = time(NULL);
+		m_timer = NULL;
 	}
 
 	void RefreshLastUpdate()
@@ -59,7 +83,7 @@ public:
 	time_t GetLastUpdate()
 	{ return m_lastUpdate; }
 
-	void Connect();
+	void Launch();
 	void Start();
 
 	void OnData(ComPacketHandler* hdl, ByteBuffer& packet)

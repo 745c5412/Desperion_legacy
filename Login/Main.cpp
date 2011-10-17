@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,9 +34,14 @@ int main(int argc, char *argv[])
 	if(Desperion::Master::Instance().Run(argc, argv))
 		Log::Instance().outString("Desperion is shutting down...");
 	else
-		Log::Instance().outError("#Abnormal Desperion termination#");
+		Log::Instance().outError("Abnormal Desperion termination!");
 
 	delete Desperion::Master::InstancePtr();
+	delete Desperion::Config::InstancePtr();
+	delete World::InstancePtr();
+	delete Desperion::sDatabase;
+	delete Log::InstancePtr();
+
 	printf("Press any key to continue!");
 	std::getchar();
 

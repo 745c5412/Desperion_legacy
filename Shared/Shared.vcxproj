@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ByteBuffer.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="Log.cpp" />

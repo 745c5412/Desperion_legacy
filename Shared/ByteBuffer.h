@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,8 @@
 #ifndef __BYTE_BUFFER__
 #define __BYTE_BUFFER__
 
-inline void SwapBytes(void *pv, size_t n)
+inline void SwapBytes(uint8 *p, size_t n)
 {
-    char *p = (char*)pv;
     size_t lo, hi;
     for(lo=0, hi=n-1; hi>lo; lo++, hi--)
     {
@@ -30,14 +29,29 @@ inline void SwapBytes(void *pv, size_t n)
         p[hi] = tmp;
     }
 }
-#define SWAP(x) SwapBytes(&x, sizeof(x));
+
+enum Endianness
+{
+	LITTLE_ENDIAN,
+	BIG_ENDIAN,
+};
+
+inline Endianness GetEndianness()
+{
+
+	union {
+		int i;
+		char c[sizeof(int)];
+	} x;
+	x.i = 1;
+	if(x.c[0] == 1)
+		return LITTLE_ENDIAN;
+	else
+		return BIG_ENDIAN;
+}
+
 
 #define DEFAULT_SIZE 0x1000
-
-#define BIG_ENDIAN true
-#define LITTLE_ENDIAN false
-
-#define ENDIANNESS BIG_ENDIAN
 
 class ByteBuffer
 {
@@ -46,6 +60,8 @@ private:
 	size_t m_wpos;
 	std::vector<uint8> m_data;
 public:
+	static Endianness ENDIANNESS;
+
 	ByteBuffer() : m_rpos(0), m_wpos(0)
 	{ m_data.reserve(DEFAULT_SIZE); }
 
@@ -93,21 +109,23 @@ public:
 	inline size_t Size() const
 	{ return m_data.size(); }
 
-	template<class T, bool S>
+	template<class T>
 	void Append(T value)
 	{
-		if(S)
-			SWAP(value);
-		AppendBytes((uint8*)&value, sizeof(value));
+		size_t size = sizeof(value);
+		uint8* raw = (uint8*)&value;
+		if(ByteBuffer::ENDIANNESS == LITTLE_ENDIAN)
+			SwapBytes(raw, size);
+		AppendBytes(raw, size);
 	}
 
-	template<class T, bool S>
+	template<class T>
 	T Read()
 	{ 
 		T value = Read<T>(m_rpos); 
+		if(ByteBuffer::ENDIANNESS == LITTLE_ENDIAN)
+			SwapBytes((uint8*)&value, sizeof(T));
 		m_rpos += sizeof(T);
-		if(S)
-			SWAP(value);
 		return value;
 	}
 
@@ -118,7 +136,8 @@ public:
 	T Read(size_t pos)
 	{
 		T value = 0;
-		if(pos + sizeof(T) <= Size())
+		size_t size = sizeof(T);
+		if(pos + size <= Size())
 			value = *((T*)&m_data[pos]);
 		return value;
 	}
@@ -135,67 +154,67 @@ public:
 
 	ByteBuffer& operator<<(uint8 value)
 	{
-		Append<uint8, ENDIANNESS>(value);
+		Append<uint8>(value);
 		return *this;
 	}
 
 	ByteBuffer& operator<<(uint16 value)
 	{
-		Append<uint16, ENDIANNESS>(value);
+		Append<uint16>(value);
 		return *this;
 	}
 
 	ByteBuffer& operator<<(uint32 value)
 	{
-		Append<uint32, ENDIANNESS>(value);
+		Append<uint32>(value);
 		return *this;
 	}
 
 	ByteBuffer& operator<<(uint64 value)
 	{
-		Append<uint64, ENDIANNESS>(value);
+		Append<uint64>(value);
 		return *this;
 	}
 
 	ByteBuffer& operator<<(int8 value)
 	{
-		Append<int8, ENDIANNESS>(value);
+		Append<int8>(value);
 		return *this;
 	}
 
 	ByteBuffer& operator<<(int16 value)
 	{
-		Append<int16, ENDIANNESS>(value);
+		Append<int16>(value);
 		return *this;
 	}
 
 	ByteBuffer& operator<<(int32 value)
 	{
-		Append<int32, ENDIANNESS>(value);
+		Append<int32>(value);
 		return *this;
 	}
 
 	ByteBuffer& operator<<(int64 value)
 	{
-		Append<int64, ENDIANNESS>(value);
+		Append<int64>(value);
 		return *this;
 	}
 
 	ByteBuffer& operator<<(double value)
 	{
-		Append<double, ENDIANNESS>(value);
+		Append<double>(value);
 		return *this;
 	}
 
 	ByteBuffer& operator<<(float value)
 	{
-		Append<float, ENDIANNESS>(value);
+		Append<float>(value);
 		return *this;
 	}
 
 	ByteBuffer& operator<<(bool value)
 	{
-		Append<uint8, ENDIANNESS>(value ? 1 : 0);
+		Append<uint8>(value ? 1 : 0);
 		return *this;
 	}
 
@@ -203,7 +222,7 @@ public:
 	{
 		size_t s = value.length();
 		size_t temp = s;
-		Append<uint16, ENDIANNESS>(temp);
+		Append<uint16>(temp);
 		AppendBytes((uint8*)value.c_str(), s);
 		return *this;
 	}
@@ -219,16 +238,16 @@ public:
 	template<class T>
 	ByteBuffer& operator>>(T& value)
 	{
-		value = Read<T, ENDIANNESS>();
+		value = Read<T>();
 		return *this;
 	}
 };
 
 template<> inline ByteBuffer& ByteBuffer::operator>>(std::string& value)
 {
-	uint16 size = Read<uint16, ENDIANNESS>();
+	uint16 size = Read<uint16>();
 	for(uint16 a = 0; a < size; ++a)
-		value += Read<char, ENDIANNESS>();
+		value += Read<char>();
 	return *this;
 }
 

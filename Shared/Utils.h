@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,10 +23,7 @@ namespace Desperion
 {
 
 	template<class U>
-	inline bool FromString(const std::string& string, U& dest, bool conv = false);
-
-	template<class U>
-	bool FromString(const std::string& string, U& dest, bool conv) {
+	inline bool FromString(const std::string& string, U& dest, bool conv = false) {
 		std::istringstream iss(string);
 		if(conv)
 			return iss >> std::hex >> dest != 0;
@@ -35,10 +32,7 @@ namespace Desperion
 	}
 
 	template<>
-	inline bool FromString<uint8>(const std::string& string, uint8& dest, bool conv);
-
-	template<>
-	bool FromString<uint8>(const std::string& string, uint8& dest, bool conv) {
+	inline bool FromString<uint8>(const std::string& string, uint8& dest, bool conv) {
 		std::istringstream iss(string);
 		uint16 dest2;
 		if(conv)
@@ -56,10 +50,7 @@ namespace Desperion
 	}
 
 	template<>
-	inline bool FromString<int8>(const std::string& string, int8& dest, bool conv);
-
-	template<>
-	bool FromString<int8>(const std::string& string, int8& dest, bool conv) {
+	inline bool FromString<int8>(const std::string& string, int8& dest, bool conv) {
 		std::istringstream iss(string);
 		int16 dest2;
 		if(conv)
@@ -77,20 +68,14 @@ namespace Desperion
 	}
 
 	template<class W>
-	inline std::string ToHexString(const W& object);
-
-	template<class W>
-	std::string ToHexString(const W& i){
+	inline std::string ToHexString(const W& i){
 		std::stringstream ss;
 		ss<<std::hex<<std::showbase<<i;
 		return ss.str();
 	}
 
 	template<>
-	inline std::string ToHexString<uint8>(const uint8& object);
-
-	template<>
-	std::string ToHexString<uint8>(const uint8& i)
+	inline std::string ToHexString<uint8>(const uint8& i)
 	{
 		uint16 ii = i;
 		std::stringstream ss;
@@ -99,10 +84,7 @@ namespace Desperion
 	}
 
 	template<>
-	inline std::string ToHexString<int8>(const int8& object);
-
-	template<>
-	std::string ToHexString<int8>(const int8& i)
+	inline std::string ToHexString<int8>(const int8& i)
 	{
 		int16 ii = i;
 		std::stringstream ss;
@@ -111,20 +93,14 @@ namespace Desperion
 	}
 
 	template<class V>
-	inline std::string ToString(const V& object);
-
-	template<class V>
-	std::string ToString(const V& i) {
+	inline std::string ToString(const V& i) {
 		std::ostringstream oss;
 		oss<<i;
 		return oss.str();
 	}
 
-	template<>
-	inline std::string ToString<uint8>(const uint8& object);
-
 	template<> 
-	std::string ToString<uint8>(const uint8& i)
+	inline std::string ToString<uint8>(const uint8& i)
 	{
 		std::ostringstream oss;
 		uint16 ii = i;
@@ -132,11 +108,8 @@ namespace Desperion
 		return oss.str();
 	}
 
-	template<>
-	inline std::string ToString<int8>(const int8& object);
-
 	template<> 
-	std::string ToString<int8>(const int8& i)
+	inline std::string ToString<int8>(const int8& i)
 	{
 		std::ostringstream oss;
 		int16 ii = i;
@@ -169,11 +142,15 @@ namespace Desperion
 				temp += b;
 			}
 		}
-		vector.push_back(temp);
+		if(reserved)
+			vector.push_back(temp);
 	}
 
+	inline void SplitInt(int& val, std::string& str)
+	{ val = atoi(str.c_str()); }
+
 	template<class T, char S>
-	inline void FastSplit(std::vector<T>& vector, std::string str, T(* callback)(const char*))
+	inline void FastSplit(std::vector<T>& vector, std::string str, void(* callback)(T&, std::string&) = &SplitInt)
 	{
 		bool reserved = false;
 		std::string temp = "";
@@ -186,7 +163,11 @@ namespace Desperion
 				if(!reserved)
 					vector.reserve(atoi(temp.c_str()));
 				else
-					vector.push_back((*callback)(temp.c_str()));
+				{
+					T val;
+					(*callback)(val, temp);
+					vector.push_back(val);
+				}
 				reserved = true;
 				temp.clear();
 				break;
@@ -194,7 +175,12 @@ namespace Desperion
 				temp += b;
 			}
 		}
-		vector.push_back((*callback)(temp.c_str()));
+		if(reserved)
+		{
+			T val;
+			(*callback)(val, temp);
+			vector.push_back(val);
+		}
 	}
 
 	std::string ToUpperCase(std::string str);

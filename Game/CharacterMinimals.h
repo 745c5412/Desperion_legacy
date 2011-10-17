@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ struct DSubEntity
 	int8 bindingPointIndex;
 	DEntityLook* subEntityLook;
 
-	void Init(ByteBuffer&);
+	void Init(ByteBuffer& buffer);
 	ByteBuffer Serialize() const;
 	~DSubEntity();
 };

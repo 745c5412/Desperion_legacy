@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -180,6 +180,8 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	Desperion::eDatabase->Execute("UPDATE accounts SET ticket='', logged=%u WHERE guid=%u LIMIT 1;", servID, 
 		m_data[FLAG_GUID].intValue);
 
+	World::Instance().AddSession(this);
+
 	Send(AuthenticationTicketAcceptedMessage());
 	Send(AccountCapabilitiesMessage(m_data[FLAG_GUID].intValue, false, 0x1fff, 0x1fff));
 	std::vector<int16> features;
@@ -190,11 +192,15 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 
 Session::~Session()
 {
-	Log::Instance().outDebug("Client %u disconnected", m_data[FLAG_GUID].intValue);
 	if(m_char != NULL)
 	{
 		m_char->GetMap()->RemoveActor(m_char->GetGuid());
 		delete m_char;
+	}
+	if(m_data[FLAG_GUID].intValue != 0)
+	{
+		World::Instance().DeleteSession(m_data[FLAG_GUID].intValue);
+		Log::Instance().outDebug("Client %u disconnected", m_data[FLAG_GUID].intValue);
 	}
 }
 

@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ typedef boost::mutex Mutex;
 class World : public Singleton<World>
 {
 public:
-	typedef std::set<Session*> SessionSet;
+	typedef std::tr1::unordered_map<int, Session*> SessionMap;
 	typedef std::tr1::unordered_map<int, CharacterMinimals*> CharacterMinimalsMap;
 	typedef std::tr1::unordered_map<int, Item*> ItemMap;
 	typedef std::tr1::unordered_map<int, Map*> MapMap;
@@ -37,7 +37,6 @@ public:
 	World();
 	~World();
 	void Init();
-	void Update();
 	//void CreateSchema();
 
 	void LoadCharacterMinimals();
@@ -45,8 +44,8 @@ public:
 	void LoadMaps();
 
 	void AddSession(Session*);
-	void DeleteSession(Session*);
-	Session* GetSession(uint32);
+	void DeleteSession(int);
+	Session* GetSession(int);
 
 	Map* GetMap(int);
 	Map* GetMapByCoords(int16, int16);
@@ -73,10 +72,10 @@ public:
 	uint16 GetMaxPlayers() const
 	{ return m_maxPlayers; }
 
-	const SessionSet& GetSessions() const
+	const SessionMap& GetSessions() const
 	{ return Sessions; }
 private:
-	SessionSet Sessions;
+	SessionMap Sessions;
 	CharacterMinimalsMap Characters;
 	ItemMap Items;
 	MapMap Maps;

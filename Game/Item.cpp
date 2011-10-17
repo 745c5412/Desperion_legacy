@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,28 +20,12 @@
 
 void Item::InitFavoriteSubAreas(std::string subareas)
 {
-	ByteBuffer buffer = Desperion::DbToBuffer(subareas);
-	uint16 size;
-	buffer>>size;
-	for(uint16 a = 0; a < size; ++a)
-	{
-		int area;
-		buffer>>area;
-		m_favoriteSubAreas.push_back(area);
-	}
+	Desperion::FastSplit<int, ','>(m_favoriteSubAreas, subareas, &Desperion::SplitInt);
 }
 
 void Item::InitPossibleEffects(std::string effects)
 {
-	ByteBuffer buffer = Desperion::DbToBuffer(effects);
-	uint16 size;
-	buffer>>size;
-	for(uint16 a = 0; a < size; ++a)
-	{
-		EffectInstanceDice i;
-		buffer>>i.effectId>>i.diceNum>>i.duration>>i.hidden>>i.diceSide>>i.value>>i.random>>i.targetId>>i.zoneSize>>i.zoneShape;
-		m_possibleEffects.push_back(i);
-	}
+	Desperion::FastSplit<EffectInstanceDice, ';'>(m_possibleEffects, effects, &F);
 }
 
 void Item::_Init(int16 id, int typeId, int level, int weight, bool cursed, int useAnimationId, bool usable,

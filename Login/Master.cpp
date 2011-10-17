@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -63,13 +63,8 @@ namespace Desperion
 	Master::~Master()
 	{
 		CleanupRandomNumberGenerators();
-	
-		delete Config::InstancePtr();
 		delete sListener;
 		delete eListener;
-		delete World::InstancePtr();
-		delete sDatabase;
-		delete Log::InstancePtr();
 	}
 
 	bool Master::StartUpDatabase()
@@ -122,10 +117,8 @@ namespace Desperion
 
 		new World;
 		World::Instance().Init();
-	
-		boost::asio::io_service ios;
 
-		sListener = new SocketListener<Session>(ios);
+		sListener = new SocketListener<Session>(m_service);
 		sListener->Init(Config::Instance().GetUInt(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
 		if(sListener->IsOpen())
 			Log::Instance().outNotice("Network", "Local socket running!");
@@ -135,7 +128,7 @@ namespace Desperion
 			return false;
 		}
 
-		eListener = new SocketListener<GameSession>(ios);
+		eListener = new SocketListener<GameSession>(m_service);
 		eListener->Init(Config::Instance().GetUInt(DISTANT_SERVER_PORT_STRING, DISTANT_SERVER_PORT_DEFAULT));
 		if(eListener->IsOpen())
 			Log::Instance().outNotice("Network", "Distant socket running!\n");
@@ -151,16 +144,8 @@ namespace Desperion
 		sListener->Run();
 		eListener->Run();
 
-		m_running = true;
 		HookSignals();
-		boost::posix_time::time_duration td = boost::posix_time::milliseconds(100);
-		boost::thread(boost::bind(&boost::asio::io_service::run, &ios));
-		while(m_running)
-		{
-			World::Instance().Update();
-			boost::this_thread::sleep(td);
-		}
-		ios.stop();
+		m_service.run();
 		UnHookSignals();
 		return true;
 	}

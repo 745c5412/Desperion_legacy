@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -64,14 +64,7 @@ namespace Desperion
 	Master::~Master()
 	{
 		CleanupRandomNumberGenerators();
-	
-		delete GameClient::InstancePtr();
-		delete Config::InstancePtr();
 		delete sListener;
-		delete World::InstancePtr();
-		delete sDatabase;
-		delete eDatabase;
-		delete Log::InstancePtr();
 	}
 
 	bool Master::StartUpDatabase()
@@ -131,17 +124,15 @@ namespace Desperion
 		Log::Instance().outColor(TBLUE, "GameServer v%s\n\n\n", m_version.c_str());
 	
 		new Config;
-		Config::Instance().Init(configPath, TARGET_REALM);
+		Config::Instance().Init(configPath, TARGET_GAME);
 
 		if(!StartUpDatabase())
 			return false;
 
 		new World;
 		World::Instance().Init();
-	
-		boost::asio::io_service ios;
 
-		sListener = new SocketListener<Session>(ios);
+		sListener = new SocketListener<Session>(m_service);
 		sListener->Init(Config::Instance().GetUInt(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
 		if(sListener->IsOpen())
 			Log::Instance().outNotice("Network", "Local socket running!\n");
@@ -151,26 +142,20 @@ namespace Desperion
 			return false;
 		}
 
-		new GameClient;
-		GameClient::Instance().Init(new Socket(ios));
-		GameClient::Instance().Connect();
+		boost::shared_ptr<GameClient> ptr(new GameClient);
+		GameClient::Instance().Init(new Socket(m_service));
 
 		Log::Instance().outColor(TBLUE, "Uptime: %ums", getMSTime() - m_startTime);
 		Log::Instance().outColor(TBLUE, "Type Ctrl+C to safely shutdown the server.\n");
 
 		sListener->Run();
+		GameClient::Instance().Launch();
 
-		m_running = true;
 		HookSignals();
-		boost::posix_time::time_duration td = boost::posix_time::milliseconds(100);
-		boost::thread(boost::bind(&boost::asio::io_service::run, &ios));
-		while(m_running)
-		{
-			World::Instance().Update();
-			boost::this_thread::sleep(td);
-		}
-		ios.stop();
+		m_service.run();
 		UnHookSignals();
+
+		GameClient::Instance().Stop();
 		return true;
 	}
 

@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,13 +37,14 @@ namespace Desperion
 
 		uint32 GetUpTime() const
 		{ return getMSTime() - m_startTime; }
+
 		void Stop()
-		{ m_running = false; }
+		{ m_service.stop(); }
 
 	private:
 		bool StartUpDatabase();
 
-		bool m_running;
+		boost::asio::io_service m_service;
 		uint32 m_startTime;
 		std::string m_version;
 	};

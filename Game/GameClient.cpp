@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,25 +25,32 @@ GameClient::~GameClient()
 {
 }
 
-void GameClient::Connect()
+void GameClient::Launch()
 {
+	if(m_timer == NULL)
+		m_timer = new boost::asio::deadline_timer(m_socket->io_service());
+	else
+		m_timer->cancel();
+	m_socket->close();
 	boost::asio::ip::tcp::endpoint host(boost::asio::ip::address::from_string("127.0.0.1"),
 		Desperion::Config::Instance().GetUInt(DISTANT_SERVER_PORT_STRING, DISTANT_SERVER_PORT_DEFAULT));
-	m_socket->async_connect(host, boost::bind(&GameClient::Start, this));
+	m_socket->async_connect(host, boost::bind(&GameClient::HandleConnect, this, boost::asio::placeholders::error));
+}
+
+void GameClient::HandleConnect(const boost::system::error_code& error)
+{
+	if(error)
+	{
+		Log::Instance().outDebug("Problems with game client connection, waiting 5 seconds...");
+		m_timer->expires_from_now(boost::posix_time::seconds(5));
+		m_timer->async_wait(boost::bind(&GameClient::Launch, this));
+	}
+	else
+		Start();
 }
 
 void GameClient::Start()
 {
-	try
-	{
-		int8 test[2] = {0, 0};
-		boost::asio::write(*m_socket, boost::asio::buffer(test, 2));
-	}catch(const std::exception& e)
-	{
-		CloseConnection();
-		return;
-	}
-
 	Packet data(CMSG_CONNECT);
 	data<<uint16(Desperion::Config::Instance().GetUInt(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT));
 	data<<Desperion::Config::Instance().GetString(LOCAL_SERVER_AUTH_KEY_STRING, LOCAL_SERVER_AUTH_KEY_DEFAULT);
@@ -53,5 +60,6 @@ void GameClient::Start()
 	state<<m_state;
 	Send(state);
 
+	//Wait();
 	Run();
 }

@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,14 +19,16 @@
 #ifndef __SOCKET_LISTENER__
 #define __SOCKET_LISTENER__
 
+typedef boost::asio::ip::tcp::acceptor Acceptor;
+typedef boost::asio::ip::tcp::endpoint Endpoint;
+typedef boost::asio::ip::tcp::socket Socket;
+typedef boost::asio::io_service Service;
+
 template<class T>
 class SocketListener
 {
 public:
-	typedef boost::asio::ip::tcp::acceptor Acceptor;
-	typedef boost::asio::ip::tcp::endpoint Endpoint;
-	typedef boost::asio::ip::tcp::socket Socket;
-	typedef boost::asio::io_service Service;
+	typedef boost::shared_ptr<T> SessionPtr;
 private:
 	Acceptor* m_acceptor;
 	Socket* m_socket;
@@ -48,10 +50,7 @@ public:
 	~SocketListener()
 	{
 		if(m_acceptor->is_open())
-		{
 			m_acceptor->close();
-			m_acceptor->cancel();
-		}
 		delete m_acceptor;
 		delete m_socket;
 	}
@@ -60,7 +59,7 @@ public:
 	{
 		if(error)
 			return;
-		T* session = new T;
+		SessionPtr session(new T);
 		session->Init(m_socket);
 		m_socket = new Socket(m_service);
 		session->Start();

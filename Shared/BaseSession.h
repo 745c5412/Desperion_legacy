@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 typedef boost::asio::ip::tcp::socket Socket;
 
 template<class HandlerType>
-class BaseSession
+class BaseSession : public boost::enable_shared_from_this<BaseSession<HandlerType> >
 {
 protected:
 	typedef std::tr1::unordered_map<uint32, HandlerType> HandlerStorageMap;
@@ -34,7 +34,6 @@ private:
 	uint32 m_opcode;
 	std::vector<uint8> m_length;
 	std::vector<uint8> m_buffer;
-	bool m_dead;
 
 	void _Send(ByteBuffer& buffer)
 	{
@@ -47,13 +46,12 @@ public:
 	virtual bool IsAllowed(uint8 flag) = 0;
 	virtual void OnData(HandlerType* hdl, ByteBuffer& packet) = 0;
 
-	bool IsDead()
-	{ return m_dead; }
+	virtual void OnClose() // this function's only called by GameClient, so no need to make it virtual
+	{ }
 
 	BaseSession()
 	{ 
 		m_startTime = time(NULL);
-		m_dead = false;
 	}
 
 	virtual ~BaseSession()
@@ -78,18 +76,11 @@ public:
 	void Init(Socket* socket)
 	{ m_socket = socket; }
 
-	void CloseConnection()
-	{
-		m_dead = true;
-		if(m_socket->is_open())
-			m_socket->close();
-	}
-
 	void HandleReadLength(const boost::system::error_code& error)
 	{
 		if(error)
 		{
-			CloseConnection();
+			OnClose();
 			return;
 		}
 
@@ -101,8 +92,8 @@ public:
 			break;
 		case 2:
 			toResize = *((uint16*)&m_length[0]);
-			if(ENDIANNESS)
-				SWAP(toResize);
+			if(ByteBuffer::ENDIANNESS == LITTLE_ENDIAN)
+				SwapBytes((uint8*)&toResize, sizeof(toResize));
 			break;
 		case 3:
 			toResize = (((m_length[0] & 0xff) << 0x10) + ((m_length[1] & 0xff) << 8)) + (m_length[2] & 0xff);
@@ -111,7 +102,7 @@ public:
 		m_buffer.resize(toResize);
 		m_length.clear();
 
-		boost::asio::async_read(*m_socket, boost::asio::buffer(m_buffer), boost::bind(&BaseSession::HandleReadData, this, 
+		boost::asio::async_read(*m_socket, boost::asio::buffer(m_buffer), boost::bind(&BaseSession::HandleReadData, shared_from_this(), 
 			boost::asio::placeholders::error));
 	}
 
@@ -119,18 +110,18 @@ public:
 	{
 		if(error)
 		{
-			CloseConnection();
+			OnClose();
 			return;
 		}
 
 		uint16 header = *((uint16*)&m_header[0]);
-		if(ENDIANNESS)
-			SWAP(header);
+		if(ByteBuffer::ENDIANNESS == LITTLE_ENDIAN)
+			SwapBytes((uint8*)&header, sizeof(header));
 		m_opcode = header >> 2;
 		uint32 typeLen = header & 3;
 		m_length.resize(typeLen);
 
-		boost::asio::async_read(*m_socket, boost::asio::buffer(m_length), boost::bind(&BaseSession::HandleReadLength, this, 
+		boost::asio::async_read(*m_socket, boost::asio::buffer(m_length), boost::bind(&BaseSession::HandleReadLength, shared_from_this(), 
 			boost::asio::placeholders::error));
 	}
 
@@ -138,7 +129,7 @@ public:
 	{
 		if(error)
 		{
-			CloseConnection();
+			OnClose();
 			return;
 		}
 
@@ -163,7 +154,6 @@ public:
 		}catch(const ServerError& error)
 		{
 			Log::Instance().outError(error.what());
-			m_dead = true;
 			return;
 		}catch(const std::exception& except)
 		{
@@ -177,7 +167,7 @@ public:
 
 	void Run()
 	{
-		boost::asio::async_read(*m_socket, boost::asio::buffer(m_header), boost::bind(&BaseSession::HandleReadHeader, this, 
+		boost::asio::async_read(*m_socket, boost::asio::buffer(m_header), boost::bind(&BaseSession::HandleReadHeader, shared_from_this(), 
 			boost::asio::placeholders::error));
 	}
 

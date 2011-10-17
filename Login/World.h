@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,22 +30,22 @@ class World : public Singleton<World>
 	friend class Singleton<World>;
 public:
 	/* arrays typedefs */
-	typedef std::tr1::unordered_map<uint16, GameServer*> GameServerStorageMap;
-	typedef std::set<Session*> SessionSet;
-	typedef std::set<GameSession*> GameSessionSet;
+	typedef std::tr1::unordered_map<uint16, GameServer*> GameServerMap;
+	typedef std::tr1::unordered_map<int, Session*> SessionMap;
+	typedef std::tr1::unordered_map<int, GameSession*> GameSessionMap;
 
 	World();
 	~World();
 
-	void Update();
 	void Init();
 	void LoadGameServers();
 
 	void AddSession(Session*);
-	void DeleteSession(Session*);
-	Session* GetSession(uint32);
+	void DeleteSession(int);
+	Session* GetSession(int);
+
 	void AddGameSession(GameSession*);
-	void DeleteGameSession(GameSession*);
+	void DeleteGameSession(uint16);
 	GameSession* GetGameSession(uint16);
 
 	GameServer* GetGameServer(uint16);
@@ -58,14 +58,12 @@ public:
 	uint16 GetMaxPlayers() const
 	{ return m_maxPlayers; }
 
-	const GameServerStorageMap& GetGameServers() const
+	const GameServerMap& GetGameServers() const
 	{ return GameServers; }
 private:
-	static AtomicLog Logger;
-
-	SessionSet Sessions;
-	GameSessionSet GameSessions;
-	GameServerStorageMap GameServers;
+	SessionMap Sessions;
+	GameSessionMap GameSessions;
+	GameServerMap GameServers;
 
 	time_t m_startTime;
 	uint16 m_maxPlayers;

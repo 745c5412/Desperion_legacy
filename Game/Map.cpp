@@ -1,6 +1,6 @@
 /*
 	This file is part of Desperion.
-	Copyright 2010, 2011 LittleScaraby, Nekkro
+	Copyright 2010, 2011 LittleScaraby
 
     Desperion is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 void Map::Init(Field* fields)
 {
 	m_id = fields[0].GetInt32();
-	Desperion::FastSplit<int, ','>(m_cells, fields[1].GetString(), &atoi);
+	Desperion::FastSplit<int, ','>(m_cells, fields[1].GetString(), &Desperion::SplitInt);
 	m_topMap = fields[2].GetInt32();
 	m_bottomMap = fields[3].GetInt32();
 	m_rightMap = fields[4].GetInt32();
