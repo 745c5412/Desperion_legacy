@@ -81,17 +81,13 @@ public:
 	{
 		uint32 j = 1, k = 1;
 		size_t s = Size();
-		printf("STORAGE_SIZE: %u\n", (unsigned int)s );
+		printf("STORAGE_SIZE: %u\n", (unsigned int) s);
 		for(uint32 i = 0; i < s; ++i)
 		{
-			if (Read<uint8>(i) < 0x0F)
-			{
-				printf("0%X ", Read<uint8>(i) );
-			}
+			if (Read<uint8>(i) <= 0x0F)
+				printf("0%X ", Read<uint8>(i));
 			else
-			{
-				printf("%X ", Read<uint8>(i) );
-			}
+				printf("%X ", Read<uint8>(i));
 		}
 		printf("\n");
 	}

@@ -314,5 +314,11 @@
     <ClInclude Include="AdminQuietCommandMessage.h">
       <Filter>Messages</Filter>
     </ClInclude>
+    <ClInclude Include="GameRolePlayShowActorMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="GameContextRemoveElementMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

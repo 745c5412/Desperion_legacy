@@ -150,7 +150,7 @@ namespace Desperion
 	{ val = atoi(str.c_str()); }
 
 	template<class T, char S>
-	inline void FastSplit(std::vector<T>& vector, std::string str, void(* callback)(T&, std::string&) = &SplitInt)
+	inline void FastSplit(std::vector<T>& vector, std::string str, void(* callback)(T&, std::string&))
 	{
 		bool reserved = false;
 		std::string temp = "";

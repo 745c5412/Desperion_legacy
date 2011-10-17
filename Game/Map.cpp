@@ -29,12 +29,26 @@ void Map::Init(Field* fields)
 	m_posX = fields[8].GetInt16();
 	m_posY = fields[9].GetInt16();
 	m_capabilities = fields[11].GetInt32();
-	m_subareaId = fields[4].GetInt16();
+	m_subareaId = fields[14].GetInt16();
 }
 
 void Map::AddActor(DisplayableEntity* actor)
 {
 	m_actors.push_back(actor);
+	Send(GameRolePlayShowActorMessage(actor), actor->GetGuid());
+}
+
+void Map::Send(const DofusMessage& data, int guid)
+{
+	for(std::list<DisplayableEntity*>::iterator it = m_actors.begin(); it != m_actors.end(); ++it)
+	{
+		if(!(*it)->IsCharacter())
+			continue;
+		Character* ch = ToCharacter(*it);
+		if(ch->GetGuid() == guid)
+			continue;
+		ch->GetSession()->Send(data);
+	}
 }
 
 void Map::RemoveActor(int guid)
@@ -43,6 +57,7 @@ void Map::RemoveActor(int guid)
 	{
 		if((*it)->GetGuid() == guid)
 		{
+			Send(GameRolePlayShowActorMessage(*it), guid);
 			m_actors.erase(it);
 			return;
 		}

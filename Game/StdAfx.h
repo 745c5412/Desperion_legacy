@@ -82,11 +82,13 @@
 #include "BasicNoOperationMessage.h"
 #include "AdminCommandMessage.h"
 #include "AdminQuietCommandMessage.h"
+#include "GameContextRemoveElementMessage.h"
 
 #include "Entity.h"
 #include "Character.h"
 #include "CharacterStatsListMessage.h"
 #include "MapComplementaryInformationsDataMessage.h"
+#include "GameRolePlayShowActorMessage.h"
 #include "Session.h"
 
 #endif

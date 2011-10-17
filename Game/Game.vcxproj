@@ -136,6 +136,7 @@
     <ClInclude Include="GameContextCreateMessage.h" />
     <ClInclude Include="GameContextCreateRequestMessage.h" />
     <ClInclude Include="GameContextDestroyMessage.h" />
+    <ClInclude Include="GameContextRemoveElementMessage.h" />
     <ClInclude Include="GameMapMovementConfirmMessage.h" />
     <ClInclude Include="GameMapMovementMessage.h" />
     <ClInclude Include="GameMapMovementRequestMessage.h" />
@@ -143,6 +144,7 @@
     <ClInclude Include="GameRolePlayCharacterInformations.h" />
     <ClInclude Include="GameRolePlayHumanoidInformations.h" />
     <ClInclude Include="GameRolePlayNamedActorInformations.h" />
+    <ClInclude Include="GameRolePlayShowActorMessage.h" />
     <ClInclude Include="HelloGame.h" />
     <ClInclude Include="HumanInformations.h" />
     <ClInclude Include="InventoryContentMessage.h" />

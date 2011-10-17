@@ -38,6 +38,7 @@ public:
 	DisplayableEntity* GetActor(int);
 	void AddActor(DisplayableEntity*);
 	void RemoveActor(int);
+	void Send(const DofusMessage&, int guid = -1);
 
 	int GetId() const
 	{ return m_id; }

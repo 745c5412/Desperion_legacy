@@ -23,6 +23,7 @@ void Session::HandleMapInformationsRequestMessage(ByteBuffer& packet)
 	MapInformationsRequestMessage data(packet);
 
 	Map* map = m_char->GetMap();
+
 	Send(MapComplementaryInformationsDataMessage(map->GetSubareaId(), map->GetId(), 0, map->GetActors()));
 }
 
@@ -93,5 +94,5 @@ void Session::HandleGameMapMovementRequestMessage(ByteBuffer& packet)
 
 	// todo: pathfinding
 	m_char->SetNextCell(data.keyMovements[data.keyMovements.size() - 1] & 0xfff);
-	SendToMap(GameMapMovementMessage(data.keyMovements, m_char->GetGuid()), true);
+	m_char->GetMap()->Send(GameMapMovementMessage(data.keyMovements, m_char->GetGuid()));
 }

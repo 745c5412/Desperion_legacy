@@ -94,7 +94,6 @@ private:
 public:
 	static void InitHandlersTable();
 	void Start();
-	void SendToMap(const DofusMessage&, bool self = true);
 
 	void OnData(GamePacketHandler* hdl, ByteBuffer& packet)
 	{ (this->*hdl->Handler)(packet); }

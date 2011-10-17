@@ -74,20 +74,6 @@ void Session::HandleAdminQuietCommandMessage(ByteBuffer& packet)
 	Send(CurrentMapMessage(m_char->GetMap()->GetId()));
 }
 
-void Session::SendToMap(const DofusMessage& data, bool self)
-{
-	std::list<DisplayableEntity*>& actors = m_char->GetMap()->GetActors();
-	for(std::list<DisplayableEntity*>::iterator it = actors.begin(); it != actors.end(); ++it)
-	{
-		if(!(*it)->IsCharacter())
-			continue;
-		Character* ch = ToCharacter(*it);
-		if(ch->GetGuid() == m_char->GetGuid() && !self)
-			continue;
-		ch->GetSession()->Send(data);
-	}
-}
-
 void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 {
 	AuthenticationTicketMessage data(packet);
