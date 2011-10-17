@@ -38,7 +38,6 @@ enum Endianness
 
 inline Endianness GetEndianness()
 {
-
 	union {
 		int i;
 		char c[sizeof(int)];

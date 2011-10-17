@@ -152,7 +152,13 @@ namespace Desperion
 		GameClient::Instance().Launch();
 
 		HookSignals();
-		m_service.run();
+		try
+		{
+			m_service.run();
+		}catch(const std::exception& err)
+		{
+			Log::Instance().outError("Unhandled exception: %s", err.what());
+		}
 		UnHookSignals();
 
 		GameClient::Instance().Stop();

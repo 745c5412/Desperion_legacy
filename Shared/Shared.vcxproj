@@ -76,10 +76,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\QtSDK\Visual\include;C:\Users\Alex\Desktop\bibliothèques\QxOrm\include;C:\Users\Alex\Desktop\bibliothèques\libs_ascent\libraries3\VC\include;C:\Users\Alex\Desktop\bibliothèques\boost_1_45_0\boost_1_45_0;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\Alex\Documents\Visual Studio 2010\Projects\Desperion2\Libs\include;C:\Users\Alex\Desktop\bibliothèques\boost_1_45_0\boost_1_45_0;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LibraryPath>C:\QtSDK\Visual\lib;C:\Users\Alex\Desktop\bibliothèques\QxOrm\lib;C:\Users\Alex\Desktop\bibliothèques\libs_ascent\libraries3\VC\lib;C:\Users\Alex\Desktop\bibliothèques\boost_1_45_0\boost_1_45_0\stage\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\Users\Alex\Documents\Visual Studio 2010\Projects\Desperion2\Libs\lib;C:\Users\Alex\Documents\Visual Studio 2010\Projects\Desperion2\Debug;C:\Users\Alex\Desktop\bibliothèques\boost_1_45_0\boost_1_45_0\stage\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

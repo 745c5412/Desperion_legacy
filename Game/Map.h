@@ -58,24 +58,7 @@ public:
 	std::list<DisplayableEntity*>& GetActors()
 	{ return m_actors; }
 
-	Cell GetCell(uint16 index)
-	{
-		Cell c;
-		int number = 0;
-		try
-		{
-			number = m_cells.at(index);
-			c.id = index;
-		}catch(...)
-		{ 
-			c.id = -1; 
-		}
-		uint8* bytes = (uint8*)number;
-		c.losmov = bytes[0];
-		c.mapChangeData = bytes[1];
-		c.speed = bytes[2];
-		return c;
-	}
+	Cell GetCell(uint16) const;
 
 	int GetTopMap() const
 	{ return m_topMap; }

@@ -51,13 +51,35 @@ void Map::Send(const DofusMessage& data, int guid)
 	}
 }
 
+Cell Map::GetCell(uint16 index) const
+{
+	Cell c;
+	int number = 0;
+	try
+	{
+		number = m_cells.at(index);
+		c.id = index;
+	}catch(const std::out_of_range&)
+	{ 
+		Log::Instance().outError("Invalid cell %u", index);
+		c.id = -1; 
+	}
+	uint8* bytes = (uint8*)number;
+	if(ByteBuffer::ENDIANNESS == BIG_ENDIAN)
+		SwapBytes(bytes, 3);
+	c.losmov = bytes[0];
+	c.mapChangeData = bytes[1];
+	c.speed = bytes[2];
+	return c;
+}
+
 void Map::RemoveActor(int guid)
 {
 	for(std::list<DisplayableEntity*>::iterator it = m_actors.begin(); it != m_actors.end(); ++it)
 	{
 		if((*it)->GetGuid() == guid)
 		{
-			Send(GameRolePlayShowActorMessage(*it), guid);
+			Send(GameContextRemoveElementMessage(guid), guid);
 			m_actors.erase(it);
 			return;
 		}

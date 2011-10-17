@@ -68,9 +68,9 @@ void Session::HandleChangeMapMessage(ByteBuffer& packet)
 		return;
 
 	m_char->GetMap()->RemoveActor(m_char->GetGuid());
-	newMap->AddActor(m_char);
 	m_char->SetMap(newMap);
 	m_char->SetCell(newCell);
+	newMap->AddActor(m_char);
 	Send(CurrentMapMessage(m_char->GetMap()->GetId()));
 }
 
