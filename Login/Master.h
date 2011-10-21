@@ -26,7 +26,7 @@ namespace Desperion
 	class Master : public Singleton<Master>
 	{
 	public:
-		Master() : m_version("1.1.0")
+		Master() : m_version("1.3.1")
 		{
 		}
 

@@ -83,6 +83,7 @@ void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 	m_session = session;
 	m_context = ROLE_PLAY;
 	m_nextCell = -1;
+	m_nextDirection = -1;
 	ch->onlineCharacter = this;
 	InitItems();
 	m_stats.Init(fields, m_level);

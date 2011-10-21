@@ -33,6 +33,7 @@
 
 #include "PlayerItem.h"
 #include "Map.h"
+#include "Path.h"
 #include "GameClient.h"
 
 #include "EntityLook.h"

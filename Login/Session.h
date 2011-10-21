@@ -60,8 +60,8 @@ inline static bool VerifyVersion(Version& v)
 {
 	uint8 currentMajor = 2;
 	uint8 currentMinor = 4;
-	uint8 currentRelease = 2;
-	uint16 currentRevision = 50422;
+	uint8 currentRelease = 4;
+	uint16 currentRevision = 50860;
 	uint8 currentPatch = 1;
 	uint8 currentBuildType = 0;
 

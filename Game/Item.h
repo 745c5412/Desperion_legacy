@@ -41,10 +41,11 @@ struct EffectInstanceDice : public EffectInstanceInteger
 	int diceSide;
 };
 
-inline void F(EffectInstanceDice& i, std::string& str)
+inline EffectInstance&& F(std::string& str)
 {
+	EffectInstanceDice i;
 	std::vector<int> table;
-	Desperion::FastSplit<int, ','>(table, str, &Desperion::SplitInt);
+	Desperion::FastSplit<','>(table, str, Desperion::SplitInt);
 	i.effectId = table[0];
 	i.diceNum = table[1];
 	i.duration = table[2];
@@ -55,6 +56,7 @@ inline void F(EffectInstanceDice& i, std::string& str)
 	i.targetId = table[7];
 	i.zoneSize = table[8];
 	i.zoneShape = table[9];
+	return std::move(i);
 }
 
 class Item
@@ -74,7 +76,7 @@ protected:
 	int m_itemSetId;
 	std::string m_criteria;
 	int m_appearanceId;
-	std::vector<EffectInstanceDice> m_possibleEffects;
+	std::vector<EffectInstance> m_possibleEffects;
 	std::vector<int> m_favoriteSubAreas;
 	int m_favoriteSubAreaBonus;
 public:

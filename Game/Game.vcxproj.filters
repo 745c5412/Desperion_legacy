@@ -120,6 +120,9 @@
     <ClCompile Include="CharacterCharacteristicsInformations.cpp">
       <Filter>Models\CPP</Filter>
     </ClCompile>
+    <ClCompile Include="Path.cpp">
+      <Filter>Desperion\CPP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StdAfx.h">
@@ -319,6 +322,9 @@
     </ClInclude>
     <ClInclude Include="GameContextRemoveElementMessage.h">
       <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="Path.h">
+      <Filter>Desperion\H</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

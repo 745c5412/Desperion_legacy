@@ -20,12 +20,12 @@
 
 void Item::InitFavoriteSubAreas(std::string subareas)
 {
-	Desperion::FastSplit<int, ','>(m_favoriteSubAreas, subareas, &Desperion::SplitInt);
+	Desperion::FastSplit<','>(m_favoriteSubAreas, subareas, Desperion::SplitInt);
 }
 
 void Item::InitPossibleEffects(std::string effects)
 {
-	Desperion::FastSplit<EffectInstanceDice, ';'>(m_possibleEffects, effects, &F);
+	Desperion::FastSplit<';'>(m_possibleEffects, effects, F);
 }
 
 void Item::_Init(int16 id, int typeId, int level, int weight, bool cursed, int useAnimationId, bool usable,

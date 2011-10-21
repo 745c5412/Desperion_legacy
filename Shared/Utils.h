@@ -120,8 +120,8 @@ namespace Desperion
 	std::string ToLowerCase(std::string str);
 	void Split(std::vector<std::string>& vector, std::string str, char sep);
 
-	template<class T, char S>
-	inline void FastSplit(std::vector<T>& vector, std::string str)
+	template<char S>
+	inline void FastSplit(std::vector<std::string>& vector, std::string str)
 	{
 		bool reserved = false;
 		std::string temp = "";
@@ -146,11 +146,13 @@ namespace Desperion
 			vector.push_back(temp);
 	}
 
-	inline void SplitInt(int& val, std::string& str)
-	{ val = atoi(str.c_str()); }
+	inline int&& SplitInt(std::string& str)
+	{ 
+		return atoi(str.c_str());
+	}
 
-	template<class T, char S>
-	inline void FastSplit(std::vector<T>& vector, std::string str, void(* callback)(T&, std::string&))
+	template<char S, class T, class V>
+	inline void FastSplit(std::vector<T>& vector, std::string str, V callback)
 	{
 		bool reserved = false;
 		std::string temp = "";
@@ -163,11 +165,7 @@ namespace Desperion
 				if(!reserved)
 					vector.reserve(atoi(temp.c_str()));
 				else
-				{
-					T val;
-					(*callback)(val, temp);
-					vector.push_back(val);
-				}
+					vector.push_back(callback(temp));
 				reserved = true;
 				temp.clear();
 				break;
@@ -176,11 +174,7 @@ namespace Desperion
 			}
 		}
 		if(reserved)
-		{
-			T val;
-			(*callback)(val, temp);
-			vector.push_back(val);
-		}
+			vector.push_back(callback(temp));
 	}
 
 	std::string ToUpperCase(std::string str);

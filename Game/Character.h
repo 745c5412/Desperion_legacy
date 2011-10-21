@@ -81,7 +81,9 @@ private:
 	//spells
 	int m_saveMap;
 	int16 m_saveCell;
+
 	int16 m_nextCell;
+	int8 m_nextDirection;
 	//jobs
 	int8 m_mountXp;
 	//Mount*
@@ -96,6 +98,12 @@ private:
 public:
 	void Init(Field*, CharacterMinimals*, Session*);
 	~Character();
+
+	int8 GetNextDirection() const
+	{ return m_nextDirection; }
+
+	void SetNextDirection(int8 dir)
+	{ m_nextDirection = dir; }
 
 	int16 GetNextCell() const
 	{ return m_nextCell; }

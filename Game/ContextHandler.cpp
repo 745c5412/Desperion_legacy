@@ -83,7 +83,9 @@ void Session::HandleGameMapMovementConfirmMessage(ByteBuffer& packet)
 
 	// todo: timer de vérification
 	m_char->SetCell(m_char->GetNextCell());
+	m_char->SetDirection(m_char->GetNextDirection());
 	m_char->SetNextCell(-1);
+	m_char->SetNextDirection(-1);
 
 	Send(BasicNoOperationMessage());
 }
@@ -91,8 +93,13 @@ void Session::HandleGameMapMovementConfirmMessage(ByteBuffer& packet)
 void Session::HandleGameMapMovementRequestMessage(ByteBuffer& packet)
 {
 	GameMapMovementRequestMessage data(packet);
+	
+	if(data.keyMovements.empty())
+		return;
 
 	// todo: pathfinding
-	m_char->SetNextCell(data.keyMovements[data.keyMovements.size() - 1] & 0xfff);
+	size_t size = data.keyMovements.size();
+	m_char->SetNextCell(data.keyMovements[size - 1] & 4095);
+	m_char->SetNextDirection((m_char->GetNextCell() ^ data.keyMovements[size - 1]) >> 12);
 	m_char->GetMap()->Send(GameMapMovementMessage(data.keyMovements, m_char->GetGuid()));
 }

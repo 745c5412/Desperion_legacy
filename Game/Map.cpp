@@ -21,7 +21,7 @@
 void Map::Init(Field* fields)
 {
 	m_id = fields[0].GetInt32();
-	Desperion::FastSplit<int, ','>(m_cells, fields[1].GetString(), &Desperion::SplitInt);
+	Desperion::FastSplit<','>(m_cells, fields[1].GetString(), Desperion::SplitInt);
 	m_topMap = fields[2].GetInt32();
 	m_bottomMap = fields[3].GetInt32();
 	m_rightMap = fields[4].GetInt32();

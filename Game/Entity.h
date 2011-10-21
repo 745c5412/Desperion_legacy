@@ -47,6 +47,9 @@ public:
 	int8 GetDirection() const
 	{ return m_direction; }
 
+	void SetDirection(int8 dir)
+	{ m_direction = dir; }
+
 	virtual GameRolePlayActorInformationsPtr ToActor()
 	{ return GameRolePlayActorInformationsPtr(new GameRolePlayActorInformations(this)); }
 

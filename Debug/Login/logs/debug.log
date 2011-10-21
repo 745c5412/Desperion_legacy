@@ -1,30 +1,9 @@
-17/09/111~20:09:15	Received: packet ID 10000
-17/09/111~20:09:15	Received: packet ID 10001
-17/09/111~20:09:37	Received: packet ID 4
-17/09/111~20:09:39	Received: packet ID 40
-17/09/111~20:09:39	Client 1 disconnected
-17/09/111~20:15:52	Received: packet ID 4
-17/09/111~20:15:54	Received: packet ID 40
-17/09/111~20:15:54	Client 1 disconnected
-17/09/111~20:17:37	Received: packet ID 4
-17/09/111~20:17:38	Received: packet ID 40
-17/09/111~20:17:38	Client 1 disconnected
-17/09/111~20:18:46	Client 1 disconnected
-17/09/111~20:19:53	Received: packet ID 4
-17/09/111~20:20:09	Received: packet ID 4
-17/09/111~20:20:34	Received: packet ID 10000
-17/09/111~20:20:34	Received: packet ID 10001
-17/09/111~20:20:35	Received: packet ID 40
-17/09/111~20:20:35	Client 1 disconnected
-17/09/111~20:20:37	Received: packet ID 40
-17/09/111~20:20:37	Client 2 disconnected
-17/09/111~20:20:44	Received: packet ID 4
-17/09/111~20:21:04	Client 1 disconnected
-17/09/111~20:21:19	Received: packet ID 4
-17/09/111~20:21:51	Received: packet ID 10000
-17/09/111~20:21:51	Received: packet ID 10001
-17/09/111~20:21:53	Received: packet ID 40
-17/09/111~20:21:53	Client 1 disconnected
-17/09/111~20:21:54	Received: packet ID 40
-17/09/111~20:21:54	Client 2 disconnected
-17/09/111~20:27:29	Client 1 disconnected
+21/09/111~22:17:09	Received: packet ID 10000
+21/09/111~22:17:09	Received: packet ID 10001
+21/09/111~22:18:34	Received: packet ID 4
+21/09/111~22:18:37	Received: packet ID 4
+21/09/111~22:18:39	Received: packet ID 40
+21/09/111~22:18:39	Client 1 disconnected
+21/09/111~22:18:40	Received: packet ID 40
+21/09/111~22:18:40	Client 2 disconnected
+21/09/111~22:20:49	Client 1 disconnected
