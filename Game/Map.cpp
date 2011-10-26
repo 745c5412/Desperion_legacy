@@ -21,7 +21,8 @@
 void Map::Init(Field* fields)
 {
 	m_id = fields[0].GetInt32();
-	Desperion::FastSplit<','>(m_cells, fields[1].GetString(), Desperion::SplitInt);
+	std::string cells = fields[1].GetString();
+	Desperion::FastSplit<','>(m_cells, cells, Desperion::SplitInt);
 	m_topMap = fields[2].GetInt32();
 	m_bottomMap = fields[3].GetInt32();
 	m_rightMap = fields[4].GetInt32();
@@ -64,7 +65,7 @@ Cell Map::GetCell(uint16 index) const
 		Log::Instance().outError("Invalid cell %u", index);
 		c.id = -1; 
 	}
-	uint8* bytes = (uint8*)number;
+	uint8* bytes = (uint8*)&number;
 	if(ByteBuffer::ENDIANNESS == BIG_ENDIAN)
 		SwapBytes(bytes, sizeof(int));
 	c.losmov = bytes[0];

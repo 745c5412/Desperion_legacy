@@ -73,6 +73,7 @@
     <ClCompile Include="CharacterHandler.cpp" />
     <ClCompile Include="CharacterMinimalPlusLookInformations.cpp" />
     <ClCompile Include="CharacterMinimals.cpp" />
+    <ClCompile Include="AdminHandler.cpp" />
     <ClCompile Include="ContextHandler.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EntityLook.cpp" />
@@ -130,6 +131,8 @@
     <ClInclude Include="CharacterStats.h" />
     <ClInclude Include="CharacterStatsListMessage.h" />
     <ClInclude Include="ConfigDefaults.h" />
+    <ClInclude Include="ConsoleCommandsListMessage.h" />
+    <ClInclude Include="ConsoleMessage.h" />
     <ClInclude Include="CurrentMapMessage.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityDispositionInformations.h" />

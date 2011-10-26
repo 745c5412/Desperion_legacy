@@ -145,6 +145,7 @@ void World::Init()
 	Log::Instance().outNotice("World", "World loaded!\n\n");
 
 	Session::InitHandlersTable();
+	Session::InitCommandsTable();
 }
 
 void World::LoadItems()
@@ -223,7 +224,7 @@ Map* World::GetMap(int id)
 	return map;
 }
 
-Map* World::GetMapByCoords(int16 x, int16 y)
+Map* World::GetMap(int16 x, int16 y)
 {
 	Map* map = NULL;
 	MapsMutex.lock();
@@ -237,6 +238,23 @@ Map* World::GetMapByCoords(int16 x, int16 y)
 	}
 	MapsMutex.unlock();
 	return map;
+}
+
+CharacterMinimals* World::GetCharacterMinimals(std::string name)
+{
+	CharacterMinimals* ch = NULL;
+	name = Desperion::ToLowerCase(name);
+	CharactersMutex.lock();
+	for(CharacterMinimalsMap::iterator it = Characters.begin(); it != Characters.end(); ++it)
+	{
+		if(Desperion::ToLowerCase(it->second->name) == name)
+		{
+			ch = it->second;
+			break;
+		}
+	}
+	CharactersMutex.unlock();
+	return ch;
 }
 
 void World::AddCharacterMinimals(CharacterMinimals* ch)

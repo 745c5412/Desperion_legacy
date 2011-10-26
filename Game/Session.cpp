@@ -45,35 +45,6 @@ void Session::InitHandlersTable()
 	m_handlers[CMSG_CHANGE_MAP].Handler = &Session::HandleChangeMapMessage;
 }
 
-void Session::HandleAdminCommandMessage(ByteBuffer& packet)
-{
-	if(m_data[FLAG_LEVEL].intValue < 1)
-		return;
-	AdminCommandMessage data(packet);
-}
-
-void Session::HandleAdminQuietCommandMessage(ByteBuffer& packet)
-{
-	if(m_data[FLAG_LEVEL].intValue < 1)
-		return;
-	AdminQuietCommandMessage data(packet);
-	// todo: faire un vrai système de commande comme pour desperion 1
-
-	std::vector<std::string> table;
-	Desperion::Split(table, data.content, ' ');
-	int mapId = atoi(table.at(1).c_str());
-	
-	Map* newMap = World::Instance().GetMap(mapId);
-	if(newMap == NULL)
-		return;
-
-	m_char->SetCell(399);
-	m_char->GetMap()->RemoveActor(m_char->GetGuid());
-	newMap->AddActor(m_char);
-	m_char->SetMap(newMap);
-	Send(CurrentMapMessage(m_char->GetMap()->GetId()));
-}
-
 void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 {
 	AuthenticationTicketMessage data(packet);

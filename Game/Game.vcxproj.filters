@@ -132,6 +132,9 @@
     <ClCompile Include="ObjectEffectInteger.cpp">
       <Filter>Models\CPP</Filter>
     </ClCompile>
+    <ClCompile Include="AdminHandler.cpp">
+      <Filter>Handlers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StdAfx.h">
@@ -343,6 +346,12 @@
     </ClInclude>
     <ClInclude Include="ObjectEffect.h">
       <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ConsoleCommandsListMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ConsoleMessage.h">
+      <Filter>Messages</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

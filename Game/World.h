@@ -48,10 +48,11 @@ public:
 	Session* GetSession(int);
 
 	Map* GetMap(int);
-	Map* GetMapByCoords(int16, int16);
+	Map* GetMap(int16, int16);
 
 	void AddCharacterMinimals(CharacterMinimals*);
 	CharacterMinimals* GetCharacterMinimals(int);
+	CharacterMinimals* GetCharacterMinimals(std::string);
 	void DeleteCharacterMinimals(int);
 	std::list<CharacterMinimals*> GetCharactersByAccount(int);
 

@@ -145,7 +145,7 @@ namespace Desperion
 			vector.push_back(temp);
 	}
 
-	inline int&& SplitInt(std::string& str)
+	inline int SplitInt(std::string& str)
 	{ 
 		return atoi(str.c_str());
 	}

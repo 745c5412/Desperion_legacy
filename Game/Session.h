@@ -49,6 +49,15 @@ struct AccountData
 
 class Session;
 
+struct CommandHandler
+{
+	uint8 level;
+	std::string description;
+	std::string arguments;
+	void (Session::*handler)(std::vector<std::string>&, bool);
+	uint8 argc;
+};
+
 struct GamePacketHandler
 {
 	uint8 Flag;
@@ -63,6 +72,8 @@ struct GamePacketHandler
 class Session : public BaseSession<GamePacketHandler>
 {
 private:
+	typedef std::tr1::unordered_map<std::string, CommandHandler> CommandStorageMap;
+	static CommandStorageMap m_commands;
 	AccountData m_data[FLAGS_NUMBER];
 	time_t m_subscriptionEnd;
 	Character* m_char;
@@ -72,6 +83,15 @@ private:
 	std::vector<uint32> m_ennemies;
 	std::vector<uint32> m_ignored;
 	uint32 m_lastNameSuggestionRequest;
+
+	// AdminHandler.cpp
+	void HandleMoveToCommand(std::vector<std::string>&, bool);
+	void HandleAddItemCommand(std::vector<std::string>&, bool);
+	void HandleManCommand(std::vector<std::string>&, bool);
+	void HandleAdminCommandMessage(ByteBuffer&);
+	void HandleAdminQuietCommandMessage(ByteBuffer&);
+	void HandleListCommand(std::vector<std::string>&, bool);
+	void HandleAdminCommand(std::string&, bool);
 
 	// CharacterHandler.cpp
 	void HandleCharactersListRequestMessage(ByteBuffer&);
@@ -89,10 +109,9 @@ private:
 
 	// Session.cpp
 	void HandleAuthenticationTicketMessage(ByteBuffer&);
-	void HandleAdminCommandMessage(ByteBuffer&);
-	void HandleAdminQuietCommandMessage(ByteBuffer&);
 public:
 	static void InitHandlersTable();
+	static void InitCommandsTable();
 	void Start();
 
 	void OnData(GamePacketHandler* hdl, ByteBuffer& packet)

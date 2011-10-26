@@ -86,6 +86,8 @@
 #include "BasicNoOperationMessage.h"
 #include "AdminCommandMessage.h"
 #include "AdminQuietCommandMessage.h"
+#include "ConsoleCommandsListMessage.h"
+#include "ConsoleMessage.h"
 #include "GameContextRemoveElementMessage.h"
 
 #include "Entity.h"
