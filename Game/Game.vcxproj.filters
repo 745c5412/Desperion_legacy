@@ -135,6 +135,9 @@
     <ClCompile Include="AdminHandler.cpp">
       <Filter>Handlers</Filter>
     </ClCompile>
+    <ClCompile Include="ChatHandler.cpp">
+      <Filter>Handlers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StdAfx.h">
@@ -154,9 +157,6 @@
     </ClInclude>
     <ClInclude Include="GameClient.h">
       <Filter>Network\H</Filter>
-    </ClInclude>
-    <ClInclude Include="Item.h">
-      <Filter>Objects\H</Filter>
     </ClInclude>
     <ClInclude Include="Weapon.h">
       <Filter>Objects\H</Filter>
@@ -351,6 +351,51 @@
       <Filter>Messages</Filter>
     </ClInclude>
     <ClInclude Include="ConsoleMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatAbstractClientMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatAbstractServerMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatAdminServerMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatClientMultiMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectItem.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Item.h">
+      <Filter>Objects\H</Filter>
+    </ClInclude>
+    <ClInclude Include="DItem.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatClientMultiWithObjectMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatClientPrivateMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatClientPrivateWithObjectMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatErrorMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatServerCopyMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatServerCopyWithObjectMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatServerMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatServerWithObjectMessage.h">
       <Filter>Messages</Filter>
     </ClInclude>
   </ItemGroup>

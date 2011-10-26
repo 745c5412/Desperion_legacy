@@ -107,6 +107,8 @@ private:
 	void HandleGameMapMovementConfirmMessage(ByteBuffer&);
 	void HandleChangeMapMessage(ByteBuffer&);
 
+	// ChatHandler.cpp
+
 	// Session.cpp
 	void HandleAuthenticationTicketMessage(ByteBuffer&);
 public:

@@ -31,17 +31,8 @@ public:
 		m_buffer<<size;
 		for(std::list<PlayerItem*>::const_iterator it = items.begin(); it != items.end(); ++it)
 		{
-			const PlayerItem* item = *it;
-			m_buffer<<item->GetPos()<<item->GetItem()->GetId()<<uint16(0)<<false; // 0 --> powerRate, false --> overMax
-			const std::vector<PlayerItemEffect*>& effects = item->GetEffects();
-			uint16 size = effects.size();
-			m_buffer<<size;
-			for(uint16 a = 0; a < size; ++a)
-			{
-				ObjectEffectPtr e = effects[a]->ToObjectEffect();
-				m_buffer<<e->GetProtocol()<<*e;
-			}
-			m_buffer<<item->GetGuid()<<item->GetQuantity();
+			ObjectItem obj(*it);
+			m_buffer<<obj;
 		}
 		m_buffer<<kamas;
 	}

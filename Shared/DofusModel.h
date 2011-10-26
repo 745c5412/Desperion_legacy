@@ -29,6 +29,9 @@ public:
 	operator ByteBuffer() const
 	{ return m_buffer; }
 	
+	void Clear()
+	{ m_buffer.Clear(); }
+
 	DofusModel()
 	{
 	}
