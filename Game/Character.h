@@ -164,6 +164,8 @@ public:
 
 	virtual GameRolePlayActorInformationsPtr ToActor()
 	{ return GameRolePlayActorInformationsPtr(new GameRolePlayCharacterInformations(this)); }
+
+	void Save();
 };
 
 #endif

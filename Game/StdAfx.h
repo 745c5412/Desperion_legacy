@@ -31,6 +31,9 @@
 #include "CharacterBaseCharacteristic.h"
 #include "CharacterStats.h"
 
+#include "ObjectEffect.h"
+#include "ObjectEffectInteger.h"
+#include "ObjectEffectDice.h"
 #include "PlayerItem.h"
 #include "Map.h"
 #include "Path.h"

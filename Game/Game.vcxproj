@@ -86,6 +86,9 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Master.cpp" />
+    <ClCompile Include="ObjectEffect.cpp" />
+    <ClCompile Include="ObjectEffectDice.cpp" />
+    <ClCompile Include="ObjectEffectInteger.cpp" />
     <ClCompile Include="Path.cpp" />
     <ClCompile Include="PlayerItem.cpp" />
     <ClCompile Include="Session.cpp" />
@@ -155,6 +158,9 @@
     <ClInclude Include="MapComplementaryInformationsDataMessage.h" />
     <ClInclude Include="MapInformationsRequestMessage.h" />
     <ClInclude Include="Master.h" />
+    <ClInclude Include="ObjectEffect.h" />
+    <ClInclude Include="ObjectEffectDice.h" />
+    <ClInclude Include="ObjectEffectInteger.h" />
     <ClInclude Include="Path.h" />
     <ClInclude Include="PlayerItem.h" />
     <ClInclude Include="ServerOptionalFeaturesMessage.h" />

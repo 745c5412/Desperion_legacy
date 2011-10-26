@@ -27,7 +27,7 @@ namespace Desperion
 	class Master : public Singleton<Master>
 	{
 	public:
-		Master() : m_version("1.3.4")
+		Master() : m_version("0.4.0")
 		{
 			sListener = NULL;
 		}
@@ -48,6 +48,6 @@ namespace Desperion
 		uint32 m_startTime;
 		std::string m_version;
 	};
-};
+}
 
 #endif

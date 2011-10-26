@@ -154,12 +154,14 @@ void Session::HandleCharacterSelectionMessage(ByteBuffer& packet)
 	try{
 		m_char->Init(fields, toSelect, this);
 		delete QR;
-	}catch(const ServerError&)
+	}catch(const ServerError& err)
 	{ 
 		delete m_char;
 		delete QR;
 		m_char = NULL;
-		throw; 
+		Log::Instance().outError(err.what());
+		Send(CharacterSelectedErrorMessage());
+		return;
 	}
 
 	Send(CharacterSelectedSuccessMessage(toSelect));
@@ -170,5 +172,5 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 {
 	CharacterCreationRequestMessage data(packet);
 
-	int guid = World::Instance().GetNextCharacterGuid();
+	//int guid = World::Instance().GetNextCharacterGuid();
 }

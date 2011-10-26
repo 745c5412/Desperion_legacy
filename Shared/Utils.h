@@ -121,9 +121,8 @@ namespace Desperion
 	void Split(std::vector<std::string>& vector, std::string str, char sep);
 
 	template<char S>
-	inline void FastSplit(std::vector<std::string>& vector, std::string str)
+	inline void FastSplit(std::vector<std::string>& vector, std::string str, bool reserved = false)
 	{
-		bool reserved = false;
 		std::string temp = "";
 		for(uint16 a = 0; a < str.size(); ++a)
 		{
@@ -142,7 +141,7 @@ namespace Desperion
 				temp += b;
 			}
 		}
-		if(reserved)
+		if(reserved && !temp.empty())
 			vector.push_back(temp);
 	}
 
@@ -152,9 +151,8 @@ namespace Desperion
 	}
 
 	template<char S, class T, class V>
-	inline void FastSplit(std::vector<T>& vector, std::string str, V callback)
+	inline void FastSplit(std::vector<T>& vector, std::string str, V callback, bool reserved = false)
 	{
-		bool reserved = false;
 		std::string temp = "";
 		for(uint16 a = 0; a < str.size(); ++a)
 		{
@@ -173,7 +171,7 @@ namespace Desperion
 				temp += b;
 			}
 		}
-		if(reserved)
+		if(reserved && !temp.empty())
 			vector.push_back(callback(temp));
 	}
 

@@ -123,6 +123,15 @@
     <ClCompile Include="Path.cpp">
       <Filter>Desperion\CPP</Filter>
     </ClCompile>
+    <ClCompile Include="ObjectEffect.cpp">
+      <Filter>Models\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectEffectDice.cpp">
+      <Filter>Models\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectEffectInteger.cpp">
+      <Filter>Models\CPP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StdAfx.h">
@@ -325,6 +334,15 @@
     </ClInclude>
     <ClInclude Include="Path.h">
       <Filter>Desperion\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectEffectDice.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectEffectInteger.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectEffect.h">
+      <Filter>Models\H</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -66,7 +66,7 @@ Cell Map::GetCell(uint16 index) const
 	}
 	uint8* bytes = (uint8*)number;
 	if(ByteBuffer::ENDIANNESS == BIG_ENDIAN)
-		SwapBytes(bytes, 3);
+		SwapBytes(bytes, sizeof(int));
 	c.losmov = bytes[0];
 	c.mapChangeData = bytes[1];
 	c.speed = bytes[2];

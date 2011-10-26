@@ -33,7 +33,14 @@ public:
 		{
 			const PlayerItem* item = *it;
 			m_buffer<<item->GetPos()<<item->GetItem()->GetId()<<uint16(0)<<false; // 0 --> powerRate, false --> overMax
-			m_buffer<<uint16(0); // effectSize
+			const std::vector<PlayerItemEffect*>& effects = item->GetEffects();
+			uint16 size = effects.size();
+			m_buffer<<size;
+			for(uint16 a = 0; a < size; ++a)
+			{
+				ObjectEffectPtr e = effects[a]->ToObjectEffect();
+				m_buffer<<e->GetProtocol()<<*e;
+			}
 			m_buffer<<item->GetGuid()<<item->GetQuantity();
 		}
 		m_buffer<<kamas;

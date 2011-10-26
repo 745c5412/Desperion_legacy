@@ -49,6 +49,82 @@ enum CharacterInventoryPositionEnum
     INVENTORY_POSITION_NOT_EQUIPED = 63,
 };
 
+class ObjectEffect;
+class ObjectEffectDice;
+class ObjectEffectInteger;
+
+typedef boost::shared_ptr<ObjectEffect> ObjectEffectPtr;
+
+struct PlayerItemEffect
+{
+	int16 actionId;
+
+	PlayerItemEffect()
+	{}
+
+	PlayerItemEffect(int16 action)
+	{
+		actionId = action;
+	}
+
+	virtual ObjectEffectPtr ToObjectEffect()
+	{ return ObjectEffectPtr(new ObjectEffect(this)); }
+};
+
+struct PlayerItemEffectInteger : public PlayerItemEffect
+{
+	int16 value;
+
+	PlayerItemEffectInteger()
+	{}
+
+	PlayerItemEffectInteger(int16 action, int16 val)
+		: PlayerItemEffect(action)
+	{
+		value = val;
+	}
+
+	ObjectEffectPtr ToObjectEffect()
+	{ return ObjectEffectPtr(new ObjectEffectInteger(this)); }
+};
+
+struct PlayerItemEffectDice : public PlayerItemEffect
+{
+	int16 diceNum;
+	int16 diceSide;
+	int16 diceConst;
+
+	PlayerItemEffectDice()
+	{}
+
+	PlayerItemEffectDice(int16 action, int16 dNum, int16 dSide, int16 dConst)
+		: PlayerItemEffect(action)
+	{
+		diceNum = dNum;
+		diceSide = dSide;
+		diceConst = dConst;
+	}
+
+	ObjectEffectPtr ToObjectEffect()
+	{ return ObjectEffectPtr(new ObjectEffectDice(this)); }
+};
+
+inline PlayerItemEffect* G(std::string& str)
+{
+	std::vector<int16> table;
+	Desperion::FastSplit<','>(table, str, Desperion::SplitInt, true);
+	switch(table[0])
+	{
+	case OBJECT_EFFECT_DICE:
+		return new PlayerItemEffectDice(table[1], table[2], table[3], table[4]);
+	case OBJECT_EFFECT_INTEGER:
+		return new PlayerItemEffectInteger(table[1], table[2]);
+	case OBJECT_EFFECT:
+	default:
+		return new PlayerItemEffect(table[1]);
+	}
+}
+
 class PlayerItem
 {
 private:
@@ -58,13 +134,16 @@ private:
 	uint8 m_pos;
 	Item* m_item;
 	Character* m_owner;
+	std::vector<PlayerItemEffect*> m_effects;
 public:
+	~PlayerItem();
 	void Init(Field*);
 	void Save();
 	void SetPos(int);
 	static int GetNextItemGuid();
 	static void InsertIntoDB(PlayerItem*);
 	static void DeleteFromDB(int);
+	std::string StatsToString();
 
 	Character* GetOwner()
 	{ return m_owner; }
@@ -86,6 +165,9 @@ public:
 
 	void SetQuantity(int q)
 	{ m_quantity = q; }
+
+	const std::vector<PlayerItemEffect*>& GetEffects() const
+	{ return m_effects; }
 };
 
 #endif

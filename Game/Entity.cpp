@@ -34,7 +34,7 @@ void NamedEntity::Init(std::string name)
 	m_name = name;
 }
 
-void DisplayableEntity::Init(int guid, DEntityLook look, int16 cell, Map* map, int8 direction)
+void DisplayableEntity::Init(int guid, DEntityLook& look, int16 cell, Map* map, int8 direction)
 {
 	m_guid = guid;
 	m_look = look;

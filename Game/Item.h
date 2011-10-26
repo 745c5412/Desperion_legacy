@@ -21,6 +21,20 @@
 
 struct EffectInstance
 {
+	EffectInstance()
+	{}
+
+	EffectInstance(int effect, int target, int dur, int rand, bool hid, int zSize, int zShape)
+	{
+		effectId = effect;
+		targetId = target;
+		duration = dur;
+		random = rand;
+		hidden = hid;
+		zoneSize = zSize;
+		zoneShape = zShape;
+	}
+
 	int effectId;
 	int targetId;
 	int duration;
@@ -32,31 +46,40 @@ struct EffectInstance
 
 struct EffectInstanceInteger : public EffectInstance
 {
+	EffectInstanceInteger()
+	{}
+
+	EffectInstanceInteger(int effect, int target, int dur, int rand, bool hid, int zSize, int zShape, int val)
+		: EffectInstance(effect, target, dur, rand, hid, zSize, zShape)
+	{
+		value = val;
+	}
+
 	int value;
 };
 
 struct EffectInstanceDice : public EffectInstanceInteger
 {
+	EffectInstanceDice()
+	{}
+
+	EffectInstanceDice(int effect, int target, int dur, int rand, bool hid, int zSize, int zShape, int val, int dNum, int dSide)
+		: EffectInstanceInteger(effect, target, dur, rand, hid, zSize, zShape, val)
+	{
+		diceNum = dNum;
+		diceSide = dSide;
+	}
+
 	int diceNum;
 	int diceSide;
 };
 
 inline EffectInstance&& F(std::string& str)
 {
-	EffectInstanceDice i;
 	std::vector<int> table;
 	Desperion::FastSplit<','>(table, str, Desperion::SplitInt);
-	i.effectId = table[0];
-	i.diceNum = table[1];
-	i.duration = table[2];
-	i.hidden = table[3] == 1;
-	i.diceSide = table[4];
-	i.value = table[5];
-	i.random = table[6];
-	i.targetId = table[7];
-	i.zoneSize = table[8];
-	i.zoneShape = table[9];
-	return std::move(i);
+	return EffectInstanceDice(table[0], table[7], table[2], table[6], table[3] == 1, table[8],
+		table[9], table[5], table[1], table[4]);
 }
 
 class Item

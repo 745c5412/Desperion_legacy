@@ -181,10 +181,12 @@ Session::~Session()
 	if(m_char != NULL)
 	{
 		m_char->GetMap()->RemoveActor(m_char->GetGuid());
+		m_char->Save();
 		delete m_char;
 	}
 	if(m_data[FLAG_GUID].intValue != 0)
 	{
+		Desperion::eDatabase->Execute("UPDATE accounts SET logged=0 WHERE guid=%u LIMIT 1;", m_data[FLAG_GUID].intValue);
 		World::Instance().DeleteSession(m_data[FLAG_GUID].intValue);
 		Log::Instance().outDebug("Client %u disconnected", m_data[FLAG_GUID].intValue);
 	}

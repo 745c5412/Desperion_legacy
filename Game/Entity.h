@@ -24,7 +24,7 @@ class Map;
 class DisplayableEntity
 {
 public:
-	void Init(int, DEntityLook, int16, Map*, int8);
+	void Init(int, DEntityLook&, int16, Map*, int8);
 
 	const DEntityLook& GetLook() const
 	{ return m_look; }

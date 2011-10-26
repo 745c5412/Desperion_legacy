@@ -18,6 +18,35 @@
 
 #include "StdAfx.h"
 
+void Character::Save()
+{
+	for(std::list<PlayerItem*>::iterator it = m_items.begin(); it != m_items.end(); ++it)
+		(*it)->Save();
+
+	std::ostringstream zaaps;
+	for(size_t a = 0; a < m_zaaps.size(); ++a)
+	{
+		if(a != 0)
+			zaaps<<",";
+		zaaps<<m_zaaps.at(a);
+	}
+
+	std::ostringstream emotes;
+	for(size_t a = 0; a < m_emotes.size(); ++a)
+	{
+		if(a != 0)
+			emotes<<",";
+		emotes<<uint16(m_emotes.at(a));
+	}
+	Desperion::sDatabase->Execute("UPDATE characters SET zaaps='%s', currentMap=%u, currentCell=%u, spells='%s', saveMap=%u, \
+								  saveCell=%u, jobs='%s', mountXp=%u, mountId=%d, isDead=%u, title=%u, isMerchant=%u, emotes='%s' \
+								  WHERE guid=%u LIMIT 1;", zaaps.str().c_str(), m_map->GetId(), m_cell, "", m_saveMap, m_saveCell,
+								  "", m_mountXp, -1, 0, m_title, 0, emotes.str().c_str(), m_guid);
+	Desperion::sDatabase->Execute("UPDATE character_minimals SET level=%u, name='%s', entityLook='%s', breed=%u, sex=%u \
+								  WHERE id=%u LIMIT 1;", m_level, m_name.c_str(), Desperion::BufferToDb(m_look.Serialize(-1)).c_str(), m_breed, 
+								  m_sex ? 1 : 0, m_guid);
+}
+
 Character::~Character()
 {
 	CharacterMinimals* ch = World::Instance().GetCharacterMinimals(m_guid);
