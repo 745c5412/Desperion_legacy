@@ -41,6 +41,7 @@
 #include "AcquaintanceSearchErrorMessage.h"
 #include "AcquaintanceSearchMessage.h"
 #include "AcquaintanceServerListMessage.h"
+#include "IdentificationWithServerIdMessage.h"
 
 #include "Session.h"
 #include "GameSession.h"

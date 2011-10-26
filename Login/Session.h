@@ -35,7 +35,8 @@ enum AccountFlag
 	FLAG_LEVEL = 2,
 	FLAG_QUESTION = 3,
 	FLAG_ACCOUNT = 4,
-	FLAGS_NUMBER = 5,
+	FLAG_LAST_SERVER = 5,
+	FLAGS_NUMBER = 6,
 };
 
 struct AccountData
@@ -90,7 +91,12 @@ private:
 	std::string m_key;
 	time_t m_subscriptionEnd;
 
+	void HandleIdentification(IdentificationMessage*);
+	bool HandleServerSelection(GameServer*, bool);
+	void SendServersList();
+
 	void HandleIdentificationMessage(ByteBuffer&);
+	void HandleIdentificationWithServerIdMessage(ByteBuffer&);
 	void HandleServerSelectionMessage(ByteBuffer&);
 	void HandleAcquaintanceSearchMessage(ByteBuffer&);
 public:

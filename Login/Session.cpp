@@ -85,13 +85,10 @@ void Session::HandleAcquaintanceSearchMessage(ByteBuffer& packet)
 	Send(AcquaintanceServerListMessage(results));
 }
 
-void Session::HandleServerSelectionMessage(ByteBuffer& packet)
+bool Session::HandleServerSelection(GameServer* G, bool quiet)
 {
-	ServerSelectionMessage data(packet);
-
-	GameServer* G = World::Instance().GetGameServer(data.id);
 	if(G == NULL)
-		return;
+		return false;
 
 	uint8 state = G->GetState(m_data[FLAG_LEVEL].intValue, IsSubscriber());
 	if(!CanSelect(state))
@@ -110,21 +107,30 @@ void Session::HandleServerSelectionMessage(ByteBuffer& packet)
 			break;
 		}
 		
-		Send(SelectedServerRefusedMessage(G->GetID(), reason, G->GetState(m_data[FLAG_LEVEL].intValue, IsSubscriber())));
-		return;
+		if(!quiet)
+			Send(SelectedServerRefusedMessage(G->GetID(), reason, G->GetState(m_data[FLAG_LEVEL].intValue, IsSubscriber())));
+		return false;
 	}
 	//todo: restriction de communauté et de géolocalisation
 	
 	std::string ticket = GenerateRandomKey();
 	if(!Desperion::sDatabase->Execute("UPDATE accounts SET ticket='%s' WHERE guid=%u LIMIT 1;", ticket.c_str(), m_data[FLAG_GUID].intValue))
 	{
-		Send(SelectedServerRefusedMessage(G->GetID(), SERVER_CONNECTION_ERROR_NO_REASON, 
-			G->GetState(m_data[FLAG_LEVEL].intValue, IsSubscriber())));
-		return;
+		if(!quiet)
+			Send(SelectedServerRefusedMessage(G->GetID(), SERVER_CONNECTION_ERROR_NO_REASON, 
+				G->GetState(m_data[FLAG_LEVEL].intValue, IsSubscriber())));
+		return false;
 	}
 
 	Send(SelectedServerDataMessage(G->GetID(), G->GetIP(), G->GetPort(), true, ticket));
 	m_socket->close();
+	return true;
+}
+
+void Session::HandleServerSelectionMessage(ByteBuffer& packet)
+{
+	ServerSelectionMessage data(packet);
+	HandleServerSelection(World::Instance().GetGameServer(data.id), false);
 }
 
 GameServerInformations Session::GetServerStatusMessage(const GameServer* G, uint8 count)
@@ -134,77 +140,8 @@ GameServerInformations Session::GetServerStatusMessage(const GameServer* G, uint
 		CanSelect(state), count, uint64(0));
 }
 
-void Session::HandleIdentificationMessage(ByteBuffer& packet)
+void Session::SendServersList()
 {
-	if(IsIpBanned(m_socket->remote_endpoint().address().to_string()))
-	{
-		Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
-		throw ServerError("Wrong crendentials");
-	}
-
-	IdentificationMessage data(packet);
-	if(!VerifyVersion(data.version))
-	{
-		Send(IdentificationFailedMessage(BAD_VERSION));
-		throw ServerError("Bad Version");
-	}
-
-	const char* query = "SELECT password, guid, question, pseudo, logged, level, lastServer, subscriptionEnd FROM accounts WHERE account='%s' LIMIT 1;";
-	QueryResult* QR = Desperion::sDatabase->Query(query, data.userName.c_str());
-	
-	if(!QR)
-	{
-		Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
-		throw ServerError("Wrong credentials");
-	}
-
-	Field* fields = QR->Fetch();
-	std::string dbPass = std::string(fields[0].GetString()) + m_key;
-	const char* charDbPass = dbPass.c_str();
-	md5_state_t state;
-	md5_byte_t digest[16];
-	char hex_output[16*2 + 1];
-	md5_init(&state);
-	md5_append(&state, (const md5_byte_t *)charDbPass, strlen(charDbPass));
-	md5_finish(&state, digest);
-	for (int i = 0; i < 16; i++)
-		sprintf(hex_output + i * 2, "%02x", digest[i]);
-
-	if(data.password != std::string(hex_output))
-	{
-		Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
-		throw ServerError("Wrong crendentials");
-	}
-
-	uint32 guid = fields[1].GetUInt32();
-	if(IsAccountBanned(guid))
-	{
-		Send(IdentificationFailedMessage(BANNED));
-		throw ServerError("Banned");
-	}
-
-	Session* S = World::Instance().GetSession(guid);
-	bool alreadyConnected = false;
-	if(S != NULL)
-	{
-		alreadyConnected = true;
-		S->GetSocket()->close();
-	}
-
-	uint16 lastServer = fields[6].GetUInt16();
-	m_subscriptionEnd = fields[7].GetUInt32();
-	m_data[FLAG_PSEUDO].stringValue = fields[3].GetString();
-	m_data[FLAG_GUID].intValue = guid;
-	m_data[FLAG_LEVEL].intValue = fields[5].GetUInt8();
-	m_data[FLAG_QUESTION].stringValue = fields[2].GetString();
-	m_data[FLAG_ACCOUNT].stringValue = data.userName;
-	delete QR;
-
-	World::Instance().AddSession(this);
-
-	Send(IdentificationSuccessMessage(m_data[FLAG_LEVEL].intValue, alreadyConnected, m_data[FLAG_PSEUDO].stringValue,
-		m_data[FLAG_GUID].intValue, m_data[FLAG_QUESTION].stringValue, m_subscriptionEnd));
-
 	struct Count
 	{
 		uint8 m_count;
@@ -213,7 +150,7 @@ void Session::HandleIdentificationMessage(ByteBuffer& packet)
 	};
 
 	std::tr1::unordered_map<uint16, Count> counts;
-	QR = Desperion::sDatabase->Query("SELECT serverID, count FROM character_counts WHERE accountGuid=%u;", m_data[FLAG_GUID].intValue);
+	QueryResult* QR = Desperion::sDatabase->Query("SELECT serverID, count FROM character_counts WHERE accountGuid=%u;", m_data[FLAG_GUID].intValue);
 	if(QR)
 	{
 		do
@@ -235,16 +172,113 @@ void Session::HandleIdentificationMessage(ByteBuffer& packet)
 	Send(ServersListMessage(infos));
 }
 
+void Session::HandleIdentification(IdentificationMessage* data)
+{
+	if(IsIpBanned(m_socket->remote_endpoint().address().to_string()))
+	{
+		Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
+		throw ServerError("Wrong crendentials");
+	}
+	else if(!VerifyVersion(data->version))
+	{
+		Send(IdentificationFailedMessage(BAD_VERSION));
+		throw ServerError("Bad Version");
+	}
+
+	const char* query = "SELECT password, guid, question, pseudo, logged, level, lastServer, subscriptionEnd FROM accounts WHERE account='%s' LIMIT 1;";
+	QueryResult* QR = Desperion::sDatabase->Query(query, data->userName.c_str());
+	
+	if(!QR)
+	{
+		Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
+		throw ServerError("Wrong credentials");
+	}
+
+	Field* fields = QR->Fetch();
+	std::string dbPass = std::string(fields[0].GetString()) + m_key;
+	const char* charDbPass = dbPass.c_str();
+	md5_state_t state;
+	md5_byte_t digest[16];
+	char hex_output[16*2 + 1];
+	md5_init(&state);
+	md5_append(&state, (const md5_byte_t *)charDbPass, strlen(charDbPass));
+	md5_finish(&state, digest);
+	for (int i = 0; i < 16; i++)
+		sprintf(hex_output + i * 2, "%02x", digest[i]);
+
+	if(data->password != std::string(hex_output))
+	{
+		Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
+		throw ServerError("Wrong crendentials");
+	}
+	
+	uint32 guid = fields[1].GetUInt32();
+	if(IsAccountBanned(guid))
+	{
+		Send(IdentificationFailedMessage(BANNED));
+		throw ServerError("Banned");
+	}
+
+	Session* S = World::Instance().GetSession(guid);
+	bool alreadyConnected = false;
+	if(S != NULL)
+	{
+		alreadyConnected = true;
+		S->GetSocket()->close();
+	}
+
+	m_subscriptionEnd = fields[7].GetUInt32();
+	m_data[FLAG_LAST_SERVER].intValue = fields[6].GetUInt16();
+	m_data[FLAG_PSEUDO].stringValue = fields[3].GetString();
+	m_data[FLAG_GUID].intValue = guid;
+	m_data[FLAG_LEVEL].intValue = fields[5].GetUInt8();
+	m_data[FLAG_QUESTION].stringValue = fields[2].GetString();
+	m_data[FLAG_ACCOUNT].stringValue = data->userName;
+	delete QR;
+
+	World::Instance().AddSession(this);
+
+	Send(IdentificationSuccessMessage(m_data[FLAG_LEVEL].intValue, alreadyConnected, m_data[FLAG_PSEUDO].stringValue,
+		m_data[FLAG_GUID].intValue, m_data[FLAG_QUESTION].stringValue, m_subscriptionEnd));
+}
+
+void Session::HandleIdentificationWithServerIdMessage(ByteBuffer& packet)
+{
+	IdentificationWithServerIdMessage data(packet);
+	HandleIdentification(&data);
+
+	if(!HandleServerSelection(World::Instance().GetGameServer(data.serverId), true))
+			SendServersList();
+}
+
+void Session::HandleIdentificationMessage(ByteBuffer& packet)
+{
+	IdentificationMessage data(packet);
+	HandleIdentification(&data);
+
+	if(data.autoConnect)
+	{
+		if(HandleServerSelection(World::Instance().GetGameServer(m_data[FLAG_LAST_SERVER].intValue), true))
+			return;
+	}
+	SendServersList();
+}
+
 void Session::InitHandlersTable()
 {
 	m_handlers[CMSG_IDENTIFICATION].Handler = &Session::HandleIdentificationMessage;
 	m_handlers[CMSG_IDENTIFICATION].Flag = FLAG_NOT_CONNECTED;
+
+	// TODO: file d'attente
 
 	m_handlers[CMSG_SERVER_SELECTION].Handler = &Session::HandleServerSelectionMessage;
 	m_handlers[CMSG_SERVER_SELECTION].Flag = FLAG_OUT_OF_QUEUE;
 
 	m_handlers[CMSG_ACQUAINTANCE_SEARCH].Handler = &Session::HandleAcquaintanceSearchMessage;
 	m_handlers[CMSG_ACQUAINTANCE_SEARCH].Flag = FLAG_OUT_OF_QUEUE;
+
+	m_handlers[CMSG_IDENTIFICATION_WITH_SERVER_ID].Handler = &Session::HandleIdentificationWithServerIdMessage;
+	m_handlers[CMSG_IDENTIFICATION_WITH_SERVER_ID].Flag = FLAG_NOT_CONNECTED;
 }
 
 Session::~Session()

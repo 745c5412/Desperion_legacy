@@ -20,6 +20,14 @@
 
 template<> World * Singleton<World>::m_singleton = NULL;
 
+void World::Send(const DofusMessage& data)
+{
+	SessionsMutex.lock();
+	for(SessionMap::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
+		it->second->Send(data);
+	SessionsMutex.unlock();
+}
+
 World::World()
 {
 	m_maxPlayers = 0;

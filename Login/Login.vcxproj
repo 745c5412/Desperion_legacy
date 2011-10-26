@@ -91,6 +91,7 @@
     <ClInclude Include="IdentificationFailedMessage.h" />
     <ClInclude Include="IdentificationMessage.h" />
     <ClInclude Include="IdentificationSuccessMessage.h" />
+    <ClInclude Include="IdentificationWithServerIdMessage.h" />
     <ClInclude Include="Master.h" />
     <ClInclude Include="ProtocolRequired.h" />
     <ClInclude Include="SelectedServerDataMessage.h" />

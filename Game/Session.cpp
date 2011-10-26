@@ -43,6 +43,11 @@ void Session::InitHandlersTable()
 	m_handlers[CMSG_GAME_MAP_MOVEMENT_REQUEST].Handler = &Session::HandleGameMapMovementRequestMessage;
 	m_handlers[CMSG_GAME_MAP_MOVEMENT_CONFIRM].Handler = &Session::HandleGameMapMovementConfirmMessage;
 	m_handlers[CMSG_CHANGE_MAP].Handler = &Session::HandleChangeMapMessage;
+	
+	m_handlers[CMSG_CHAT_CLIENT_MULTI].Handler = &Session::HandleChatClientMultiMessage;
+	m_handlers[CMSG_CHAT_CLIENT_MULTI_WITH_OBJECT].Handler = &Session::HandleChatClientMultiWithObjectMessage;
+	m_handlers[CMSG_CHAT_CLIENT_PRIVATE].Handler = &Session::HandleChatClientPrivateMessage;
+	m_handlers[CMSG_CHAT_CLIENT_PRIVATE_WITH_OBJECT].Handler = &Session::HandleChatClientPrivateWithObjectMessage;
 }
 
 void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
@@ -134,8 +139,8 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	delete QR;
 
 	uint16 servID = Desperion::Config::Instance().GetUInt(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT);
-	Desperion::eDatabase->Execute("UPDATE accounts SET ticket='', logged=%u WHERE guid=%u LIMIT 1;", servID, 
-		m_data[FLAG_GUID].intValue);
+	Desperion::eDatabase->Execute("UPDATE accounts SET ticket='', logged=%u, lastServer=%u WHERE guid=%u LIMIT 1;", servID, 
+		servID, m_data[FLAG_GUID].intValue);
 
 	World::Instance().AddSession(this);
 

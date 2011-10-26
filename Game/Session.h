@@ -85,13 +85,15 @@ private:
 	uint32 m_lastNameSuggestionRequest;
 
 	// AdminHandler.cpp
+	void HandleAdminCommand(std::string&, bool);
+
 	void HandleMoveToCommand(std::vector<std::string>&, bool);
 	void HandleAddItemCommand(std::vector<std::string>&, bool);
 	void HandleManCommand(std::vector<std::string>&, bool);
 	void HandleAdminCommandMessage(ByteBuffer&);
 	void HandleAdminQuietCommandMessage(ByteBuffer&);
 	void HandleListCommand(std::vector<std::string>&, bool);
-	void HandleAdminCommand(std::string&, bool);
+	void HandleNameAnnounceCommand(std::vector<std::string>&, bool);
 
 	// CharacterHandler.cpp
 	void HandleCharactersListRequestMessage(ByteBuffer&);
@@ -108,6 +110,10 @@ private:
 	void HandleChangeMapMessage(ByteBuffer&);
 
 	// ChatHandler.cpp
+	void HandleChatClientMultiMessage(ByteBuffer&);
+	void HandleChatClientMultiWithObjectMessage(ByteBuffer&);
+	void HandleChatClientPrivateMessage(ByteBuffer&);
+	void HandleChatClientPrivateWithObjectMessage(ByteBuffer&);
 
 	// Session.cpp
 	void HandleAuthenticationTicketMessage(ByteBuffer&);

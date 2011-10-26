@@ -45,6 +45,21 @@ void Session::InitCommandsTable()
 	m_commands["additem"].argc = 3;
 	m_commands["additem"].description = "Create specified item";
 	m_commands["additem"].arguments = "[id] [quantity] [max=true/false] {playername}";
+
+	m_commands["nameannounce"].handler = &Session::HandleNameAnnounceCommand;
+	m_commands["nameannounce"].level = 2;
+	m_commands["nameannounce"].argc = 1;
+	m_commands["nameannounce"].description = "Send specified admin message to world";
+	m_commands["nameannounce"].arguments = "[message]";
+}
+
+void Session::HandleNameAnnounceCommand(std::vector<std::string>& args, bool quiet)
+{
+	// actuellement, deconnecte le client :x
+	World::Instance().Send(ChatAdminServerMessage(0, args[0], time(NULL), ""));
+
+	if(!quiet)
+		Send(ConsoleMessage(CONSOLE_INFO_MESSAGE, "Message sent."));
 }
 
 void Session::HandleManCommand(std::vector<std::string>& args, bool quiet)

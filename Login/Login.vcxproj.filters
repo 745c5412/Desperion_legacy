@@ -86,6 +86,9 @@
     <ClInclude Include="AcquaintanceServerListMessage.h">
       <Filter>Messages</Filter>
     </ClInclude>
+    <ClInclude Include="IdentificationWithServerIdMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Network">
