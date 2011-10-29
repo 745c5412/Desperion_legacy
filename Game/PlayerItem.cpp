@@ -25,14 +25,43 @@ void PlayerItem::Init(Field* fields)
 	m_guid = fields[0].GetInt32();
 	m_item = World::Instance().GetItem(fields[1].GetInt32());
 	m_quantity = fields[2].GetInt32();
-	m_pos = fields[3].GetInt32();
 	CharacterMinimals* ch = World::Instance().GetCharacterMinimals(fields[5].GetInt32());
 	m_owner = (ch ? ch->onlineCharacter : NULL);
-	Desperion::FastSplit<';'>(m_effects, fields[4].GetString(), G, true);
+	Desperion::FastSplit<';'>(m_effects, std::string(fields[4].GetString()), G, true);
+	m_pos = INVENTORY_POSITION_NOT_EQUIPED;
+	SetPos(fields[3].GetUInt8());
+}
+
+void PlayerItem::Init(int guid, const Item* item, int qua, uint8 pos, const std::vector<PlayerItemEffect*>& effects, Character* owner)
+{
+	m_guid = guid;
+	m_item = const_cast<Item*>(item);
+	m_quantity = qua;
+	for(std::vector<PlayerItemEffect*>::const_iterator it = effects.begin(); it != effects.end(); ++it)
+		m_effects.push_back((*it)->Clone());
+	m_owner = owner;
+	m_pos = INVENTORY_POSITION_NOT_EQUIPED;
+	SetPos(pos);
 }
 
 void PlayerItem::SetPos(int pos)
 {
+	if(m_pos == pos)
+		return;
+
+	// TODO: ApplyEffect
+	if(m_pos == INVENTORY_POSITION_NOT_EQUIPED && pos != INVENTORY_POSITION_NOT_EQUIPED && m_owner)
+	{
+		for(std::vector<PlayerItemEffect*>::iterator it = m_effects.begin(); it != m_effects.end(); ++it)
+			m_owner->ApplyEffect(&StatsRow::objects, (*it)->actionId, ((PlayerItemEffectInteger*)*it)->value);
+	}
+	if(m_pos != INVENTORY_POSITION_NOT_EQUIPED && pos == INVENTORY_POSITION_NOT_EQUIPED && m_owner)
+	{
+		for(std::vector<PlayerItemEffect*>::iterator it = m_effects.begin(); it != m_effects.end(); ++it)
+			m_owner->ApplyEffect(&StatsRow::objects, (*it)->actionId, -((PlayerItemEffectInteger*)*it)->value);
+	}
+
+	m_pos = pos;
 }
 
 int PlayerItem::GetNextItemGuid()
@@ -96,7 +125,7 @@ std::string PlayerItem::StatsToString()
 void PlayerItem::Save()
 {
 	Desperion::sDatabase->Execute("UPDATE character_items SET quantity=%u, pos=%u, stats='%s', owner=%u WHERE guid=%u LIMIT 1;",
-		m_quantity, m_pos, StatsToString().c_str(), m_owner ? m_owner->GetGuid() : 0);
+		m_quantity, m_pos, StatsToString().c_str(), m_owner ? m_owner->GetGuid() : -1, m_guid);
 }
 
 void PlayerItem::DeleteFromDB(int guid)

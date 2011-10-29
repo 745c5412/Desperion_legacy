@@ -39,14 +39,16 @@ private:
 	{
 		buffer.HexLike();
 		const uint8* contents = buffer.Contents();
+		try{
 		boost::asio::write(*m_socket, boost::asio::buffer(contents, buffer.Size()));
+		}catch(...){ }
 	}
 public:
 	virtual void Start() = 0;
 	virtual bool IsAllowed(uint8 flag) = 0;
 	virtual void OnData(HandlerType* hdl, ByteBuffer& packet) = 0;
 
-	virtual void OnClose() // this function's only called by GameClient, so no need to make it virtual
+	virtual void OnClose() // this function's only called by GameClient, so no need to make it pure virtual
 	{ }
 
 	BaseSession()

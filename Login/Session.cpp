@@ -150,17 +150,14 @@ void Session::SendServersList()
 	};
 
 	std::tr1::unordered_map<uint16, Count> counts;
-	QueryResult* QR = Desperion::sDatabase->Query("SELECT serverID, count FROM character_counts WHERE accountGuid=%u;", m_data[FLAG_GUID].intValue);
+	QueryResult* QR = Desperion::sDatabase->Query("SELECT serverID FROM character_counts WHERE accountGuid=%u;", m_data[FLAG_GUID].intValue);
 	if(QR)
 	{
 		do
 		{
 			Field* fields = QR->Fetch();
 			uint16 serverID = fields[0].GetUInt16();
-			uint8 count = fields[1].GetUInt16();
-			Count c;
-			c.m_count = count;
-			counts[serverID] = c;
+			++counts[serverID].m_count;
 		}while(QR->NextRow());
 	}
 	delete QR;

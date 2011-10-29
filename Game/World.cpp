@@ -31,6 +31,7 @@ void World::Send(const DofusMessage& data)
 World::World()
 {
 	m_maxPlayers = 0;
+	m_hiCharacterGuid = 0;
 }
 
 World::~World()
@@ -48,6 +49,8 @@ World::~World()
 	for(MapMap::iterator it = Maps.begin(); it != Maps.end(); ++it)
 		delete it->second;
 	Maps.clear();
+
+	Desperion::sDatabase->Execute("DELETE FROM character_items WHERE owner=-1;");
 }
 
 /*void ReadData(D2oFile* file, std::string name)
@@ -206,7 +209,7 @@ void World::LoadMaps()
 void World::LoadCharacterMinimals()
 {
 	uint32 time = getMSTime();
-	QueryResult* QR = Desperion::sDatabase->Query("SELECT * FROM character_minimals ORDER BY id ASC;");
+	QueryResult* QR = Desperion::sDatabase->Query("SELECT * FROM character_minimals ORDER BY id DESC;");
 	if(!QR)
 		return;
 	do
@@ -217,6 +220,7 @@ void World::LoadCharacterMinimals()
 		Characters[ch->id] = ch;
 	}while(QR->NextRow());
 	delete QR;
+	m_hiCharacterGuid = Characters.begin()->second->id;
 
 	Log::Instance().outNotice("World", "%u character minimals loaded in %ums!", Characters.size(), getMSTime() - time);
 }
@@ -227,7 +231,11 @@ Map* World::GetMap(int id)
 	MapsMutex.lock();
 	MapMap::iterator it = Maps.find(id);
 	if(it != Maps.end())
+	{
 		map = it->second;
+		if(!map->IsBuilt())
+			map->Build();
+	}
 	MapsMutex.unlock();
 	return map;
 }
@@ -241,6 +249,8 @@ Map* World::GetMap(int16 x, int16 y)
 		if(it->second->GetPosX() == x && it->second->GetPosY() == y)
 		{
 			map = it->second;
+			if(!map->IsBuilt())
+				map->Build();
 			break;
 		}
 	}

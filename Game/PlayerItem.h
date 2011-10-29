@@ -69,6 +69,11 @@ struct PlayerItemEffect
 
 	virtual ObjectEffectPtr ToObjectEffect()
 	{ return ObjectEffectPtr(new ObjectEffect(this)); }
+
+	virtual PlayerItemEffect* Clone()
+	{
+		return new PlayerItemEffect(actionId);
+	}
 };
 
 struct PlayerItemEffectInteger : public PlayerItemEffect
@@ -86,6 +91,11 @@ struct PlayerItemEffectInteger : public PlayerItemEffect
 
 	ObjectEffectPtr ToObjectEffect()
 	{ return ObjectEffectPtr(new ObjectEffectInteger(this)); }
+
+	PlayerItemEffect* Clone()
+	{
+		return new PlayerItemEffectInteger(actionId, value);
+	}
 };
 
 struct PlayerItemEffectDice : public PlayerItemEffect
@@ -107,6 +117,11 @@ struct PlayerItemEffectDice : public PlayerItemEffect
 
 	ObjectEffectPtr ToObjectEffect()
 	{ return ObjectEffectPtr(new ObjectEffectDice(this)); }
+
+	PlayerItemEffect* Clone()
+	{
+		return new PlayerItemEffectDice(actionId, diceNum, diceSide, diceConst);
+	}
 };
 
 inline PlayerItemEffect* G(std::string& str)
@@ -138,6 +153,7 @@ private:
 public:
 	~PlayerItem();
 	void Init(Field*);
+	void Init(int, const Item*, int, uint8, const std::vector<PlayerItemEffect*>&, Character*);
 	void Save();
 	void SetPos(int);
 	static int GetNextItemGuid();

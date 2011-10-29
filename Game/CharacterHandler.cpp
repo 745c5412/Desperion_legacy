@@ -69,7 +69,15 @@ void Session::HandleCharacterDeletionRequestMessage(ByteBuffer& packet)
 	}
 
 	World::Instance().DeleteCharacterMinimals(toDelete->id);
-	Desperion::sDatabase->Execute("DELETE FROM character_minimals JOIN characters ON character_minimals.id = characters.guid WHERE characters.guid=%u LIMIT 1;", toDelete->id);
+	if(!Desperion::sDatabase->Execute("DELETE FROM characters WHERE guid=%u LIMIT 1;", toDelete->id))
+	{
+		Send(CharacterDeletionErrorMessage(DEL_ERR_NO_REASON));
+		return;
+	}
+	Desperion::sDatabase->Execute("DELETE FROM character_minimals WHERE id=%u LIMIT 1;", toDelete->id);
+	Desperion::sDatabase->Execute("DELETE FROM character_stats WHERE guid=%u LIMIT 1;", toDelete->id);
+	Desperion::eDatabase->Execute("DELETE FROM character_counts WHERE accountGuid=%u AND serverID=%u LIMIT 1;", m_data[FLAG_GUID].intValue,
+		Desperion::Config::Instance().GetUInt(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT));
 	delete toDelete;
 
 	Send(CharactersListMessage(false, characters));
@@ -172,5 +180,94 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 {
 	CharacterCreationRequestMessage data(packet);
 
-	//int guid = World::Instance().GetNextCharacterGuid();
+	if(World::Instance().GetCharacterMinimals(data.name) != NULL)
+	{
+		Send(CharacterCreationResultMessage(ERR_NAME_ALREADY_EXISTS));
+		return;
+	}
+	else if(!DofusUtils::CheckName(data.name))
+	{
+		Send(CharacterCreationResultMessage(ERR_INVALID_NAME));
+		return;
+	}
+
+	int16 id = Desperion::Config::Instance().GetUInt(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT);
+	QueryResult* QR = Desperion::eDatabase->Query("SELECT * FROM character_counts WHERE accountGuid=%u;", m_data[FLAG_GUID].intValue);
+	if(QR)
+	{
+		if(QR->GetRowCount() > Desperion::Config::Instance().GetUInt(MAX_CHARACTERS_COUNT_STRING, MAX_CHARACTERS_COUNT_DEFAULT))
+		{
+			Send(CharacterCreationResultMessage(ERR_TOO_MANY_CHARACTERS));
+			return;
+		}
+	}
+	delete QR;
+
+	int startMap = Desperion::Config::Instance().GetUInt(CUSTOM_START_MAP_STRING, CUSTOM_START_MAP_DEFAULT);
+	int16 startCell = Desperion::Config::Instance().GetUInt(CUSTOM_START_CELL_STRING, CUSTOM_START_CELL_DEFAULT);
+	Map* map = World::Instance().GetMap(startMap);
+	if(map == NULL || map->GetCell(startCell).id == -1)
+	{
+		Send(CharacterCreationResultMessage(ERR_NO_REASON));
+		return;
+	}
+
+	int guid = World::Instance().GetNextCharacterGuid();
+	if(!Desperion::sDatabase->Execute("INSERT INTO characters VALUES(%u, '%s', %u, %u, '%s', %u, %u, '', 0, -1, 0, 0, 0, '%s');",
+		guid, Desperion::Config::Instance().GetString(START_ZAAPS_STRING, START_ZAAPS_DEFAULT).c_str(),
+		startMap, startCell, "", startMap, startCell, Desperion::Config::Instance().GetString(START_EMOTES_STRING, START_EMOTES_DEFAULT).c_str()))
+	{
+		Send(CharacterCreationResultMessage(ERR_NO_REASON));
+		return;
+	}
+
+	DEntityLook look;
+	look.bonesId = 1;
+	look.skins.push_back(data.breed * 10 + (data.sex ? 1 : 0));
+	look.scales.push_back(140);
+	look.indexedColors.push_back(data.colors[0]);
+	look.indexedColors.push_back(data.colors[1]);
+	look.indexedColors.push_back(data.colors[2]);
+	look.indexedColors.push_back(data.colors[3]);
+	look.indexedColors.push_back(data.colors[4]);
+	uint8 level = Desperion::Config::Instance().GetUInt(START_LEVEL_STRING, START_LEVEL_DEFAULT);
+	bool full = Desperion::Config::Instance().GetBool(FULL_SCROLLED_STRING, FULL_SCROLLED_DEFAULT);
+	Desperion::sDatabase->Execute("INSERT INTO character_minimals VALUES(%u, %u, '%s', '%s', %u, %u, %u);",
+		guid, level, data.name.c_str(),
+		Desperion::BufferToDb(look.Serialize(-1)).c_str() ,data.breed, data.sex, m_data[FLAG_GUID].intValue);
+	Desperion::sDatabase->Execute("INSERT INTO character_stats VALUES(%u, %u, %u, %u, 0, 0, 0, 0, 0, 0, 10000, %u, %u, %u, %u, %u, %u, \
+								  %llu, 0);",
+								  guid, Desperion::Config::Instance().GetUInt(START_KAMAS_STRING, START_KAMAS_DEFAULT), (level - 1) * 5,
+								  level - 1, full ? 101 : 0, full ? 101 : 0, full ? 101 : 0, full ? 101 : 0, full ? 101 : 0, 
+								  full ? 101 : 0, 0); // dernier 0: xp --> TODO
+	Desperion::eDatabase->Execute("INSERT INTO character_counts VALUES(%u, %u);", m_data[FLAG_GUID].intValue, id);
+
+	CharacterMinimals* ch = new CharacterMinimals;
+	ch->id = guid;
+	ch->account = m_data[FLAG_GUID].intValue;
+	ch->breed = data.breed;
+	ch->level = level;
+	ch->look = look;
+	ch->name = data.name;
+	ch->onlineCharacter = NULL;
+	ch->sex = data.sex;
+	World::Instance().AddCharacterMinimals(ch);
+
+	Send(CharacterCreationResultMessage(OK));
+
+	QR = Desperion::sDatabase->Query("SELECT * FROM characters JOIN character_stats ON characters.guid=character_stats.guid \
+									   JOIN character_breeds ON character_breeds.id=%u WHERE \
+									   characters.guid=%u LIMIT 1;", ch->breed, ch->id);
+	if(!QR)
+	{
+		Log::Instance().outError("Character creation guid %u went wrong...", ch->id);
+		return;
+	}
+	Field* fields = QR->Fetch();
+	m_char = new Character;
+	m_char->Init(fields, ch, this);
+	delete QR;
+
+	Send(CharacterSelectedSuccessMessage(ch));
+	m_char->GetMap()->AddActor(m_char);
 }

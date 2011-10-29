@@ -18,42 +18,23 @@
 
 #include "StdAfx.h"
 
-void Item::InitFavoriteSubAreas(std::string subareas)
-{
-	Desperion::FastSplit<','>(m_favoriteSubAreas, subareas, Desperion::SplitInt);
-}
-
-void Item::InitPossibleEffects(std::string effects)
-{
-	Desperion::FastSplit<';'>(m_possibleEffects, effects, F);
-}
-
-void Item::_Init(int16 id, int typeId, int level, int weight, bool cursed, int useAnimationId, bool usable,
-		bool targetable, int price, bool twoHanded, bool etheral, int itemSetId, std::string criteria,
-		int appearanceId, std::string possibleEffects, std::string favoriteSubAreas, int favoriteSubAreaBonus)
-{
-	m_id = id;
-	m_typeId = typeId;
-	m_level = level;
-	m_weight = weight;
-	m_cursed = cursed;
-	m_useAnimationId = useAnimationId;
-	m_usable = usable;
-	m_targetable = targetable;
-	m_price = price;
-	m_twoHanded = twoHanded;
-	m_etheral = etheral;
-	m_itemSetId = itemSetId;
-	m_criteria = criteria;
-	m_appearanceId = appearanceId;
-	InitPossibleEffects(possibleEffects);
-	InitFavoriteSubAreas(favoriteSubAreas);
-	m_favoriteSubAreaBonus = favoriteSubAreaBonus;
-}
-
 void Item::Init(Field* fields)
 {
-	_Init(fields[0].GetInt16(), fields[2].GetInt32(), fields[5].GetInt32(), fields[6].GetInt32(), fields[7].GetBool(), fields[8].GetInt32(),
-		fields[9].GetBool(), fields[10].GetBool(), fields[11].GetInt32(), fields[12].GetBool(), fields[13].GetBool(), fields[14].GetInt32(),
-		fields[15].GetString(), fields[17].GetInt32(), fields[20].GetString(), fields[21].GetString(), fields[22].GetInt32());
+	m_id = fields[0].GetInt16();
+	m_typeId = fields[2].GetInt32();
+	m_level = fields[5].GetInt32();
+	m_weight = fields[6].GetInt32();
+	m_cursed = fields[7].GetBool();
+	m_useAnimationId = fields[8].GetInt32();
+	m_usable = fields[9].GetBool();
+	m_targetable = fields[10].GetBool();
+	m_price = fields[11].GetInt32();
+	m_twoHanded = fields[12].GetBool();
+	m_etheral = fields[13].GetBool();
+	m_itemSetId = fields[14].GetInt32();
+	m_criteria = fields[15].GetString();
+	m_appearanceId = fields[17].GetInt32();
+	Desperion::FastSplit<';'>(m_possibleEffects, std::string(fields[20].GetString()), F);
+	Desperion::FastSplit<','>(m_favoriteSubAreas, std::string(fields[21].GetString()), Desperion::SplitInt);
+	m_favoriteSubAreaBonus = fields[22].GetInt32();
 }

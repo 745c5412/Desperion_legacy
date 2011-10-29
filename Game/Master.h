@@ -27,7 +27,7 @@ namespace Desperion
 	class Master : public Singleton<Master>
 	{
 	public:
-		Master() : m_version("0.4.0")
+		Master() : m_version("0.6.2")
 		{
 			sListener = NULL;
 		}

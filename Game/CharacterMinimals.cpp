@@ -77,7 +77,8 @@ ByteBuffer DEntityLook::Serialize(Character* ch) const
 	const std::list<PlayerItem*>& list = ch->GetItems();
 	std::vector<int16> items;
 	for(std::list<PlayerItem*>::const_iterator it = list.begin(); it != list.end(); ++it)
-		items.push_back((*it)->GetItem()->GetAppearanceId());
+		if((*it)->GetPos() != INVENTORY_POSITION_NOT_EQUIPED)
+			items.push_back((*it)->GetItem()->GetAppearanceId());
 	return Serialize(items);
 }
 

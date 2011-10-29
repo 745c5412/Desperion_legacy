@@ -106,9 +106,18 @@ public:
 	virtual ~Item() {}
 	Item() {}
 	virtual void Init(Field*);
-	void _Init(int16 id, int typeId, int level, int weight, bool cursed, int useAnimationId, bool usable,
-		bool targetable, int price, bool twoHanded, bool etheral, int itemSetId, std::string criteria,
-		int appearanceId, std::string possibleEffects, std::string favoriteSubAreas, int favoriteSubAreaBonus);
+
+	int GetLevel() const
+	{ return m_level; }
+
+	int GetTypeId() const
+	{ return m_typeId; }
+
+	std::string GetCriteria() const
+	{ return m_criteria; }
+
+	int GetItemSetId() const
+	{ return m_itemSetId; }
 
 	int GetWeight() const
 	{ return m_weight; }
@@ -121,9 +130,6 @@ public:
 
 	virtual bool IsWeapon() const
 	{ return false; }
-private:
-	void InitFavoriteSubAreas(std::string subareas);
-	void InitPossibleEffects(std::string effects);
 };
 
 #endif

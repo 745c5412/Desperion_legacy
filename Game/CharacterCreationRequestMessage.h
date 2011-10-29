@@ -33,9 +33,7 @@ public:
 	CharacterCreationRequestMessage(ByteBuffer& data)
 	{
 		data>>name>>breed>>sex;
-		uint16 size;
-		data>>size;
-		for(uint16 a = 0; a < size; ++a)
+		for(uint16 a = 0; a < 5; ++a)
 		{
 			int color;
 			data>>color;

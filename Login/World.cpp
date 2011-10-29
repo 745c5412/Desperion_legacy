@@ -33,17 +33,10 @@ void World::RefreshGameServer(GameServer* G)
 		uint32 guid = it->second->GetData(FLAG_GUID).intValue;
 		if(guid == 0)
 			continue;
-		QueryResult* QR = Desperion::sDatabase->Query("SELECT count FROM character_counts WHERE accountGuid=%u and serverID=%u LIMIT 1;",
+		QueryResult* QR = Desperion::sDatabase->Query("SELECT accountGuid FROM character_counts WHERE accountGuid=%u and serverID=%u LIMIT 1;",
 			guid, G->GetID());
-		uint8 count;
-		if(QR)
-		{
-			Field* fields = QR->Fetch();
-			count = fields[0].GetUInt8();
-		}
+		it->second->Send(ServerStatusUpdateMessage(it->second->GetServerStatusMessage(G, QR->GetRowCount())));
 		delete QR;
-
-		it->second->Send(ServerStatusUpdateMessage(it->second->GetServerStatusMessage(G, count)));
 	}
 	SessionsMutex.unlock();
 }

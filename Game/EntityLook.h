@@ -25,17 +25,17 @@ public:
 	virtual uint16 GetProtocol() const
 	{ return ENTITY_LOOK; }
 
-	EntityLook(DEntityLook& look)
+	EntityLook(const DEntityLook& look)
 	{
 		m_buffer<<look.Serialize(-1);
 	}
 
-	EntityLook(DEntityLook& look, int guid)
+	EntityLook(const DEntityLook& look, int guid)
 	{
 		m_buffer<<look.Serialize(guid);
 	}
 
-	EntityLook(DEntityLook& look, Character* ch);
+	EntityLook(const DEntityLook& look, Character* ch);
 };
 
 #endif

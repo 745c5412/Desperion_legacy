@@ -21,8 +21,7 @@
 void Map::Init(Field* fields)
 {
 	m_id = fields[0].GetInt32();
-	std::string cells = fields[1].GetString();
-	Desperion::FastSplit<','>(m_cells, cells, Desperion::SplitInt);
+	m_cellsString = fields[1].GetString();
 	m_topMap = fields[2].GetInt32();
 	m_bottomMap = fields[3].GetInt32();
 	m_rightMap = fields[4].GetInt32();
@@ -31,6 +30,42 @@ void Map::Init(Field* fields)
 	m_posY = fields[9].GetInt16();
 	m_capabilities = fields[11].GetInt32();
 	m_subareaId = fields[14].GetInt16();
+	m_isBuilt = false;
+}
+
+bool Map::EntityOnCell(int16 cell)
+{
+	for(std::list<DisplayableEntity*>::iterator it = m_actors.begin(); it != m_actors.end(); ++it)
+		if((*it)->GetCell() == cell)
+			return true;
+	return false;
+}
+
+Map::~Map()
+{
+	for(std::tr1::unordered_map<int16, PlayerItem*>::iterator it = m_items.begin(); it != m_items.end(); ++it)
+		delete it->second;
+	m_items.clear();
+}
+
+PlayerItem* Map::GetItem(int16 cell)
+{
+	std::unordered_map<int16, PlayerItem*>::iterator it = m_items.find(cell);
+	if(it != m_items.end())
+		return it->second;
+	return NULL;
+}
+
+void Map::AddItem(PlayerItem* item, int16 cell)
+{
+	m_items[cell] = item;
+}
+
+void Map::DeleteItem(int16 cell)
+{
+	std::unordered_map<int16, PlayerItem*>::iterator it = m_items.find(cell);
+	if(it != m_items.end())
+		m_items.erase(it);
 }
 
 void Map::AddActor(DisplayableEntity* actor)

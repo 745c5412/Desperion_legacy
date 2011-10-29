@@ -1,0 +1,47 @@
+Detected memory leaks!
+Dumping objects ->
+{313036} normal block at 0x0030BCA0, 16 bytes long.
+ Data: <8     0 X     0 > 38 E2 FA 00 A0 BB 30 00 58 E3 FA 00 20 BC 30 00 
+{300375} normal block at 0x00FAF9F0, 4 bytes long.
+ Data: <  0 > A0 BC 30 00 
+{2052} normal block at 0x00FAF8D0, 4 bytes long.
+ Data: <    > C0 A6 FC 05 
+{2050} normal block at 0x00307468, 32 bytes long.
+ Data: <        Q     0 > 00 00 00 00 CD CD CD CD 51 92 18 01 B0 AC 30 00 
+{2049} normal block at 0x00307418, 32 bytes long.
+ Data: <         7    0 > 00 00 00 00 CD CD CD CD 89 37 18 01 B0 AC 30 00 
+{2048} normal block at 0x00307288, 32 bytes long.
+ Data: <         `    0 > 00 00 00 00 CD CD CD CD D3 60 18 01 B0 AC 30 00 
+{2047} normal block at 0x003074B8, 32 bytes long.
+ Data: < r0  t0 ht0     > 88 72 30 00 18 74 30 00 68 74 30 00 00 00 00 00 
+{2046} normal block at 0x0030BC60, 16 bytes long.
+ Data: <  .             > F4 DF 2E 01 01 00 00 00 01 00 00 00 A0 F8 FA 00 
+{2044} normal block at 0x00FAF8A0, 4 bytes long.
+ Data: <( E > 28 1A 45 00 
+{2043} normal block at 0x0030BC20, 16 bytes long.
+ Data: <  .         X   > CC DF 2E 01 02 00 00 00 02 00 00 00 58 E3 FA 00 
+{2042} normal block at 0x00FAE358, 24 bytes long.
+ Data: <X     0 p 0 ` 0 > 58 E3 FA 00 20 BC 30 00 70 B2 30 00 60 BB 30 00 
+{2041} normal block at 0x0030BBE0, 16 bytes long.
+ Data: <  .         p   > F4 DF 2E 01 01 00 00 00 01 00 00 00 70 F8 FA 00 
+{2039} normal block at 0x00FAF870, 4 bytes long.
+ Data: <  E > 08 02 45 00 
+{2038} normal block at 0x0030BBA0, 16 bytes long.
+ Data: <  .         8   > CC DF 2E 01 02 00 00 00 02 00 00 00 38 E2 FA 00 
+{2037} normal block at 0x00FAE238, 24 bytes long.
+ Data: <8     0 p 0 ` 0 > 38 E2 FA 00 A0 BB 30 00 70 B2 30 00 60 BB 30 00 
+{2035} normal block at 0x0030BB60, 16 bytes long.
+ Data: <  .         p 0 > 9C DF 2E 01 02 00 00 00 02 00 00 00 70 B2 30 00 
+{2034} normal block at 0x00FAF840, 4 bytes long.
+ Data: <p 0 > 70 B2 30 00 
+{2033} normal block at 0x0030B3D0, 8 bytes long.
+ Data: <  0     > 00 B3 30 00 00 00 00 00 
+{2032} normal block at 0x0030B398, 8 bytes long.
+ Data: <  0     > D8 B2 30 00 00 00 00 00 
+{2031} normal block at 0x0030B360, 8 bytes long.
+ Data: <  0     > A4 B2 30 00 00 00 00 00 
+{2030} normal block at 0x00308608, 8 bytes long.
+ Data: <  0     > 84 B2 30 00 00 00 00 00 
+{2029} normal block at 0x0030B270, 168 bytes long.
+ Data: <p 0 ` 0         > 70 B2 30 00 60 BB 30 00 00 00 00 00 00 00 00 00 
+Object dump complete.

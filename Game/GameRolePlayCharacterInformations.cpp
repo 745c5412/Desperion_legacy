@@ -21,5 +21,5 @@
 GameRolePlayCharacterInformations::GameRolePlayCharacterInformations(Character* ch) : GameRolePlayHumanoidInformations(ch, ch)
 {
 	m_buffer<<ActorAlignmentInformations(ch->GetStats().GetAlignmentSide(), ch->GetStats().GetAlignmentValue(),
-		ch->GetStats().GetAlignmentGrade(), ch->GetStats().GetDishonor(), ch->GetStats().GetCharacterPower());
+		ch->GetStats().GetAlignmentGrade(), ch->GetStats().GetDishonor(), ch->GetLevel());
 }

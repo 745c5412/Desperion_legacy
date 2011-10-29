@@ -138,6 +138,18 @@
     <ClCompile Include="ChatHandler.cpp">
       <Filter>Handlers</Filter>
     </ClCompile>
+    <ClCompile Include="CharacterStats.cpp">
+      <Filter>Objects\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="ConditionsParser.cpp">
+      <Filter>Desperion\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="DofusUtils.cpp">
+      <Filter>Desperion\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="InventoryHandler.cpp">
+      <Filter>Handlers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StdAfx.h">
@@ -396,6 +408,105 @@
       <Filter>Messages</Filter>
     </ClInclude>
     <ClInclude Include="ChatServerWithObjectMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ConditionsParser.h">
+      <Filter>Desperion\H</Filter>
+    </ClInclude>
+    <ClInclude Include="DofusUtils.h">
+      <Filter>Desperion\H</Filter>
+    </ClInclude>
+    <ClInclude Include="GoldAddedMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="GoldItem.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="LivingObjectChangeSkinRequestMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="LivingObjectDissociateMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="LivingObjectMessageMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="LivingObjectMessageRequestMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectAddedMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectDeletedMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectDeleteMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectDropMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectErrorMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectFeedMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectModifiedMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectMovementMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectQuantityMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectsAddedMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectsDeletedMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectSetPositionMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectsQuantityMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectItemQuantity.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectUseMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectUseMultipleMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectUseOnCellMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectUseOnCharacterMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="SetUpdateMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="GameContextRefreshEntityLookMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectGroundAddedMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectGroundListAddedMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectGroundRemovedMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectGroundRemovedMultipleMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="CharacterCreationResultMessage.h">
       <Filter>Messages</Filter>
     </ClInclude>
   </ItemGroup>

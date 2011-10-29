@@ -80,7 +80,6 @@ DROP TABLE IF EXISTS `character_counts`;
 CREATE TABLE `character_counts` (
   `accountGuid` int(11) NOT NULL,
   `serverID` int(11) NOT NULL,
-  `count` int(11) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- ----------------------------

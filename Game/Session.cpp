@@ -48,6 +48,10 @@ void Session::InitHandlersTable()
 	m_handlers[CMSG_CHAT_CLIENT_MULTI_WITH_OBJECT].Handler = &Session::HandleChatClientMultiWithObjectMessage;
 	m_handlers[CMSG_CHAT_CLIENT_PRIVATE].Handler = &Session::HandleChatClientPrivateMessage;
 	m_handlers[CMSG_CHAT_CLIENT_PRIVATE_WITH_OBJECT].Handler = &Session::HandleChatClientPrivateWithObjectMessage;
+
+	m_handlers[CMSG_OBJECT_DROP].Handler = &Session::HandleObjectDropMessage;
+	m_handlers[CMSG_OBJECT_DELETE].Handler = &Session::HandleObjectDeleteMessage;
+	m_handlers[CMSG_OBJECT_SET_POSITION].Handler = &Session::HandleObjectSetPositionMessage;
 }
 
 void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
@@ -78,29 +82,8 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	if(QR)
 	{
 		Field* fields = QR->Fetch();
-		std::string channels = fields[0].GetString();
-		std::string disallowed = fields[1].GetString();
-
-		if(!channels.empty())
-		{
-			std::vector<std::string> table;
-			Desperion::Split(table, channels, ',');
-			for(uint8 a = 0; a < table.size(); ++a)
-			{
-				uint32 chan = atoi(table.at(a).c_str());
-				m_channels.push_back(chan);
-			}
-		}
-		if(!disallowed.empty())
-		{
-			std::vector<std::string> table;
-			Desperion::Split(table, disallowed, ',');
-			for(uint8 a = 0; a < table.size(); ++a)
-			{
-				uint32 dis = atoi(table.at(a).c_str());
-				m_disallowed.push_back(dis);
-			}
-		}
+		Desperion::FastSplit<','>(m_channels, std::string(fields[0].GetString()), Desperion::SplitInt, false);
+		Desperion::FastSplit<','>(m_channels, std::string(fields[1].GetString()), Desperion::SplitInt, false);
 	}
 	else
 		Desperion::eDatabase->Execute("INSERT INTO account_channels VALUES(%u, '', '');", m_data[FLAG_GUID].intValue);
@@ -110,29 +93,8 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	if(QR)
 	{
 		Field* fields = QR->Fetch();
-		std::string friends = fields[0].GetString();
-		std::string ennemies = fields[1].GetString();
-
-		if(friends != "")
-		{
-			std::vector<std::string> table;
-			Desperion::Split(table, friends, ',');
-			for(uint8 a = 0; a < table.size(); a++)
-			{
-				uint32 account = atoi(table.at(a).c_str());
-				m_friends.push_back(account);
-			}
-		}
-		if(ennemies != "")
-		{
-			std::vector<std::string> table;
-			Desperion::Split(table, ennemies, ',');
-			for(uint8 a = 0; a < table.size(); a++)
-			{
-				uint32 account = atoi(table.at(a).c_str());
-				m_ennemies.push_back(account);
-			}
-		}
+		Desperion::FastSplit<','>(m_friends, std::string(fields[0].GetString()), Desperion::SplitInt, false);
+		Desperion::FastSplit<','>(m_ennemies, std::string(fields[1].GetString()), Desperion::SplitInt, false);
 	}
 	else
 		Desperion::eDatabase->Execute("INSERT INTO account_social VALUES(%u, '', '');", m_data[FLAG_GUID].intValue);

@@ -20,10 +20,23 @@
 
 void Weapon::Init(Field* fields)
 {
-	_Init(fields[10].GetInt32(), fields[30].GetInt32(), fields[12].GetInt32(), fields[1].GetInt32(), fields[11].GetBool(),
-		fields[28].GetInt32(), fields[25].GetBool(), fields[17].GetBool(), fields[23].GetInt32(), fields[20].GetBool(),
-		fields[8].GetBool(), fields[21].GetInt32(), fields[18].GetString(), fields[9].GetInt32(), fields[27].GetString(),
-		fields[14].GetString(), fields[0].GetInt32());
+	m_id = fields[10].GetInt16();
+	m_typeId = fields[30].GetInt32();
+	m_level = fields[12].GetInt32();
+	m_weight = fields[1].GetInt32();
+	m_cursed = fields[11].GetBool();
+	m_useAnimationId = fields[28].GetInt32();
+	m_usable = fields[25].GetBool();
+	m_targetable = fields[17].GetBool();
+	m_price = fields[23].GetInt32();
+	m_twoHanded = fields[20].GetBool();
+	m_etheral = fields[8].GetBool();
+	m_itemSetId = fields[21].GetInt32();
+	m_criteria = fields[18].GetString();
+	m_appearanceId = fields[9].GetInt32();
+	Desperion::FastSplit<';'>(m_possibleEffects, std::string(fields[27].GetString()), F);
+	Desperion::FastSplit<','>(m_favoriteSubAreas, std::string(fields[14].GetString()), Desperion::SplitInt);
+	m_favoriteSubAreaBonus = fields[0].GetInt32();
 	m_range = fields[2].GetInt32();
 	m_criticalHitBonus = fields[4].GetInt32();
 	m_minRange = fields[5].GetInt32();

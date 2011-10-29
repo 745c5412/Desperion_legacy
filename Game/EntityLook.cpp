@@ -18,7 +18,7 @@
 
 #include "StdAfx.h"
 
-EntityLook::EntityLook(DEntityLook& look, Character* ch)
+EntityLook::EntityLook(const DEntityLook& look, Character* ch)
 {
 	m_buffer<<look.Serialize(ch);
 }

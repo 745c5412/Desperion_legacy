@@ -79,9 +79,9 @@ private:
 	Character* m_char;
 	std::vector<uint32> m_channels;
 	std::vector<uint32> m_disallowed;
-	std::vector<uint32> m_friends;
-	std::vector<uint32> m_ennemies;
-	std::vector<uint32> m_ignored;
+	std::vector<int> m_friends;
+	std::vector<int> m_ennemies;
+	std::vector<int> m_ignored;
 	uint32 m_lastNameSuggestionRequest;
 
 	// AdminHandler.cpp
@@ -114,6 +114,11 @@ private:
 	void HandleChatClientMultiWithObjectMessage(ByteBuffer&);
 	void HandleChatClientPrivateMessage(ByteBuffer&);
 	void HandleChatClientPrivateWithObjectMessage(ByteBuffer&);
+
+	// InventoryHandler.cpp
+	void HandleObjectDeleteMessage(ByteBuffer&);
+	void HandleObjectDropMessage(ByteBuffer&);
+	void HandleObjectSetPositionMessage(ByteBuffer&);
 
 	// Session.cpp
 	void HandleAuthenticationTicketMessage(ByteBuffer&);

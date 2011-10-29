@@ -25,6 +25,17 @@ void Session::HandleMapInformationsRequestMessage(ByteBuffer& packet)
 	Map* map = m_char->GetMap();
 
 	Send(MapComplementaryInformationsDataMessage(map->GetSubareaId(), map->GetId(), 0, map->GetActors()));
+	std::tr1::unordered_map<int16, PlayerItem*> items = map->GetItems();
+	if(items.empty())
+		return;
+	std::vector<int16> cells;
+	std::vector<int> ids;
+	for(std::tr1::unordered_map<int16, PlayerItem*>::const_iterator it = items.begin(); it != items.end(); ++it)
+	{
+		cells.push_back(it->first);
+		ids.push_back(it->second->GetItem()->GetId());
+	}
+	Send(ObjectGroundListAddedMessage(cells, ids));
 }
 
 void Session::HandleGameContextCreateRequestMessage(ByteBuffer& packet)
@@ -87,6 +98,13 @@ void Session::HandleGameMapMovementConfirmMessage(ByteBuffer& packet)
 	m_char->SetNextCell(-1);
 	m_char->SetNextDirection(-1);
 
+	PlayerItem* i = m_char->GetMap()->GetItem(m_char->GetCell());
+	if(i != NULL)
+	{
+		m_char->GetMap()->Send(ObjectGroundRemovedMessage(m_char->GetCell()));
+		m_char->GetMap()->DeleteItem(m_char->GetCell());
+		m_char->MoveItemFromMap(i);
+	}
 	Send(BasicNoOperationMessage());
 }
 

@@ -34,11 +34,16 @@ struct Cell
 class Map
 {
 public:
+	~Map();
 	void Init(Field*);
 	DisplayableEntity* GetActor(int);
 	void AddActor(DisplayableEntity*);
 	void RemoveActor(int);
 	void Send(const DofusMessage&, int guid = -1);
+	PlayerItem* GetItem(int16);
+	void AddItem(PlayerItem*, int16);
+	void DeleteItem(int16);
+	bool EntityOnCell(int16);
 
 	int GetId() const
 	{ return m_id; }
@@ -71,6 +76,19 @@ public:
 
 	int GetLeftMap() const
 	{ return m_leftMap; }
+
+	bool IsBuilt() const
+	{ return m_isBuilt; }
+
+	void Build()
+	{
+		Desperion::FastSplit<','>(m_cells, m_cellsString, Desperion::SplitInt);
+		m_cellsString.clear();
+		m_isBuilt = true;
+	}
+
+	const std::unordered_map<int16, PlayerItem*>& GetItems() const
+	{ return m_items; }
 private:
 	std::string m_cellsString;
 	int m_id;
@@ -82,7 +100,9 @@ private:
 	int m_rightMap;
 	int m_leftMap;
 	int m_capabilities;
+	bool m_isBuilt;
 	std::list<DisplayableEntity*> m_actors;
+	std::unordered_map<int16, PlayerItem*> m_items;
 	std::vector<int> m_cells;
 };
 

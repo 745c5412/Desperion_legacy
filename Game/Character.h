@@ -99,6 +99,17 @@ public:
 	void Init(Field*, CharacterMinimals*, Session*);
 	~Character();
 
+	void DeleteItem(int, bool, bool);
+	void AddItem(PlayerItem*);
+	void MoveItem(PlayerItem*, uint8, bool create = false);
+	void MoveItemFromMap(PlayerItem*);
+	PlayerItem* GetSimilarItem(PlayerItem*);
+	PlayerItem* GetItem(int);
+	PlayerItem* GetItemByPos(uint8);
+	bool HasEquiped(int16);
+	bool ApplyEffect(double StatsRow::*, EffectInstanceInteger&);
+	bool ApplyEffect(double StatsRow::*, int, int);
+
 	int8 GetNextDirection() const
 	{ return m_nextDirection; }
 

@@ -21,14 +21,15 @@
 
 struct StatsRow
 {
-	int16 base;
-	int16 objects;
-	int16 align;
-	int16 context;
+	double base;
+	double objects;
+	double align;
+	double context;
 
 	int16 Total() const
 	{
-		return base + objects + align + context;
+		return int16(int64(base) & 0xffff) + int16(int64(objects) & 0xffff) + 
+			int16(int64(align) & 0xffff) + int16(int64(context) & 0xffff);
 	}
 
 	StatsRow()
@@ -41,13 +42,32 @@ struct StatsRow
 
 	operator ByteBuffer() const
 	{
-		return CharacterBaseCharacteristic(base, objects, align, context);
+		return CharacterBaseCharacteristic(int16(int64(base) & 0xffff), int16(int64(objects) & 0xffff), 
+			int16(int64(align) & 0xffff), int16(int64(context) & 0xffff));
 	}
+};
+
+class CharacterStats;
+
+struct Effect
+{
+	Effect(bool add, StatsRow CharacterStats::*stat, double div)
+	{
+		this->add = add;
+		this->stat = stat;
+		this->div = div;
+	}
+
+	bool add;
+	StatsRow CharacterStats::*stat;
+	double div;
 };
 
 class CharacterStats
 {
 private:
+	typedef std::tr1::unordered_multimap<int, Effect> EffectMap;
+	static EffectMap m_effects;
 	uint64 m_xp;
 	int m_kamas;
 	int m_statsPoints;
@@ -57,7 +77,6 @@ private:
 	int8 m_alignmentValue;
 	int8 m_alignmentGrade;
 	uint16 m_dishonor;
-	int m_characterPower;
 	uint16 m_honor;
 	bool m_pvpEnabled;
 	
@@ -67,6 +86,8 @@ private:
 	int16 m_energy;
 	int m_damages;
 public:
+	static void InitEffectsTable();
+
 	int16 GetEnergy() const
 	{ return m_energy; }
 
@@ -81,9 +102,6 @@ public:
 
 	uint16 GetDishonor() const
 	{ return m_dishonor; }
-
-	int GetCharacterPower() const
-	{ return m_characterPower; }
 
 	uint16 GetHonor() const
 	{ return m_honor; }
@@ -111,28 +129,16 @@ public:
 		m_alignmentSide = fields[18].GetInt8();
 		m_alignmentValue = fields[19].GetInt8();
 		m_alignmentGrade = fields[20].GetInt8();
-		m_characterPower = fields[21].GetInt32();
-		m_dishonor = fields[22].GetInt16();
-		m_honor = fields[23].GetInt16();
-		m_pvpEnabled = fields[24].GetBool();
-		m_energy = fields[25].GetInt16();
-		vitality.base = fields[26].GetInt16();
-		wisdom.base = fields[27].GetInt16();
-		strength.base = fields[28].GetInt16();
-		intelligence.base = fields[29].GetInt16();
-		chance.base = fields[30].GetInt16();
-		agility.base = fields[31].GetInt16();
-		m_xp = fields[32].GetUInt64();
-		m_damages = fields[33].GetInt32();
-
-		initiative.base += strength.base;
-		initiative.base += intelligence.base;
-		initiative.base += chance.base;
-		initiative.base += agility.base;
+		m_dishonor = fields[21].GetInt16();
+		m_honor = fields[22].GetInt16();
+		m_pvpEnabled = fields[23].GetBool();
+		m_energy = fields[24].GetInt16();
 		
-		m_startLife = fields[36].GetUInt8();
-		prospecting.base = fields[38].GetInt16();
-		prospecting.base += (chance.Total() / 10);
+		m_xp = fields[31].GetUInt64();
+		m_damages = fields[32].GetInt32();
+		
+		m_startLife = fields[35].GetUInt8();
+		prospecting.base += fields[36].GetInt16();
 		actionPoints.base = (level > 100 ? 7 : 6);
 		movementPoints.base = 3;
 		weightBonus = 0;
@@ -152,16 +158,6 @@ public:
 
 	int GetKamas() const
 	{ return m_kamas; }
-
-	void AddObjectBonus(int effectId, int value)
-	{
-		StatsRow* stat = NULL;
-		switch(effectId)
-		{
-		}
-		if(stat != NULL)
-			stat->objects += value;
-	}
 
 	uint16 weightBonus;
 	StatsRow initiative;
