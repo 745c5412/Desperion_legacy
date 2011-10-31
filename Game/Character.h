@@ -107,8 +107,12 @@ public:
 	PlayerItem* GetItem(int);
 	PlayerItem* GetItemByPos(uint8);
 	bool HasEquiped(int16);
-	bool ApplyEffect(double StatsRow::*, EffectInstanceInteger&);
-	bool ApplyEffect(double StatsRow::*, int, int);
+	//bool ApplyUsableEffect();
+	bool ApplyEffect(double StatsRow::*, EffectInstanceInteger&, bool);
+	bool ApplyEffect(double StatsRow::*, int, int, bool);
+	std::vector<int16> GetItemsFromSet(int16);
+	std::tr1::unordered_map<int16, std::vector<int16> > GetTotalItemSets();
+	void UpdateItemSet(int16, boost::function<void()>);
 
 	int8 GetNextDirection() const
 	{ return m_nextDirection; }

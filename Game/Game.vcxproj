@@ -49,7 +49,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Shared.lib;libmySQL.lib;libeay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Shared.lib;libmySQL.lib;libeay32.lib;CacheDataExploiter.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -74,7 +74,6 @@
     <ClCompile Include="CharacterMinimalPlusLookInformations.cpp" />
     <ClCompile Include="CharacterMinimals.cpp" />
     <ClCompile Include="AdminHandler.cpp" />
-    <ClCompile Include="CharacterStats.cpp" />
     <ClCompile Include="ChatHandler.cpp" />
     <ClCompile Include="ConditionsParser.cpp" />
     <ClCompile Include="ContextHandler.cpp" />
@@ -89,12 +88,20 @@
     <ClCompile Include="HumanInformations.cpp" />
     <ClCompile Include="InventoryHandler.cpp" />
     <ClCompile Include="Item.cpp" />
+    <ClCompile Include="ItemSet.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Master.cpp" />
     <ClCompile Include="ObjectEffect.cpp" />
+    <ClCompile Include="ObjectEffectCreature.cpp" />
+    <ClCompile Include="ObjectEffectDate.cpp" />
     <ClCompile Include="ObjectEffectDice.cpp" />
+    <ClCompile Include="ObjectEffectDuration.cpp" />
     <ClCompile Include="ObjectEffectInteger.cpp" />
+    <ClCompile Include="ObjectEffectLadder.cpp" />
+    <ClCompile Include="ObjectEffectMinMax.cpp" />
+    <ClCompile Include="ObjectEffectMount.cpp" />
+    <ClCompile Include="ObjectEffectString.cpp" />
     <ClCompile Include="Path.cpp" />
     <ClCompile Include="PlayerItem.cpp" />
     <ClCompile Include="Session.cpp" />
@@ -181,6 +188,7 @@
     <ClInclude Include="InventoryWeightMessage.h" />
     <ClInclude Include="Item.h" />
     <ClInclude Include="DItem.h" />
+    <ClInclude Include="ItemSet.h" />
     <ClInclude Include="LivingObjectChangeSkinRequestMessage.h" />
     <ClInclude Include="LivingObjectDissociateMessage.h" />
     <ClInclude Include="LivingObjectMessageMessage.h" />
@@ -194,8 +202,15 @@
     <ClInclude Include="ObjectDeleteMessage.h" />
     <ClInclude Include="ObjectDropMessage.h" />
     <ClInclude Include="ObjectEffect.h" />
+    <ClInclude Include="ObjectEffectCreature.h" />
+    <ClInclude Include="ObjectEffectDate.h" />
     <ClInclude Include="ObjectEffectDice.h" />
+    <ClInclude Include="ObjectEffectDuration.h" />
     <ClInclude Include="ObjectEffectInteger.h" />
+    <ClInclude Include="ObjectEffectLadder.h" />
+    <ClInclude Include="ObjectEffectMinMax.h" />
+    <ClInclude Include="ObjectEffectMount.h" />
+    <ClInclude Include="ObjectEffectString.h" />
     <ClInclude Include="ObjectErrorMessage.h" />
     <ClInclude Include="ObjectFeedMessage.h" />
     <ClInclude Include="ObjectGroundAddedMessage.h" />

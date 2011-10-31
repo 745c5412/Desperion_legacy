@@ -36,6 +36,7 @@ World::World()
 
 World::~World()
 {
+	// les sessions sont delete par le ~io_service du Master (ce sont des shared_ptr)
 	Sessions.clear();
 
 	for(CharacterMinimalsMap::iterator it = Characters.begin(); it != Characters.end(); ++it)
@@ -49,6 +50,10 @@ World::~World()
 	for(MapMap::iterator it = Maps.begin(); it != Maps.end(); ++it)
 		delete it->second;
 	Maps.clear();
+	
+	for(ItemSetMap::iterator it = ItemSets.begin(); it != ItemSets.end(); ++it)
+		delete it->second;
+	ItemSets.clear();
 
 	Desperion::sDatabase->Execute("DELETE FROM character_items WHERE owner=-1;");
 }
@@ -58,12 +63,12 @@ World::~World()
 	ValueTable& classes = file->GetClassDefs();
 	for(ValueTable::iterator it = classes.begin(); it != classes.end(); ++it)
 	{
-		QueryResult* QR = sDatabase->Query("SELECT COUNT(*) FROM d2o_%s;", D2oClassDefinition::FormatName(it->second.GetName()).c_str());
+		QueryResult* QR = Desperion::sDatabase->Query("SELECT COUNT(*) FROM d2o_%s;", D2oClassDefinition::FormatName(it->second.GetName()).c_str());
 		if(QR)
 		{
 			if(QR->Fetch()[0].GetInt32() > 0)
 			{
-				sLog->outDebug("Count not null %s, continuing ...", it->second.GetName().c_str());
+				Log::Instance().outDebug("Count not null %s, continuing ...", it->second.GetName().c_str());
 				delete QR;
 				return;
 			}
@@ -78,26 +83,26 @@ World::~World()
 		for(Result::iterator it = result.begin(); it != result.end(); ++it)
 		{
 			std::string insert = it->first.GetSQLInsert(D2oClassDefinition::FormatName(it->first.GetName()), it->second);
-			sDatabase->Execute(insert.c_str());
+			Desperion::sDatabase->Execute(insert.c_str());
 		}
 	}catch(const std::exception& e)
 	{
-		sLog->outError("Error %s while loading %s", e.what(), name.c_str());
+		Log::Instance().outError("Error %s while loading %s", e.what(), name.c_str());
 		return;
 	}
-	sLog->outDebug("Loaded file '%s'", name.c_str());
+	Log::Instance().outDebug("Loaded file '%s'", name.c_str());
 }
 
 void CreateSchema()
 {
-	sFileAccessor->Init("d2o");
+	sFileAccessor.Init("d2o");
 	boost::filesystem::path p("d2o/");
 	boost::filesystem::directory_iterator end;
 	for(boost::filesystem::directory_iterator it(p); it != end; ++it)
 	{
 		D2oFile* file = NULL;
 		try{
-			file = sFileAccessor->LoadFile(it->filename());
+			file = sFileAccessor.LoadFile(it->filename());
 		}catch(const ServerError& err)
 		{ std::cerr<<err.what()<<std::endl; }
 		if(!file)
@@ -108,12 +113,12 @@ void CreateSchema()
 		{
 			std::string name = D2oClassDefinition::FormatName(it2->second.GetName());
 			std::string schema = it2->second.GetSQLSchema(name);
-			sDatabase->Execute(schema.c_str());
-			sLog->outDebug("Created schema %s", name.c_str());
+			Desperion::sDatabase->Execute(schema.c_str());
+			Log::Instance().outDebug("Created schema %s", name.c_str());
 		}
 	}
 
-	FileMap& files = sFileAccessor->GetFiles();
+	FileMap& files = sFileAccessor.GetFiles();
 
 	boost::threadpool::pool tp(2);
 	for(FileMap::iterator it = files.begin(); it != files.end(); ++it)
@@ -124,7 +129,7 @@ void CreateSchema()
 void World::Init()
 {
 	uint32 threadcount;
-	#ifndef WIN32
+#ifndef WIN32
 #if UNIX_FLAVOUR == UNIX_FLAVOUR_LINUX
 #ifdef X64
 	threadcount = 2;
@@ -150,6 +155,7 @@ void World::Init()
 	uint32 count = 0;
 	Log::Instance().outNotice("World", "Loading world...");
 	tp.schedule(boost::bind(&World::LoadCharacterMinimals, this));
+	tp.schedule(boost::bind(&World::LoadItemSets, this));
 	tp.schedule(boost::bind(&World::LoadItems, this));
 	tp.schedule(boost::bind(&World::LoadMaps, this));
 	tp.wait();
@@ -187,6 +193,23 @@ void World::LoadItems()
 	delete QR;
 
 	Log::Instance().outNotice("World", "%u items loaded in %ums!", Items.size(), getMSTime() - time);
+}
+
+void World::LoadItemSets()
+{
+	uint32 time = getMSTime();
+	QueryResult* QR = Desperion::sDatabase->Query("SELECT id, effects FROM d2o_item_set;");
+	if(!QR)
+		return;
+	do
+	{
+		Field* fields = QR->Fetch();
+		ItemSet* i = new ItemSet;
+		i->Init(fields);
+		ItemSets[i->GetId()] = i;
+	}while(QR->NextRow());
+	delete QR;
+	Log::Instance().outNotice("World", "%u item sets loaded in %ums!", ItemSets.size(), getMSTime() - time);
 }
 
 void World::LoadMaps()
@@ -321,6 +344,17 @@ Item* World::GetItem(int id)
 	if(it != Items.end())
 		i = it->second;
 	ItemsMutex.unlock();
+	return i;
+}
+
+ItemSet* World::GetItemSet(int16 id)
+{
+	ItemSet* i = NULL;
+	ItemSetsMutex.lock();
+	ItemSetMap::iterator it = ItemSets.find(id);
+	if(it != ItemSets.end())
+		i = it->second;
+	ItemSetsMutex.unlock();
 	return i;
 }
 

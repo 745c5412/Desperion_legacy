@@ -138,9 +138,6 @@
     <ClCompile Include="ChatHandler.cpp">
       <Filter>Handlers</Filter>
     </ClCompile>
-    <ClCompile Include="CharacterStats.cpp">
-      <Filter>Objects\CPP</Filter>
-    </ClCompile>
     <ClCompile Include="ConditionsParser.cpp">
       <Filter>Desperion\CPP</Filter>
     </ClCompile>
@@ -149,6 +146,30 @@
     </ClCompile>
     <ClCompile Include="InventoryHandler.cpp">
       <Filter>Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="ItemSet.cpp">
+      <Filter>Objects\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectEffectCreature.cpp">
+      <Filter>Models\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectEffectDate.cpp">
+      <Filter>Models\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectEffectDuration.cpp">
+      <Filter>Models\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectEffectLadder.cpp">
+      <Filter>Models\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectEffectMinMax.cpp">
+      <Filter>Models\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectEffectMount.cpp">
+      <Filter>Models\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectEffectString.cpp">
+      <Filter>Models\CPP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -508,6 +529,30 @@
     </ClInclude>
     <ClInclude Include="CharacterCreationResultMessage.h">
       <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ItemSet.h">
+      <Filter>Objects\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectEffectCreature.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectEffectString.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectEffectLadder.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectEffectDate.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectEffectDuration.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectEffectMinMax.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectEffectMount.h">
+      <Filter>Models\H</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -74,6 +74,33 @@ struct PlayerItemEffect
 	{
 		return new PlayerItemEffect(actionId);
 	}
+
+	virtual bool IsInteger() const
+	{ return false; }
+
+	virtual bool IsDice() const
+	{ return false; }
+
+	virtual bool IsString() const
+	{ return false; }
+
+	virtual bool IsMount() const
+	{ return false; }
+
+	virtual bool IsMinMax() const
+	{ return false; }
+
+	virtual bool IsLadder() const
+	{ return false; }
+
+	virtual bool IsDuration() const
+	{ return false; }
+
+	virtual bool IsDate() const
+	{ return false; }
+
+	virtual bool IsCreature() const
+	{ return false; }
 };
 
 struct PlayerItemEffectInteger : public PlayerItemEffect
@@ -96,13 +123,14 @@ struct PlayerItemEffectInteger : public PlayerItemEffect
 	{
 		return new PlayerItemEffectInteger(actionId, value);
 	}
+
+	bool IsInteger() const
+	{ return true; }
 };
 
 struct PlayerItemEffectDice : public PlayerItemEffect
 {
-	int16 diceNum;
-	int16 diceSide;
-	int16 diceConst;
+	int16 diceNum, diceSide, diceConst;
 
 	PlayerItemEffectDice()
 	{}
@@ -122,6 +150,174 @@ struct PlayerItemEffectDice : public PlayerItemEffect
 	{
 		return new PlayerItemEffectDice(actionId, diceNum, diceSide, diceConst);
 	}
+
+	bool IsDice() const
+	{ return true; }
+};
+
+struct PlayerItemEffectString : public PlayerItemEffect
+{
+	std::string value;
+
+	PlayerItemEffectString(int16 action, std::string val)
+	{
+		actionId = action;
+		value = val;
+	}
+	
+	ObjectEffectPtr ToObjectEffect()
+	{ return ObjectEffectPtr(new ObjectEffectString(this)); }
+
+	PlayerItemEffect* Clone()
+	{
+		return new PlayerItemEffectString(actionId, value);
+	}
+
+	bool IsString() const
+	{ return true; }
+};
+
+struct PlayerItemEffectMount : public PlayerItemEffect
+{
+	int mountId;
+	time_t date;
+	int16 modelId;
+
+	PlayerItemEffectMount(int16 action, int mount, time_t date, int16 model)
+	{
+		actionId = action;
+		mountId = mount;
+		this->date = date;
+		modelId = model;
+	}
+	
+	ObjectEffectPtr ToObjectEffect()
+	{ return ObjectEffectPtr(new ObjectEffectMount(this)); }
+
+	PlayerItemEffect* Clone()
+	{
+		return new PlayerItemEffectMount(actionId, mountId, date, modelId);
+	}
+
+	bool IsMount() const
+	{ return true; }
+};
+
+struct PlayerItemEffectMinMax : public PlayerItemEffect
+{
+	int16 min, max;
+
+	PlayerItemEffectMinMax(int16 action, int16 min, int16 max)
+	{
+		actionId = action;
+		this->min = min;
+		this->max = max;
+	}
+	
+	ObjectEffectPtr ToObjectEffect()
+	{ return ObjectEffectPtr(new ObjectEffectMinMax(this)); }
+
+	PlayerItemEffect* Clone()
+	{
+		return new PlayerItemEffectMinMax(actionId, min, max);
+	}
+
+	bool IsMinMax() const
+	{ return true; }
+};
+
+struct PlayerItemEffectLadder : public PlayerItemEffect
+{
+	int monsterCount;
+
+	PlayerItemEffectLadder(int16 action, int count)
+	{
+		actionId = action;
+		monsterCount = count;
+	}
+	
+	ObjectEffectPtr ToObjectEffect()
+	{ return ObjectEffectPtr(new ObjectEffectLadder(this)); }
+
+	PlayerItemEffect* Clone()
+	{
+		return new PlayerItemEffectLadder(actionId, monsterCount);
+	}
+	
+	bool IsLadder() const
+	{ return true; }
+};
+
+struct PlayerItemEffectDuration : public PlayerItemEffect
+{
+	int16 days, hours, minutes;
+
+	PlayerItemEffectDuration(int16 action, int16 d, int16 h, int16 m)
+	{
+		actionId = action;
+		days = d;
+		hours = h;
+		minutes = m;
+	}
+	
+	ObjectEffectPtr ToObjectEffect()
+	{ return ObjectEffectPtr(new ObjectEffectDuration(this)); }
+
+	PlayerItemEffect* Clone()
+	{
+		return new PlayerItemEffectDuration(actionId, days, hours, minutes);
+	}
+
+	bool IsDuration() const
+	{ return true; }
+};
+
+struct PlayerItemEffectDate : public PlayerItemEffect
+{
+	int16 year, month, day, hour, minute;
+
+	PlayerItemEffectDate(int16 action, int16 y, int16 mo, int16 d, int16 h, int16 mi)
+	{
+		actionId = action;
+		year = y;
+		month = mo;
+		day = d;
+		hour = h;
+		minute = mi;
+	}
+	
+	ObjectEffectPtr ToObjectEffect()
+	{ return ObjectEffectPtr(new ObjectEffectDate(this)); }
+
+	PlayerItemEffect* Clone()
+	{
+		return new PlayerItemEffectDate(actionId, year, month, day, hour, minute);
+	}
+
+	bool IsDate() const
+	{ return true; }
+};
+
+struct PlayerItemEffectCreature : public PlayerItemEffect
+{
+	int16 monsterFamilyId;
+
+	PlayerItemEffectCreature(int16 action, int16 monster)
+	{
+		actionId = action;
+		monsterFamilyId = monster;
+	}
+	
+	ObjectEffectPtr ToObjectEffect()
+	{ return ObjectEffectPtr(new ObjectEffectCreature(this)); }
+
+	PlayerItemEffect* Clone()
+	{
+		return new PlayerItemEffectCreature(actionId, monsterFamilyId);
+	}
+
+	bool IsCreature() const
+	{ return true; }
 };
 
 inline PlayerItemEffect* G(std::string& str)
@@ -130,6 +326,24 @@ inline PlayerItemEffect* G(std::string& str)
 	Desperion::FastSplit<','>(table, str, Desperion::SplitInt, true);
 	switch(table[0])
 	{
+	case OBJECT_EFFECT_CREATURE:
+		return new PlayerItemEffectCreature(table[1], table[2]);
+	case OBJECT_EFFECT_DATE:
+		return new PlayerItemEffectDate(table[1], table[2], table[3], table[4], table[5], table[6]);
+	case OBJECT_EFFECT_DURATION:
+		return new PlayerItemEffectDuration(table[1], table[2], table[3], table[4]);
+	case OBJECT_EFFECT_LADDER:
+		return new PlayerItemEffectLadder(table[1], table[2]);
+	case OBJECT_EFFECT_MIN_MAX:
+		return new PlayerItemEffectMinMax(table[1], table[2], table[3]);
+	case OBJECT_EFFECT_MOUNT:
+		return new PlayerItemEffectMount(table[1], table[2], table[3], table[4]);
+	case OBJECT_EFFECT_STRING:
+		{
+			std::vector<std::string> strTable;
+			Desperion::FastSplitString<','>(strTable, str, true);
+			return new PlayerItemEffectString(table[1], strTable[2]);
+		}
 	case OBJECT_EFFECT_DICE:
 		return new PlayerItemEffectDice(table[1], table[2], table[3], table[4]);
 	case OBJECT_EFFECT_INTEGER:
@@ -139,6 +353,8 @@ inline PlayerItemEffect* G(std::string& str)
 		return new PlayerItemEffect(table[1]);
 	}
 }
+
+class Item;
 
 class PlayerItem
 {
@@ -159,7 +375,9 @@ public:
 	static int GetNextItemGuid();
 	static void InsertIntoDB(PlayerItem*);
 	static void DeleteFromDB(int);
+	static bool SameStats(PlayerItem*, PlayerItem*);
 	std::string StatsToString();
+	PlayerItemEffect* GetEffect(int16);
 
 	Character* GetOwner()
 	{ return m_owner; }

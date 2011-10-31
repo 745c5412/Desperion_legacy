@@ -90,6 +90,24 @@ uint32 RandomUInt(uint32 n)
 	}
 }
 
+uint32 RandomUInt(uint32 a, uint32 b)
+{
+	uint32 ret;
+	uint32 c;
+	for(;;)
+	{
+		c=counter%NUMBER_OF_GENERATORS;
+		if(m_locks[c]->try_lock())
+		{
+			ret = m_generators[c]->IRandom(a, b);
+			m_locks[c]->unlock();
+			return ret;
+		}
+
+		++counter;
+	}
+}
+
 double RandomDouble(double n)
 {
 	return RandomDouble() * n;

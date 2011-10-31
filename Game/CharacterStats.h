@@ -47,27 +47,9 @@ struct StatsRow
 	}
 };
 
-class CharacterStats;
-
-struct Effect
-{
-	Effect(bool add, StatsRow CharacterStats::*stat, double div)
-	{
-		this->add = add;
-		this->stat = stat;
-		this->div = div;
-	}
-
-	bool add;
-	StatsRow CharacterStats::*stat;
-	double div;
-};
-
 class CharacterStats
 {
 private:
-	typedef std::tr1::unordered_multimap<int, Effect> EffectMap;
-	static EffectMap m_effects;
 	uint64 m_xp;
 	int m_kamas;
 	int m_statsPoints;
@@ -86,8 +68,6 @@ private:
 	int16 m_energy;
 	int m_damages;
 public:
-	static void InitEffectsTable();
-
 	int16 GetEnergy() const
 	{ return m_energy; }
 

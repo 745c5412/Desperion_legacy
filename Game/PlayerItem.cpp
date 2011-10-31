@@ -49,16 +49,15 @@ void PlayerItem::SetPos(int pos)
 	if(m_pos == pos)
 		return;
 
-	// TODO: ApplyEffect
 	if(m_pos == INVENTORY_POSITION_NOT_EQUIPED && pos != INVENTORY_POSITION_NOT_EQUIPED && m_owner)
 	{
 		for(std::vector<PlayerItemEffect*>::iterator it = m_effects.begin(); it != m_effects.end(); ++it)
-			m_owner->ApplyEffect(&StatsRow::objects, (*it)->actionId, ((PlayerItemEffectInteger*)*it)->value);
+			m_owner->ApplyEffect(&StatsRow::objects, (*it)->actionId, ((PlayerItemEffectInteger*)*it)->value, true);
 	}
 	if(m_pos != INVENTORY_POSITION_NOT_EQUIPED && pos == INVENTORY_POSITION_NOT_EQUIPED && m_owner)
 	{
 		for(std::vector<PlayerItemEffect*>::iterator it = m_effects.begin(); it != m_effects.end(); ++it)
-			m_owner->ApplyEffect(&StatsRow::objects, (*it)->actionId, -((PlayerItemEffectInteger*)*it)->value);
+			m_owner->ApplyEffect(&StatsRow::objects, (*it)->actionId, ((PlayerItemEffectInteger*)*it)->value, false);
 	}
 
 	m_pos = pos;
@@ -83,10 +82,120 @@ void PlayerItem::InsertIntoDB(PlayerItem* item)
 		item->GetOwner() ? item->GetOwner()->GetGuid() : 0);
 }
 
+bool PlayerItem::SameStats(PlayerItem* i1, PlayerItem* i2)
+{
+	typedef std::vector<PlayerItemEffect*> E;
+	const E& e1 = i1->GetEffects();
+	const E& e2 = i2->GetEffects();
+	if(e1.size() != e2.size())
+		return false;
+	E::const_iterator f1 = e1.begin(), f2 = e2.begin(), l1 = e1.end();
+	for(; f1 != l1; ++f1, ++f2)
+	{
+		if((*f1)->actionId != (*f2)->actionId)
+			return false;
+		else if((*f1)->IsInteger())
+		{
+			if(!(*f2)->IsInteger())
+				return false;
+			PlayerItemEffectInteger* ff1 = (PlayerItemEffectInteger*)(*f1), 
+				* ff2 = (PlayerItemEffectInteger*)(*f2);
+			if(ff1->value != ff2->value)
+				return false;
+		}
+		else if((*f1)->IsDice())
+		{
+			if(!(*f2)->IsDice())
+				return false;
+			PlayerItemEffectDice* ff1 = (PlayerItemEffectDice*)(*f1), 
+				* ff2 = (PlayerItemEffectDice*)(*f2);
+			if(ff1->diceConst != ff2->diceConst || ff1->diceNum != ff2->diceNum
+				|| ff1->diceSide != ff2->diceSide)
+				return false;
+		}
+		else if((*f1)->IsCreature())
+		{
+			if(!(*f2)->IsCreature())
+				return false;
+			PlayerItemEffectCreature* ff1 = (PlayerItemEffectCreature*)(*f1), 
+				* ff2 = (PlayerItemEffectCreature*)(*f2);
+			if(ff1->monsterFamilyId != ff2->monsterFamilyId)
+				return false;
+		}
+		else if((*f1)->IsDate())
+		{
+			if(!(*f2)->IsDate())
+				return false;
+			PlayerItemEffectDate* ff1 = (PlayerItemEffectDate*)(*f1), 
+				* ff2 = (PlayerItemEffectDate*)(*f2);
+			if(ff1->year != ff2->year || ff1->month != ff2->month
+				|| ff1->day != ff2->day || ff1->hour != ff2->hour
+				|| ff1->minute != ff2->minute)
+				return false;
+		}
+		else if((*f1)->IsDuration())
+		{
+			if(!(*f2)->IsDuration())
+				return false;
+			PlayerItemEffectDuration* ff1 = (PlayerItemEffectDuration*)(*f1), 
+				* ff2 = (PlayerItemEffectDuration*)(*f2);
+			if(ff1->days != ff2->days || ff1->hours != ff2->hours
+				|| ff1->minutes != ff2->minutes)
+				return false;
+		}
+		else if((*f1)->IsLadder())
+		{
+			if(!(*f2)->IsLadder())
+				return false;
+			PlayerItemEffectLadder* ff1 = (PlayerItemEffectLadder*)(*f1), 
+				* ff2 = (PlayerItemEffectLadder*)(*f2);
+			if(ff1->monsterCount != ff2->monsterCount)
+				return false;
+		}
+		else if((*f1)->IsMinMax())
+		{
+			if(!(*f2)->IsMinMax())
+				return false;
+			PlayerItemEffectMinMax* ff1 = (PlayerItemEffectMinMax*)(*f1), 
+				* ff2 = (PlayerItemEffectMinMax*)(*f2);
+			if(ff1->min != ff2->min || ff1->max != ff2->max)
+				return false;
+		}
+		else if((*f1)->IsMount())
+		{
+			if(!(*f2)->IsMount())
+				return false;
+			PlayerItemEffectMount* ff1 = (PlayerItemEffectMount*)(*f1), 
+				* ff2 = (PlayerItemEffectMount*)(*f2);
+			if(ff1->mountId != ff2->mountId || ff1->date != ff2->date
+				|| ff1->modelId != ff2->modelId)
+				return false;
+		}
+		else if((*f1)->IsString())
+		{
+			if(!(*f2)->IsString())
+				return false;
+			PlayerItemEffectString* ff1 = (PlayerItemEffectString*)(*f1), 
+				* ff2 = (PlayerItemEffectString*)(*f2);
+			if(ff1->value != ff2->value)
+				return false;
+		}
+	}
+	return true;
+}
+
 PlayerItem::~PlayerItem()
 {
 	for(std::vector<PlayerItemEffect*>::iterator it = m_effects.begin(); it != m_effects.end(); ++it)
 		delete *it;
+}
+
+PlayerItemEffect* PlayerItem::GetEffect(int16 actionId)
+{
+	for(std::vector<PlayerItemEffect*>::iterator it = m_effects.begin(); it != m_effects.end(); ++it)
+		if((*it)->actionId == actionId)
+			return *it;
+	return NULL;
 }
 
 std::string PlayerItem::StatsToString()
@@ -99,6 +208,51 @@ std::string PlayerItem::StatsToString()
 
 		switch((*it)->ToObjectEffect()->GetProtocol())
 		{
+		case OBJECT_EFFECT_STRING:
+			{
+				PlayerItemEffectString* effect = (PlayerItemEffectString*)(*it);
+				str<<OBJECT_EFFECT_STRING<<","<<effect->actionId<<","<<effect->value;
+			}
+			break;
+		case OBJECT_EFFECT_MOUNT:
+			{
+				PlayerItemEffectMount* effect = (PlayerItemEffectMount*)(*it);
+				str<<OBJECT_EFFECT_MOUNT<<","<<effect->actionId<<","<<effect->mountId<<","<<effect->date;
+				str<<","<<effect->modelId;
+			}
+			break;
+		case OBJECT_EFFECT_MIN_MAX:
+			{
+				PlayerItemEffectMinMax* effect = (PlayerItemEffectMinMax*)(*it);
+				str<<OBJECT_EFFECT_MIN_MAX<<","<<effect->actionId<<","<<effect->min<<","<<effect->max;
+			}
+			break;
+		case OBJECT_EFFECT_LADDER:
+			{
+				PlayerItemEffectLadder* effect = (PlayerItemEffectLadder*)(*it);
+				str<<OBJECT_EFFECT_LADDER<<","<<effect->actionId<<","<<effect->monsterCount;
+			}
+			break;
+		case OBJECT_EFFECT_DURATION:
+			{
+				PlayerItemEffectDuration* effect = (PlayerItemEffectDuration*)(*it);
+				str<<OBJECT_EFFECT_DURATION<<","<<effect->actionId<<","<<effect->days<<","<<effect->hours;
+				str<<","<<effect->minutes;
+			}
+			break;
+		case OBJECT_EFFECT_DATE:
+			{
+				PlayerItemEffectDate* effect = (PlayerItemEffectDate*)(*it);
+				str<<OBJECT_EFFECT_DATE<<","<<effect->actionId<<","<<effect->year<<","<<effect->month;
+				str<<","<<effect->day<<","<<effect->hour<<","<<effect->minute;
+			}
+			break;
+		case OBJECT_EFFECT_CREATURE:
+			{
+				PlayerItemEffectCreature* effect = (PlayerItemEffectCreature*)(*it);
+				str<<OBJECT_EFFECT_CREATURE<<","<<effect->actionId<<","<<effect->monsterFamilyId;
+			}
+			break;
 		case OBJECT_EFFECT_DICE:
 			{
 				PlayerItemEffectDice* effect = (PlayerItemEffectDice*)(*it);

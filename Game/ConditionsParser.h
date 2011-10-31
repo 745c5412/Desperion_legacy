@@ -26,6 +26,7 @@ class ConditionsParser
 public:
 	ConditionsParser(const std::list<PlayerItem*>&, std::string);
 	bool Eval();
+	bool _Eval();
 	void AddVar(std::string, int64);
 	void SetFormula(std::string);
 private:

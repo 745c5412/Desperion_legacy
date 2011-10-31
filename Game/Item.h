@@ -19,6 +19,8 @@
 #ifndef __ITEM__
 #define __ITEM__
 
+typedef boost::shared_ptr<PlayerItemEffect> PlayerItemEffectPtr;
+
 struct EffectInstance
 {
 	EffectInstance()
@@ -34,6 +36,15 @@ struct EffectInstance
 		zoneSize = zSize;
 		zoneShape = zShape;
 	}
+
+	virtual PlayerItemEffectPtr ToPlayerItemEffect() const
+	{ return PlayerItemEffectPtr(new PlayerItemEffect(effectId)); }
+
+	virtual bool IsDice() const
+	{ return false; }
+
+	virtual bool IsInteger() const
+	{ return false; }
 
 	int effectId;
 	int targetId;
@@ -55,6 +66,12 @@ struct EffectInstanceInteger : public EffectInstance
 		value = val;
 	}
 
+	virtual PlayerItemEffectPtr ToPlayerItemEffect() const
+	{ return PlayerItemEffectPtr(new PlayerItemEffectInteger(effectId, value)); }
+
+	bool IsInteger() const
+	{ return true; }
+
 	int value;
 };
 
@@ -70,17 +87,26 @@ struct EffectInstanceDice : public EffectInstanceInteger
 		diceSide = dSide;
 	}
 
+	virtual PlayerItemEffectPtr ToPlayerItemEffect() const
+	{ return PlayerItemEffectPtr(new PlayerItemEffectDice(effectId, diceNum, diceSide, 0)); }
+
+	bool IsDice() const
+	{ return true; }
+
 	int diceNum;
 	int diceSide;
 };
 
-inline EffectInstance&& F(std::string& str)
+inline EffectInstance* F(std::string& str)
 {
 	std::vector<int> table;
 	Desperion::FastSplit<','>(table, str, Desperion::SplitInt);
-	return EffectInstanceDice(table[3], table[7], table[2], table[6], table[3] == 1, table[8],
-		table[9], table[5], table[1], table[4]);
+	return new EffectInstanceDice(table[3], table[1], table[7], table[8], table[0] == 1, table[4],
+		table[9], table[5], table[6], table[2]);
 }
+
+class PlayerItem;
+class Character;
 
 class Item
 {
@@ -99,13 +125,14 @@ protected:
 	int m_itemSetId;
 	std::string m_criteria;
 	int m_appearanceId;
-	std::vector<EffectInstance> m_possibleEffects;
+	std::vector<EffectInstance*> m_possibleEffects;
 	std::vector<int> m_favoriteSubAreas;
 	int m_favoriteSubAreaBonus;
 public:
-	virtual ~Item() {}
+	virtual ~Item();
 	Item() {}
 	virtual void Init(Field*);
+	PlayerItem* Create(int, bool, Character*);
 
 	int GetLevel() const
 	{ return m_level; }

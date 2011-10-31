@@ -28,6 +28,7 @@ float RandomFloat();
 float RandomFloat(float n);
 uint32 RandomUInt();
 uint32 RandomUInt(uint32 n);
+uint32 RandomUInt(uint32 a, uint32 b);
 
 /*************************** RANDOMC.H ***************** 2007-09-22 Agner Fog *
 *

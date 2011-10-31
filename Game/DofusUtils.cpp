@@ -50,8 +50,13 @@ namespace DofusUtils
 
 		for(uint8 a = 0; a < name.size(); ++a)
 		{
-			if(name.at(a) == std::toupper(name.at(a)) && a != 0)
-				if(name.at(a-1) != '-' || a == name.size() - 1)
+			if(name[a] == '-')
+			{
+				if(a == name.size() - 1)
+					return false;
+			}
+			else if(name.at(a) == std::toupper(name.at(a)) && a != 0)
+				if(name.at(a-1) != '-')
 					return false;
 		}
 
@@ -177,21 +182,14 @@ namespace DofusUtils
 		while(!conds)
 		{
 			const std::list<PlayerItem*>& list = m_char->GetItems();
-
-			P.AddVar("CI", m_char->GetStats().intelligence.Total());
-			P.AddVar("CV", m_char->GetStats().vitality.Total());
-			P.AddVar("CA", m_char->GetStats().agility.Total());
-			P.AddVar("CW", m_char->GetStats().wisdom.Total());
-			P.AddVar("CS", m_char->GetStats().strength.Total());
-			P.AddVar("CC", m_char->GetStats().chance.Total());
-			P.AddVar("CT", m_char->GetStats().tackleBlock.base);
+			FillParser(P, S, false);
 
 			conds = true;
 			for(std::list<PlayerItem*>::const_iterator it = list.begin(); it != list.end(); ++it)
 			{
 				PlayerItem* current = *it;
 				conds = true;
-				if(current->GetItem()->GetCriteria().empty())
+				if(current->GetItem()->GetCriteria().empty() || current->GetItem()->GetCriteria() == "null")
 					continue;
 				if(current->GetPos() == INVENTORY_POSITION_NOT_EQUIPED)
 					continue;
@@ -200,65 +198,43 @@ namespace DofusUtils
 				if(!P.Eval())
 				{
 					conds = false;
-					uint8 set = current->GetItem()->GetItemSetId();
-					m_char->MoveItem(current, INVENTORY_POSITION_NOT_EQUIPED);
-					if(set)
-					{
-						// TODO: itemset
-					}
+					m_char->UpdateItemSet(current->GetItem()->GetItemSetId(), 
+						boost::bind(&Character::MoveItem, m_char, current, INVENTORY_POSITION_NOT_EQUIPED, false));
 					break;
 				}
 			}
 		}
 	}
 
-	void FillParser(ConditionsParser& P, Session* S)
+	void FillParser(ConditionsParser& P, Session* S, bool full)
 	{
 		// TODO: autres stats
 		Character* m_char = S->GetCharacter();
-		int64 tIne = m_char->GetStats().intelligence.Total();
-		int64 tVita = m_char->GetStats().vitality.Total();
-		int64 tAgil = m_char->GetStats().agility.Total();
-		int64 tSage = m_char->GetStats().wisdom.Total();
-		int64 tFor = m_char->GetStats().strength.Total();
-		int64 tCha = m_char->GetStats().chance.Total();
+		P.AddVar("CI", m_char->GetStats().intelligence.Total());
+		P.AddVar("CV", m_char->GetStats().vitality.Total());
+		P.AddVar("CA", m_char->GetStats().agility.Total());
+		P.AddVar("CW", m_char->GetStats().wisdom.Total());
+		P.AddVar("CC", m_char->GetStats().chance.Total());
+		P.AddVar("CS", m_char->GetStats().strength.Total());
+		P.AddVar("CT", m_char->GetStats().tackleBlock.base);
+		P.AddVar("Ct", m_char->GetStats().tackleEvade.base);
 
-		int64 Ine = m_char->GetStats().intelligence.base;
-		int64 Vita = m_char->GetStats().vitality.base;
-		int64 Agil = m_char->GetStats().agility.base;
-		int64 Sage = m_char->GetStats().wisdom.base;
-		int64 For = m_char->GetStats().strength.base;
-		int64 Cha = m_char->GetStats().chance.base;
-
-		int64 Align = m_char->GetStats().GetAlignmentSide();
-		int64 LAlign = m_char->GetStats().GetAlignmentValue();
-		int64 Grade = m_char->GetStats().GetAlignmentGrade();
-		int64 Lvl = m_char->GetLevel();
-		int64 Kamas = m_char->GetStats().GetKamas();
-		int64 Breed = m_char->GetBreed();
-		int64 Sex = m_char->GetSex();
-		int64 Sub = S->GetSubscriptionEnd();
-
-		P.AddVar("CI", tIne);
-		P.AddVar("CV", tVita);
-		P.AddVar("CA", tAgil);
-		P.AddVar("CW", tSage);
-		P.AddVar("CC", tCha);
-		P.AddVar("CS", tFor);
-		P.AddVar("CT", m_char->GetStats().tackleBlock.Total());
-		P.AddVar("Ci", Ine);
-		P.AddVar("Cv", Vita);
-		P.AddVar("Ca", Agil);
-		P.AddVar("Cw", Sage);
-		P.AddVar("Cc", Cha);
-		P.AddVar("Cs", For);
-		P.AddVar("Ps", Align);
-		P.AddVar("Pa", LAlign);
-		P.AddVar("PP", Grade);
-		P.AddVar("PL", Lvl);
-		P.AddVar("PK", Kamas);
-		P.AddVar("PG", Breed);
-		P.AddVar("PS", Sex);
-		P.AddVar("PZ", Sub > 0 ? 1 : 0);
+		if(full)
+		{
+			P.AddVar("Ci", m_char->GetStats().intelligence.base);
+			P.AddVar("Cv", m_char->GetStats().vitality.base);
+			P.AddVar("Ca", m_char->GetStats().agility.base);
+			P.AddVar("Cw", m_char->GetStats().wisdom.base);
+			P.AddVar("Cc", m_char->GetStats().chance.base);
+			P.AddVar("Cs", m_char->GetStats().strength.base);
+			P.AddVar("Ps", m_char->GetStats().GetAlignmentSide());
+			P.AddVar("Pa", m_char->GetStats().GetAlignmentValue());
+			P.AddVar("PP", m_char->GetStats().GetAlignmentGrade());
+			P.AddVar("PL", m_char->GetLevel());
+			P.AddVar("PK", m_char->GetStats().GetKamas());
+			P.AddVar("PG", m_char->GetBreed());
+			P.AddVar("PS", m_char->GetSex());
+			P.AddVar("PZ", S->GetSubscriptionEnd() > 0 ? 1 : 0);
+		}
 	}
 }

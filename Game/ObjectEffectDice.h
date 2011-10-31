@@ -24,9 +24,7 @@ struct PlayerItemEffectDice;
 class ObjectEffectDice : public ObjectEffect
 {
 public:
-	int16 diceNum;
-	int16 diceSide;
-	int16 diceConst;
+	int16 diceNum, diceSide, diceConst;
 
 	virtual uint16 GetProtocol() const
 	{ return OBJECT_EFFECT_DICE; }

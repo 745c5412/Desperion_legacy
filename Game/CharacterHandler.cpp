@@ -96,34 +96,88 @@ void Session::HandleCharacterNameSuggestionRequestMessage(ByteBuffer& packet)
 	}
 
 	m_lastNameSuggestionRequest = time;
-
-	std::string name = "";
-	std::string chars = "bcdfghjklmnpqrstvwxz";
-	std::string vowels = "aeiouy";
-	size_t charsSize = chars.size() - 1;
-	size_t vowelsSize = vowels.size() - 1;
-
-	uint32 B = RandomUInt(4) + 6;
-	uint32 vorc = (int)floor(RandomDouble(1));
-	for(uint32 a = 0; a < B; ++a)
+	
+	struct RandomName
 	{
-		char letter;
-		if(a%2 ==  vorc)
+	private:
+		bool isComposedName;
+		uint8 nameSize;
+		std::vector<uint8> vowelIndexes;
+		std::string str;
+		std::string chars;
+		std::string vowels;
+		size_t charsSize;
+		size_t vowelsSize;
+		
+		uint8 RandomSize()
 		{
-			int i = RandomUInt(vowelsSize);
-			letter = vowels[i];
+			if(!isComposedName)
+				nameSize = RandomUInt(6, 10);
+			else
+				nameSize = RandomUInt(3, 7);
+			return RandomUInt(1, ceil(double(nameSize) / 2));
 		}
-		else
+		
+		bool IsVowel(uint8 index)
 		{
-			int i = RandomUInt(charsSize);
-			letter = chars[i];
+			for(uint8 a = 0; a < vowelIndexes.size(); ++a)
+				if(vowelIndexes[a] == index)
+					return true;
+			return false;
 		}
-		if(a == 0)
-			letter = std::toupper(letter);
-		name += letter;
-	}
-
-	Send(CharacterNameSuggestionSuccessMessage(name));
+		
+		void FillVowelIndexes(uint8 count)
+		{
+			vowelIndexes.clear();
+			while(vowelIndexes.size() != count)
+			{
+				uint8 index = RandomUInt(0, count - 1);
+				if(IsVowel(index))
+					continue;
+				vowelIndexes.push_back(index);
+			}
+		}
+		
+		void RandomStr()
+		{
+			for(uint8 a = 0; a < nameSize; ++a)
+			{
+				char letter;
+				if(IsVowel(a))
+					letter = vowels[RandomUInt(vowelsSize)];
+				else
+					letter = chars[RandomUInt(charsSize)];
+				if(a == 0)
+					letter = std::toupper(letter);
+				str += letter;
+			}
+		}
+		
+	public:
+		std::string GetStr() const
+		{ return str; }
+	
+		RandomName()
+		{
+			chars = "bcdfghjklmnpqrstvwxz";
+			vowels = "aeiouy";
+			str = "";
+			charsSize = chars.size() - 1;
+			vowelsSize = vowels.size() - 1;
+			isComposedName = RandomDouble() < 0.5;
+			FillVowelIndexes(RandomSize());
+			RandomStr();
+			if(isComposedName)
+			{
+				str += '-';
+				FillVowelIndexes(RandomSize());
+				RandomStr();
+			}
+		}
+	};
+	
+	RandomName name;
+	Send(CharacterNameSuggestionSuccessMessage(name.GetStr()));
 }
 
 void Session::HandleCharacterSelectionMessage(ByteBuffer& packet)
@@ -225,6 +279,7 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 	look.bonesId = 1;
 	look.skins.push_back(data.breed * 10 + (data.sex ? 1 : 0));
 	look.scales.push_back(140);
+	// TODO: couleurs par defaut & indexage des couleurs
 	look.indexedColors.push_back(data.colors[0]);
 	look.indexedColors.push_back(data.colors[1]);
 	look.indexedColors.push_back(data.colors[2]);

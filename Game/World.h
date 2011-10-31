@@ -23,6 +23,7 @@ class Session;
 class Item;
 struct CharacterMinimals;
 class Map;
+class ItemSet;
 
 typedef boost::mutex Mutex;
 
@@ -33,15 +34,16 @@ public:
 	typedef std::tr1::unordered_map<int, CharacterMinimals*> CharacterMinimalsMap;
 	typedef std::tr1::unordered_map<int, Item*> ItemMap;
 	typedef std::tr1::unordered_map<int, Map*> MapMap;
+	typedef std::tr1::unordered_map<int16, ItemSet*> ItemSetMap;
 
 	World();
 	~World();
 	void Init();
-	//void CreateSchema();
 
 	void LoadCharacterMinimals();
 	void LoadItems();
 	void LoadMaps();
+	void LoadItemSets();
 
 	void AddSession(Session*);
 	void DeleteSession(int);
@@ -67,6 +69,7 @@ public:
 	}
 
 	Item* GetItem(int);
+	ItemSet* GetItemSet(int16);
 
 	uint16 GetPlayers() const
 	{ return Sessions.size(); }
@@ -81,12 +84,14 @@ private:
 	CharacterMinimalsMap Characters;
 	ItemMap Items;
 	MapMap Maps;
+	ItemSetMap ItemSets;
 
 	uint16 m_maxPlayers;
 
 	int m_hiCharacterGuid;
 	Mutex HiCharacterGuidMutex;
 
+	Mutex ItemSetsMutex;
 	Mutex MapsMutex;
 	Mutex SessionsMutex;
 	Mutex CharactersMutex;

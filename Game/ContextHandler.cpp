@@ -25,7 +25,7 @@ void Session::HandleMapInformationsRequestMessage(ByteBuffer& packet)
 	Map* map = m_char->GetMap();
 
 	Send(MapComplementaryInformationsDataMessage(map->GetSubareaId(), map->GetId(), 0, map->GetActors()));
-	std::tr1::unordered_map<int16, PlayerItem*> items = map->GetItems();
+	const std::tr1::unordered_map<int16, PlayerItem*>& items = map->GetItems();
 	if(items.empty())
 		return;
 	std::vector<int16> cells;
@@ -46,6 +46,15 @@ void Session::HandleGameContextCreateRequestMessage(ByteBuffer& packet)
 	Send(GameContextCreateMessage(m_char->GetContextType()));
 	Send(InventoryContentMessage(m_char->GetItems(), m_char->GetStats().GetKamas()));
 	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
+	std::tr1::unordered_map<int16, std::vector<int16> > sets = m_char->GetTotalItemSets();
+	for(std::tr1::unordered_map<int16, std::vector<int16> >::iterator it = sets.begin(); it != sets.end(); ++it)
+	{
+		ItemSet* set = World::Instance().GetItemSet(it->first);
+		const std::vector<EffectInstance*>& effects = set->GetEffect(it->second.size());
+		ItemSet::ApplyEffects(m_char, effects, true);
+		Send(SetUpdateMessage(set->GetId(), it->second, effects));
+	}
+
 	Send(CharacterStatsListMessage(m_char));
 	
 	//spellList

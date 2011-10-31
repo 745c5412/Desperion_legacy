@@ -25,7 +25,7 @@ public:
 	virtual uint32 GetOpcode() const
 	{ return SMSG_SET_UPDATE; }
 
-	SetUpdateMessage(int16 setId, std::vector<int16>& setObjects, std::vector<ObjectEffectPtr>& setEffects)
+	SetUpdateMessage(int16 setId, std::vector<int16>& setObjects, const std::vector<EffectInstance*>& setEffects)
 	{
 		m_buffer<<setId;
 		uint16 size = setObjects.size();
@@ -35,7 +35,10 @@ public:
 		size = setEffects.size();
 		m_buffer<<size;
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<setEffects[a]->GetProtocol()<<*setEffects[a];
+		{
+			ObjectEffectPtr e = setEffects[a]->ToPlayerItemEffect()->ToObjectEffect();
+			m_buffer<<e->GetProtocol()<<*e;
+		}
 	}
 };
 

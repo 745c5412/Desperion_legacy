@@ -25,7 +25,7 @@ void Session::InitCommandsTable()
 	m_commands["man"].handler = &Session::HandleManCommand;
 	m_commands["man"].level = 1;
 	m_commands["man"].argc = 1;
-	m_commands["man"].description = "Display informations for specified command";
+	m_commands["man"].description = "Display informations about specified command";
 	m_commands["man"].arguments = "[command]";
 
 	m_commands["list"].handler = &Session::HandleListCommand;
@@ -49,7 +49,7 @@ void Session::InitCommandsTable()
 	m_commands["nameannounce"].handler = &Session::HandleNameAnnounceCommand;
 	m_commands["nameannounce"].level = 2;
 	m_commands["nameannounce"].argc = 1;
-	m_commands["nameannounce"].description = "Send specified admin message to world";
+	m_commands["nameannounce"].description = "Send specified admin message to the world";
 	m_commands["nameannounce"].arguments = "[message]";
 }
 
@@ -157,6 +157,59 @@ void Session::HandleMoveToCommand(std::vector<std::string>& args, bool quiet)
 
 void Session::HandleAddItemCommand(std::vector<std::string>& args, bool quiet)
 {
+	int id = atoi(args[0].c_str()), qua = atoi(args[1].c_str());
+	std::string max = Desperion::ToLowerCase(args[2]);
+	bool bmax;
+
+	Item* item = World::Instance().GetItem(id);
+	if(item == NULL)
+	{
+		if(!quiet)
+			Send(ConsoleMessage(CONSOLE_ERR_MESSAGE, "Invalid argument #1."));
+		return;
+	}
+	else if(qua < 0 || qua > 10000)
+	{
+		if(!quiet)
+			Send(ConsoleMessage(CONSOLE_ERR_MESSAGE, "Invalid argument #2."));
+		return;
+	}
+
+	if(max == "true")
+		bmax = true;
+	else if(max == "false")
+		bmax = false;
+	else
+	{
+		if(!quiet)
+			Send(ConsoleMessage(CONSOLE_ERR_MESSAGE, "Invalid argument #3."));
+		return;
+	}
+
+	Character* ch = m_char;
+	if(args.size() > 3)
+	{
+		CharacterMinimals* cm = World::Instance().GetCharacterMinimals(args[2]);
+		if(cm == NULL || cm->onlineCharacter == NULL)
+		{
+			if(!quiet)
+				Send(ConsoleMessage(CONSOLE_ERR_MESSAGE, "Invalid argument #4."));
+			return;
+		}
+		ch = cm->onlineCharacter;
+	}
+
+	PlayerItem* p = item->Create(qua, bmax, ch);
+	PlayerItem::InsertIntoDB(p);
+	ch->AddItem(p);
+	ch->MoveItem(p, INVENTORY_POSITION_NOT_EQUIPED, true);
+
+	if(!quiet)
+	{
+		std::ostringstream comm;
+		comm<<"Character "<<ch->GetName()<<" got item ID "<<id<<", quantity "<<qua<<".";
+		Send(ConsoleMessage(CONSOLE_INFO_MESSAGE, comm.str()));
+	}
 }
 
 void Session::HandleAdminCommand(std::string& content, bool quiet)

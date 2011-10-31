@@ -32,14 +32,9 @@ void Session::HandleObjectDeleteMessage(ByteBuffer& packet)
 	int newqua = item->GetQuantity() - data.quantity;
 	if(!newqua)
 	{
-		uint8 set = item->GetItem()->GetItemSetId();
-
+		m_char->UpdateItemSet(item->GetItem()->GetItemSetId(), 
+			boost::bind(&Character::DeleteItem, m_char, data.objectUID, false, false));
 		Send(ObjectDeletedMessage(data.objectUID));
-		m_char->DeleteItem(data.objectUID, true, true);
-		if(set)
-		{
-			// TODO: itemsets
-		}
 	}
 	else
 	{
@@ -103,14 +98,9 @@ void Session::HandleObjectDropMessage(ByteBuffer& packet)
 	}
 	if(!newqua)
 	{
-		uint8 set = item->GetItem()->GetItemSetId();
+		m_char->UpdateItemSet(item->GetItem()->GetItemSetId(), 
+			boost::bind(&Character::DeleteItem, m_char, data.objectUID, false, false));
 		Send(ObjectDeletedMessage(data.objectUID));
-
-		if(set)
-		{
-			// TODO: itemset
-		}
-		m_char->DeleteItem(data.objectUID, false, false);
 	}
 	else
 	{
@@ -170,7 +160,7 @@ void Session::HandleObjectSetPositionMessage(ByteBuffer& packet)
 	ConditionsParser P(m_char->GetItems(), m_char->GetName());
 	DofusUtils::FillParser(P, this);
 
-	if(!item->GetItem()->GetCriteria().empty() && data.position != INVENTORY_POSITION_NOT_EQUIPED)
+	if(!item->GetItem()->GetCriteria().empty() && item->GetItem()->GetCriteria() != "null" && data.position != INVENTORY_POSITION_NOT_EQUIPED)
 	{
 		P.SetFormula(item->GetItem()->GetCriteria());
 		if(!P.Eval())
@@ -179,9 +169,9 @@ void Session::HandleObjectSetPositionMessage(ByteBuffer& packet)
 			return;
 		}
 	}
-	// TODO: itemset
 
-	m_char->MoveItem(item, data.position);
+	m_char->UpdateItemSet(item->GetItem()->GetItemSetId(), 
+			boost::bind(&Character::MoveItem, m_char, item, data.position, false));
 	DofusUtils::LoopItemConditions(P, this);
 
 	Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLook(m_char->GetLook(), m_char)));

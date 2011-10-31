@@ -31,6 +31,31 @@ void ConditionsParser::SetFormula(std::string formu)
 	m_formula = formu;
 }
 
+bool ConditionsParser::_Eval()
+{
+	std::vector<std::string> table;
+	std::list<bool> ands;
+	std::list<bool> ors;
+
+	for(int a = 0; a < m_formula.size(); ++a)
+	{
+		bool isInPar = false;
+		switch(m_formula[a])
+		{
+		case '&':
+			break;
+		case '|':
+			break;
+		case '(':
+			break;
+		case ')':
+			break;
+		}
+	}
+
+	return true;
+}
+
 bool ConditionsParser::Eval()
 {
 	std::vector<std::string> table; // table "ET"

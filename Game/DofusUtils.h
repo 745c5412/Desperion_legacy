@@ -24,7 +24,7 @@ class Session;
 namespace DofusUtils
 {
 	bool CheckName(std::string name);
-	void FillParser(ConditionsParser&, Session*);
+	void FillParser(ConditionsParser&, Session*, bool full = true);
 	void LoopItemConditions(ConditionsParser&, Session*);
 	bool IsValidPlaceForItem(const Item*, uint8);
 }

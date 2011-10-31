@@ -44,6 +44,31 @@ PlayerItem* Character::GetItemByPos(uint8 pos)
 	return NULL;
 }
 
+void Character::UpdateItemSet(int16 set, boost::function<void()> bind)
+{
+	std::vector<int16> old_items;
+	if(set != -1)
+		old_items = GetItemsFromSet(set);
+	bind();
+
+	if(set != -1)
+	{
+		std::vector<int16> new_items = GetItemsFromSet(set);
+		if(old_items.size() != new_items.size())
+		{
+			ItemSet* IS = World::Instance().GetItemSet(set);
+			if(IS != NULL)
+			{
+				const std::vector<EffectInstance*>& e1 = IS->GetEffect(old_items.size());
+				ItemSet::ApplyEffects(this, e1, false);
+				const std::vector<EffectInstance*>& e2 = IS->GetEffect(new_items.size());
+				ItemSet::ApplyEffects(this, e2, true);
+				m_session->Send(SetUpdateMessage(IS->GetId(), new_items, e2));
+			}
+		}
+	}
+}
+
 void Character::DeleteItem(int guid, bool dealloc, bool db)
 {
 	for(std::list<PlayerItem*>::iterator it = m_items.begin(); it != m_items.end(); ++it)
@@ -72,17 +97,39 @@ PlayerItem* Character::GetSimilarItem(PlayerItem* i)
 		PlayerItem* i2 = *it;
 		if(i2->GetItem()->GetId() == i->GetItem()->GetId()
 			&& i->GetGuid() != i2->GetGuid() && i2->GetPos() == INVENTORY_POSITION_NOT_EQUIPED
-			&& false) // sameStats
+			&& PlayerItem::SameStats(i, i2))
 			return i2;
 	}
 	return NULL;
 }
 
+std::vector<int16> Character::GetItemsFromSet(int16 id)
+{
+	std::vector<int16> items;
+	for(std::list<PlayerItem*>::iterator it = m_items.begin(); it != m_items.end(); ++it)
+		if((*it)->GetPos() != INVENTORY_POSITION_NOT_EQUIPED && (*it)->GetItem()->GetItemSetId() == id)
+			items.push_back((*it)->GetItem()->GetId());
+	return items;
+}
+
+std::tr1::unordered_map<int16, std::vector<int16> > Character::GetTotalItemSets()
+{
+	std::tr1::unordered_map<int16, std::vector<int16> > sets;
+
+	for(std::list<PlayerItem*>::iterator it = m_items.begin(); it != m_items.end(); ++it)
+	{
+		if((*it)->GetPos() != INVENTORY_POSITION_NOT_EQUIPED && (*it)->GetItem()->GetItemSetId() != -1)
+			sets[(*it)->GetItem()->GetItemSetId()].push_back((*it)->GetItem()->GetId());
+	}
+	return sets;
+}
+
 void Character::MoveItem(PlayerItem* item, uint8 pos, bool create)
 {
 	PlayerItem* item2;
-	if((item2 = GetSimilarItem(item)) != NULL)
+	if(pos == INVENTORY_POSITION_NOT_EQUIPED && (item2 = GetSimilarItem(item)) != NULL)
 	{
+		item->SetPos(INVENTORY_POSITION_NOT_EQUIPED);
 		item2->SetQuantity(item2->GetQuantity() + item->GetQuantity());
 		m_session->Send(ObjectQuantityMessage(item2->GetGuid(), item2->GetQuantity()));
 
@@ -165,6 +212,7 @@ void Character::Save()
 	Desperion::sDatabase->Execute("UPDATE character_minimals SET level=%u, name='%s', entityLook='%s', breed=%u, sex=%u \
 								  WHERE id=%u LIMIT 1;", m_level, m_name.c_str(), Desperion::BufferToDb(m_look.Serialize(-1)).c_str(), m_breed, 
 								  m_sex ? 1 : 0, m_guid);
+	// TODO: update stats
 }
 
 Character::~Character()
@@ -192,18 +240,7 @@ void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 	NamedEntity::Init(ch->name);
 	HumanEntity::Init(0, 0, fields[11].GetInt16(), "");
 
-	std::string zaaps = fields[1].GetString();
-	{
-		ByteBuffer buffer = Desperion::DbToBuffer(zaaps);
-		uint16 size;
-		buffer>>size;
-		for(uint16 a = 0; a < size; ++a)
-		{
-			int zaap;
-			buffer>>zaap;
-			m_zaaps.push_back(zaap);
-		}
-	}
+	Desperion::FastSplit<','>(m_zaaps, std::string(fields[1].GetString()), Desperion::SplitInt, true);
 	//spells
 	m_saveMap = fields[5].GetInt32();
 	m_saveCell = fields[6].GetInt16();
@@ -212,18 +249,7 @@ void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 	//mount
 	m_isDead = fields[10].GetBool();
 	m_isMerchant = fields[12].GetBool();
-	std::string emotes = fields[13].GetString();
-	{
-		ByteBuffer buffer = Desperion::DbToBuffer(emotes);
-		uint16 size;
-		buffer>>size;
-		for(uint16 a = 0; a < size; ++a)
-		{
-			int8 emote;
-			buffer>>emote;
-			m_emotes.push_back(emote);
-		}
-	}
+	Desperion::FastSplit<','>(m_emotes, std::string(fields[13].GetString()), Desperion::SplitInt, true);
 
 	m_level = ch->level;
 	m_breed = ch->breed;
@@ -236,12 +262,14 @@ void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 	ch->onlineCharacter = this;
 	InitItems();
 	m_stats.Init(fields, m_level);
-	ApplyEffect(&StatsRow::base, 125, fields[25].GetInt16());
-	ApplyEffect(&StatsRow::base, 124, fields[26].GetInt16());
-	ApplyEffect(&StatsRow::base, 118, fields[27].GetInt16());
-	ApplyEffect(&StatsRow::base, 126, fields[28].GetInt16());
-	ApplyEffect(&StatsRow::base, 123, fields[29].GetInt16());
-	ApplyEffect(&StatsRow::base, 119, fields[30].GetInt16());
+	ApplyEffect(&StatsRow::base, 125, fields[25].GetInt16(), true);
+	ApplyEffect(&StatsRow::base, 124, fields[26].GetInt16(), true);
+	ApplyEffect(&StatsRow::base, 118, fields[27].GetInt16(), true);
+	ApplyEffect(&StatsRow::base, 126, fields[28].GetInt16(), true);
+	ApplyEffect(&StatsRow::base, 123, fields[29].GetInt16(), true);
+	ApplyEffect(&StatsRow::base, 119, fields[30].GetInt16(), true);
+	
+	// TODO: timer de regen
 }
 
 void Character::InitItems()
@@ -255,31 +283,39 @@ void Character::InitItems()
 		PlayerItem* it = new PlayerItem;
 		it->Init(fields);
 		m_items.push_back(it);
+		
+		// TODO: actualiser les items tels que familiers, obvi, etc
 	}while(QR->NextRow());
 	delete QR;
 }
 
-bool Character::ApplyEffect(double StatsRow::*stat, int id, int val)
+bool Character::ApplyEffect(double StatsRow::*stat, int id, int val, bool add)
 {
 	EffectInstanceInteger e;
 	e.value = val;
 	e.effectId = id;
-	return ApplyEffect(stat, e);
+	return ApplyEffect(stat, e, add);
 }
 
-bool Character::ApplyEffect(double StatsRow::*stat, EffectInstanceInteger& e)
+bool Character::ApplyEffect(double StatsRow::*stat, EffectInstanceInteger& e, bool add)
 {
-	double v = e.value;
+	// TODO: stats speciales telles que "Debloque le titre X", "Change l'apparence"... etc
+
+	double v;
+	if(add)
+		v = e.value;
+	else
+		v = -e.value;
 	switch(e.effectId)
 	{
-	case 1076:
+	case 1076: // +resistance % all (bond par exemple, mais je doute que cette stat soit utilisee dans les effets d'items)
 		m_stats.neutralElementResistPercent.*stat += v;
 		m_stats.fireElementResistPercent.*stat += v;
 		m_stats.waterElementResistPercent.*stat += v;
 		m_stats.airElementResistPercent.*stat += v;
 		m_stats.earthElementResistPercent.*stat += v;
 		break;
-	case 1077:
+	case 1077: // -resistance % all
 		m_stats.neutralElementResistPercent.*stat -= v;
 		m_stats.fireElementResistPercent.*stat -= v;
 		m_stats.waterElementResistPercent.*stat -= v;
@@ -345,6 +381,289 @@ bool Character::ApplyEffect(double StatsRow::*stat, EffectInstanceInteger& e)
 	case 157:
 		m_stats.strength.*stat -= v;
 		m_stats.initiative.*stat -= v;
+		break;
+	case 430:
+		m_stats.neutralDamageBonus.*stat += v;
+		break;
+	case 431:
+		m_stats.neutralDamageBonus.*stat -= v;
+		break;
+	case 428:
+		m_stats.airDamageBonus.*stat += v;
+		break;
+	case 429:
+		m_stats.airDamageBonus.*stat -= v;
+		break;
+	case 426:
+		m_stats.waterDamageBonus.*stat += v;
+		break;
+	case 427:
+		m_stats.waterDamageBonus.*stat -= v;
+		break;
+	case 424:
+		m_stats.fireDamageBonus.*stat += v;
+		break;
+	case 425:
+		m_stats.fireDamageBonus.*stat -= v;
+		break;
+	case 422:
+		m_stats.earthDamageBonus.*stat += v;
+		break;
+	case 423:
+		m_stats.earthDamageBonus.*stat -= v;
+		break;
+	case 420:
+		m_stats.criticalDamageReduction.*stat += v;
+		break;
+	case 421:
+		m_stats.criticalDamageReduction.*stat -= v;
+		break;
+	case 418:
+		m_stats.criticalDamageBonus.*stat += v;
+		break;
+	case 419:
+		m_stats.criticalDamageBonus.*stat -= v;
+		break;
+	case 416:
+		m_stats.pushDamageReduction.*stat += v;
+		break;
+	case 417:
+		m_stats.pushDamageReduction.*stat -= v;
+		break;
+	case 414:
+		m_stats.pushDamageBonus.*stat += v;
+		break;
+	case 415:
+		m_stats.pushDamageBonus.*stat -= v;
+		break;
+	case 412:
+		m_stats.PMAttack.*stat += v;
+		break;
+	case 413:
+		m_stats.PMAttack.*stat -= v;
+		break;
+	case 410:
+		m_stats.PAAttack.*stat += v;
+		break;
+	case 411:
+		m_stats.PAAttack.*stat -= v;
+		break;
+	case 753:
+		m_stats.tackleBlock.*stat += v;
+		break;
+	case 755:
+		m_stats.tackleBlock.*stat -= v;
+		break;
+	case 752:
+		m_stats.tackleEvade.*stat += v;
+		break;
+	case 754:
+		m_stats.tackleEvade.*stat -= v;
+		break;
+	case 225:
+		m_stats.trapBonus.*stat += v;
+		break;
+	case 226:
+		m_stats.trapBonusPercent.*stat += v;
+		break;
+	case 264: // bizarrement, il n'y a que les effets positifs pour les pvpElementReduction
+		m_stats.pvpNeutralElementReduction.*stat += v;
+		break;
+	case 262:
+		m_stats.pvpAirElementReduction.*stat += v;
+		break;
+	case 261:
+		m_stats.pvpWaterElementReduction.*stat += v;
+		break;
+	case 263:
+		m_stats.pvpFireElementReduction.*stat += v;
+		break;
+	case 260:
+		m_stats.pvpEarthElementReduction.*stat += v;
+		break;
+	case 254:
+		m_stats.pvpNeutralElementResistPercent.*stat += v;
+		break;
+	case 252:
+		m_stats.pvpAirElementResistPercent.*stat += v;
+		break;
+	case 251:
+		m_stats.pvpWaterElementResistPercent.*stat += v;
+		break;
+	case 253:
+		m_stats.pvpFireElementResistPercent.*stat += v;
+		break;
+	case 250:
+		m_stats.pvpEarthElementResistPercent.*stat += v;
+		break;
+	case 259:
+		m_stats.pvpNeutralElementResistPercent.*stat -= v;
+		break;
+	case 257:
+		m_stats.pvpAirElementResistPercent.*stat -= v;
+		break;
+	case 256:
+		m_stats.pvpWaterElementResistPercent.*stat -= v;
+		break;
+	case 258:
+		m_stats.pvpFireElementResistPercent.*stat -= v;
+		break;
+	case 255:
+		m_stats.pvpEarthElementResistPercent.*stat -= v;
+		break;
+	case 244:
+		m_stats.neutralElementReduction.*stat += v;
+		break;
+	case 242:
+		m_stats.airElementReduction.*stat += v;
+		break;
+	case 241:
+		m_stats.waterElementReduction.*stat += v;
+		break;
+	case 243:
+		m_stats.fireElementReduction.*stat += v;
+		break;
+	case 240:
+		m_stats.earthElementReduction.*stat += v;
+		break;
+	case 249:
+		m_stats.neutralElementReduction.*stat -= v;
+		break;
+	case 247:
+		m_stats.airElementReduction.*stat -= v;
+		break;
+	case 246:
+		m_stats.waterElementReduction.*stat -= v;
+		break;
+	case 248:
+		m_stats.fireElementReduction.*stat -= v;
+		break;
+	case 245:
+		m_stats.earthElementReduction.*stat -= v;
+		break;
+	case 220:
+		m_stats.reflect.*stat += v;
+		break;
+	case 178:
+		m_stats.healBonus.*stat += v;
+		break;
+	case 179:
+		m_stats.healBonus.*stat -= v;
+		break;
+	case 176:
+		m_stats.prospecting.*stat += v;
+		break;
+	case 177:
+		m_stats.prospecting.*stat -= v;
+		break;
+	case 174:
+		m_stats.initiative.*stat += v;
+		break;
+	case 175:
+		m_stats.initiative.*stat -= v;
+		break;
+	case 122:
+		m_stats.criticalMiss.*stat += v;
+		break;
+	case 214:
+		m_stats.neutralElementResistPercent.*stat += v;
+		break;
+	case 212:
+		m_stats.airElementResistPercent.*stat += v;
+		break;
+	case 211:
+		m_stats.waterElementResistPercent.*stat += v;
+		break;
+	case 213:
+		m_stats.fireElementResistPercent.*stat += v;
+		break;
+	case 210:
+		m_stats.earthElementResistPercent.*stat += v;
+		break;
+	case 219:
+		m_stats.neutralElementResistPercent.*stat -= v;
+		break;
+	case 217:
+		m_stats.airElementResistPercent.*stat -= v;
+		break;
+	case 216:
+		m_stats.waterElementResistPercent.*stat -= v;
+		break;
+	case 218:
+		m_stats.fireElementResistPercent.*stat -= v;
+		break;
+	case 215:
+		m_stats.earthElementResistPercent.*stat -= v;
+		break;
+	case 161:
+		m_stats.dodgePMLostProbability.*stat += v;
+		break;
+	case 163:
+		m_stats.dodgePMLostProbability.*stat -= v;
+		break;
+	case 160:
+		m_stats.dodgePALostProbability.*stat += v;
+		break;
+	case 162:
+		m_stats.dodgePALostProbability.*stat -= v;
+		break;
+	case 182:
+		m_stats.summonableCreaturesBoost.*stat += v;
+		break;
+	case 128:
+		m_stats.movementPoints.*stat += v;
+		break;
+	case 127:
+		m_stats.movementPoints.*stat -= v;
+		break;
+	case 184: // +reduc physique (neutre et terre) --> obsolete mais je met quand meme, on sait jamais :)
+		m_stats.neutralElementReduction.*stat += v;
+		m_stats.earthElementReduction.*stat += v;
+		break;
+	case 173: // -reduc physique
+		m_stats.neutralElementReduction.*stat -= v;
+		m_stats.earthElementReduction.*stat -=v;
+		break;
+	case 183: // +reduc magique (air, eau et feu) --> idem
+		m_stats.waterElementReduction.*stat += v;
+		m_stats.fireElementReduction.*stat += v;
+		m_stats.airElementReduction.*stat += v;
+		break;
+	case 172: // -reduc magique
+		m_stats.waterElementReduction.*stat -= v;
+		m_stats.fireElementReduction.*stat -=v;
+		m_stats.airElementReduction.*stat -= v;
+		break;
+	case 117:
+		m_stats.range.*stat += v;
+		break;
+	case 116:
+		m_stats.range.*stat -= v;
+		break;
+	case 115:
+		m_stats.criticalHit.*stat += v;
+		break;
+	case 171:
+		m_stats.criticalHit.*stat -= v;
+		break;
+	case 114: // multiplie les dommages par X, obsolete mais bon, comme d'hab
+	case 138:
+		m_stats.damagesBonusPercent.*stat += v;
+		break;
+	case 186:
+		m_stats.damagesBonusPercent.*stat -= v;
+		break;
+	case 112: // +dom normaux (sur les items "post-frigost"); y'a plusieurs valeurs dans le fichier des Effects, donc je suis pas sur
+		m_stats.allDamagesBonus.*stat += v;
+		break;
+	case 145: // -dom normaux
+		m_stats.allDamagesBonus.*stat -= v;
+		break;
+	case 111:
+		m_stats.actionPoints.*stat += v;
+		break;
+	case 168:
+		m_stats.actionPoints.*stat -= v;
 		break;
 	default:
 		return false;
