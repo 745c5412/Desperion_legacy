@@ -144,6 +144,7 @@
 #include "ObjectGroundRemovedMultipleMessage.h"
 #include "CharacterCreationResultMessage.h"
 
+#include "Mount.h"
 #include "ItemSet.h"
 #include "Entity.h"
 #include "Character.h"

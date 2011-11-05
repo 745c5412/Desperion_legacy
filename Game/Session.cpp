@@ -52,6 +52,10 @@ void Session::InitHandlersTable()
 	m_handlers[CMSG_OBJECT_DROP].Handler = &Session::HandleObjectDropMessage;
 	m_handlers[CMSG_OBJECT_DELETE].Handler = &Session::HandleObjectDeleteMessage;
 	m_handlers[CMSG_OBJECT_SET_POSITION].Handler = &Session::HandleObjectSetPositionMessage;
+	m_handlers[CMSG_LIVING_OBJECT_CHANGE_SKIN_REQUEST].Handler = &Session::HandleLivingObjectChangeSkinRequestMessage;
+	m_handlers[CMSG_LIVING_OBJECT_DISSOCIATE].Handler = &Session::HandleLivingObjectDissociateMessage;
+	m_handlers[CMSG_LIVING_OBJECT_MESSAGE_REQUEST].Handler = &Session::HandleLivingObjectMessageRequestMessage;
+	m_handlers[CMSG_OBJECT_FEED].Handler = &Session::HandleObjectFeedMessage;
 }
 
 void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)

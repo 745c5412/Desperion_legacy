@@ -282,9 +282,52 @@ void Character::InitItems()
 		Field* fields = QR->Fetch();
 		PlayerItem* it = new PlayerItem;
 		it->Init(fields);
+		PlayerItemEffectDate* obviTime = (PlayerItemEffectDate*)it->GetEffect(808),
+			* exchangeTime = (PlayerItemEffectDate*)it->GetEffect(983);
+
+		time_t t = time(NULL);
+		if(obviTime != NULL)
+		{
+			struct tm* tm = localtime(&t);
+			tm->tm_year = obviTime->year;
+			tm->tm_mon = obviTime->month;
+			tm->tm_mday = obviTime->day;
+			tm->tm_hour = obviTime->hour;
+			tm->tm_min = obviTime->minute;
+			if(t - mktime(tm) > 36 * 60 * 60)
+			{
+				uint8 state = ((PlayerItemEffectInteger*)it->GetEffect(971))->value;
+				switch(state)
+				{
+				case 1:
+				case 2:
+					it->DeleteEffect(808);
+					it->DeleteEffect(971);
+
+					/* on actualise le repas pour éviter les réactions en chaîne, et pour que le
+					  joueur ne puisse pas le renourrir tout de suite (enfin, ça le rendra obèse si il est rassasié) */
+
+					struct tm* tm2 = localtime(&t);
+					it->AddEffect(new PlayerItemEffectDate(808, tm2->tm_year, tm2->tm_mon, tm2->tm_mday, tm2->tm_hour,
+						tm2->tm_min));
+					it->AddEffect(new PlayerItemEffectInteger(971, state - 1));
+					break;
+				}
+			}
+		}
+		if(exchangeTime != NULL)
+		{
+			struct tm* tm = localtime(&t);
+			tm->tm_year = exchangeTime->year;
+			tm->tm_mon = exchangeTime->month;
+			tm->tm_mday = exchangeTime->day;
+			tm->tm_hour = exchangeTime->hour;
+			tm->tm_min = exchangeTime->minute;
+			if(t - mktime(tm) > 0)
+				it->DeleteEffect(983);
+		}
+
 		m_items.push_back(it);
-		
-		// TODO: actualiser les items tels que familiers, obvi, etc
 	}while(QR->NextRow());
 	delete QR;
 }

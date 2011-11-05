@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	delete Desperion::sDatabase;
 	delete Log::InstancePtr();
 
-	printf("Press any key to continue!");
+	std::cout<<"Press any key to continue!"<<std::endl;
 	std::getchar();
 
 	return 0;

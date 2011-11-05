@@ -23,6 +23,8 @@ class Session;
 
 namespace DofusUtils
 {
+	int16 GetObviAppearanceBySkinId(int, int);
+	uint8 GetLevelByObviXp(int);
 	bool CheckName(std::string name);
 	void FillParser(ConditionsParser&, Session*, bool full = true);
 	void LoopItemConditions(ConditionsParser&, Session*);

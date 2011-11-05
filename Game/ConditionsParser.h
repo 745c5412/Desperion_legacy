@@ -24,15 +24,15 @@ class PlayerItem;
 class ConditionsParser
 {
 public:
-	ConditionsParser(const std::list<PlayerItem*>&, std::string);
+	ConditionsParser(const std::vector<int8>&, const std::list<PlayerItem*>&, std::string);
 	bool Eval();
-	bool _Eval();
 	void AddVar(std::string, int64);
 	void SetFormula(std::string);
 private:
 	std::string m_formula;
 	std::tr1::unordered_map<std::string, int64> m_variables;
 	const std::list<PlayerItem*>& m_playerItems;
+	const std::vector<int8>& m_emotes;
 	std::string m_playerName;
 };
 

@@ -184,6 +184,19 @@ bool PlayerItem::SameStats(PlayerItem* i1, PlayerItem* i2)
 	return true;
 }
 
+void PlayerItem::DeleteEffect(int16 actionId)
+{
+	for(std::vector<PlayerItemEffect*>::iterator it = m_effects.begin(); it != m_effects.end(); ++it)
+	{
+		if((*it)->actionId == actionId)
+		{
+			delete *it;
+			m_effects.erase(it);
+			return;
+		}
+	}
+}
+
 PlayerItem::~PlayerItem()
 {
 	for(std::vector<PlayerItemEffect*>::iterator it = m_effects.begin(); it != m_effects.end(); ++it)

@@ -81,19 +81,4 @@ private:
 	boost::mutex m_lock;
 };
 
-class AtomicLog
-{
-public:
-	AtomicLog(std::string, uint32);
-	void String(std::ostringstream&, bool line = true);
-	void Error(std::ostringstream&, bool line = true);
-	void Debug(std::ostringstream&, bool line = true);
-	void Line();
-private:
-	void PutName();
-
-	std::string m_name;
-	uint32 m_color;
-};
-
 #endif

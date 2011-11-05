@@ -18,6 +18,155 @@
 
 #include "StdAfx.h"
 
+void Session::HandleLivingObjectChangeSkinRequestMessage(ByteBuffer& packet)
+{
+	LivingObjectChangeSkinRequestMessage data(packet);
+
+	PlayerItem* item = m_char->GetItem(data.livingUID);
+	if(item == NULL)
+		return;
+
+	PlayerItemEffectInteger* obviXp = (PlayerItemEffectInteger*)item->GetEffect(974),
+		* obviSkin = (PlayerItemEffectInteger*)item->GetEffect(972);
+	if(obviXp == NULL || obviSkin == NULL)
+		return;
+	if(data.skinId > DofusUtils::GetLevelByObviXp(obviXp->value))
+		return;
+	item->DeleteEffect(972);
+	item->AddEffect(new PlayerItemEffectInteger(972, data.skinId));
+
+	Send(ObjectModifiedMessage(ObjectItem(item)));
+	if(item->GetPos() != INVENTORY_POSITION_NOT_EQUIPED)
+		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLook(m_char->GetLook(), m_char)));
+}
+
+void Session::HandleLivingObjectDissociateMessage(ByteBuffer& packet)
+{
+	LivingObjectDissociateMessage data(packet);
+
+	PlayerItem* item = m_char->GetItem(data.livingUID);
+	if(item == NULL || item->GetPos() == INVENTORY_POSITION_NOT_EQUIPED)
+		return;
+
+	PlayerItemEffectInteger* obviXp = (PlayerItemEffectInteger*)item->GetEffect(974),
+		* obviType = (PlayerItemEffectInteger*)item->GetEffect(973),
+		* obviState = (PlayerItemEffectInteger*)item->GetEffect(971),
+		* obviSkin = (PlayerItemEffectInteger*)item->GetEffect(972),
+		* obviTemplate = (PlayerItemEffectInteger*)item->GetEffect(970);
+
+		PlayerItemEffectDate* obviTime = (PlayerItemEffectDate*)item->GetEffect(808),
+		* exchangeTime = (PlayerItemEffectDate*)item->GetEffect(983);
+
+		if(obviTemplate == NULL || obviXp == NULL || obviType == NULL || obviState == NULL || obviSkin == NULL || obviTime == NULL)
+			return;
+
+		Item* temp = World::Instance().GetItem(obviTemplate->value);
+		if(temp == NULL)
+			return;
+		PlayerItem* newItem = temp->Create(1, false, m_char);
+		newItem->DeleteEffect(974);
+		newItem->DeleteEffect(973);
+		newItem->DeleteEffect(971);
+		newItem->DeleteEffect(972);
+		newItem->DeleteEffect(808);
+		newItem->DeleteEffect(983);
+
+		newItem->AddEffect(obviXp->Clone());
+		newItem->AddEffect(obviTime->Clone());
+		newItem->AddEffect(obviState->Clone());
+		newItem->AddEffect(obviType->Clone());
+		newItem->AddEffect(obviSkin->Clone());
+		if(exchangeTime != NULL)
+			newItem->AddEffect(exchangeTime->Clone());
+
+		PlayerItem::InsertIntoDB(newItem);
+		m_char->AddItem(newItem);
+		m_char->MoveItem(newItem, INVENTORY_POSITION_NOT_EQUIPED, true);
+
+		item->DeleteEffect(974);
+		item->DeleteEffect(973);
+		item->DeleteEffect(971);
+		item->DeleteEffect(972);
+		item->DeleteEffect(808);
+		item->DeleteEffect(983);
+		item->DeleteEffect(970);
+
+		Send(ObjectModifiedMessage(ObjectItem(item)));
+		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLook(m_char->GetLook(), m_char)));
+}
+
+void Session::HandleLivingObjectMessageRequestMessage(ByteBuffer& packet)
+{
+	LivingObjectMessageRequestMessage data(packet);
+
+	PlayerItem* item = m_char->GetItem(data.livingObject);
+	if(item == NULL)
+		return;
+
+	Send(LivingObjectMessageMessage(data.msgId, time(NULL), m_char->GetName(), item->GetItem()->GetId()));
+}
+ 
+void Session::HandleObjectFeedMessage(ByteBuffer& packet)
+{
+	ObjectFeedMessage data(packet);
+	
+	PlayerItem* obvi = m_char->GetItem(data.objectUID),
+		* food = m_char->GetItem(data.foodUID);
+
+	if(obvi == NULL || food == NULL || food->GetPos() != INVENTORY_POSITION_NOT_EQUIPED)
+		return;
+
+	PlayerItemEffectInteger* obviItem = (PlayerItemEffectInteger*)obvi->GetEffect(970),
+		* obviType = (PlayerItemEffectInteger*)obvi->GetEffect(973),
+		* obviXp = (PlayerItemEffectInteger*)obvi->GetEffect(974),
+		* obviState = (PlayerItemEffectInteger*)obvi->GetEffect(971);
+	PlayerItemEffectDate* obviTime = (PlayerItemEffectDate*)obvi->GetEffect(808);
+
+	if(obviItem == NULL || obviType == NULL || obviType->value != food->GetItem()->GetTypeId() || obviTime == NULL
+		|| obviXp == NULL || obviState == NULL)
+		return;
+
+	int newqua = food->GetQuantity() - 1;
+	int xp = food->GetItem()->GetLevel() / 2;
+	int oldxp = obviXp->value;
+	int state = obviState->value;
+
+	if(!newqua)
+	{
+		Send(ObjectDeletedMessage(food->GetGuid()));
+		m_char->DeleteItem(food->GetGuid(), true, true);
+	}
+	else
+	{
+		food->SetQuantity(newqua);
+		Send(ObjectQuantityMessage(food->GetGuid(), food->GetQuantity()));
+	}
+
+	time_t t = time(NULL);
+
+	if(state < 2)
+	{
+		struct tm* tm = localtime(&t);
+		tm->tm_year = obviTime->year;
+		tm->tm_mon = obviTime->month;
+		tm->tm_mday = obviTime->day;
+		tm->tm_hour = obviTime->hour;
+		tm->tm_min = obviTime->minute;
+		obvi->DeleteEffect(974);
+		obvi->AddEffect(new PlayerItemEffectInteger(974, oldxp + xp));
+		if(t - mktime(tm) < 12 * 60 * 60 || state == 0)
+		{
+			obvi->DeleteEffect(971);
+			obvi->AddEffect(new PlayerItemEffectInteger(971, state + 1));
+		}
+	}
+
+	struct tm* tm = localtime(&t);
+	obvi->DeleteEffect(808);
+	obvi->AddEffect(new PlayerItemEffectDate(808, tm->tm_year, tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min));
+	Send(ObjectModifiedMessage(ObjectItem(obvi)));
+}
+
 void Session::HandleObjectDeleteMessage(ByteBuffer& packet)
 {
 	ObjectDeleteMessage data(packet);
@@ -42,7 +191,7 @@ void Session::HandleObjectDeleteMessage(ByteBuffer& packet)
 		Send(ObjectQuantityMessage(data.objectUID, newqua));
 	}
 
-	ConditionsParser P(m_char->GetItems(), m_char->GetName());
+	ConditionsParser P(m_char->GetEmotes(), m_char->GetItems(), m_char->GetName());
 	DofusUtils::LoopItemConditions(P, this);
 
 	Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLook(m_char->GetLook(), m_char)));
@@ -118,7 +267,7 @@ void Session::HandleObjectDropMessage(ByteBuffer& packet)
 	m_char->GetMap()->AddItem(item, cellID);
 	m_char->GetMap()->Send(ObjectGroundAddedMessage(cellID, item->GetItem()->GetId()));
 
-	ConditionsParser P(m_char->GetItems(), m_char->GetName());
+	ConditionsParser P(m_char->GetEmotes(), m_char->GetItems(), m_char->GetName());
 	DofusUtils::LoopItemConditions(P, this);
 
 	Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLook(m_char->GetLook(), m_char)));
@@ -136,11 +285,57 @@ void Session::HandleObjectSetPositionMessage(ByteBuffer& packet)
 	if(!DofusUtils::IsValidPlaceForItem(item->GetItem(), data.position))
 		return;
 
-	// TODO: obvi
-	if(item->GetItem()->GetTypeId() == 113)
-		return;
-
 	PlayerItem* exItem = m_char->GetItemByPos(data.position);
+
+	if(item->GetItem()->GetTypeId() == 113)
+	{
+		if(exItem == NULL)
+		{
+			// Message
+			return;
+		}
+
+		PlayerItemEffectInteger* obviXp = (PlayerItemEffectInteger*)item->GetEffect(974),
+		* obviType = (PlayerItemEffectInteger*)item->GetEffect(973),
+		* obviState = (PlayerItemEffectInteger*)item->GetEffect(971),
+		* obviSkin = (PlayerItemEffectInteger*)item->GetEffect(972);
+
+		PlayerItemEffectDate* obviTime = (PlayerItemEffectDate*)item->GetEffect(808),
+		* exchangeTime = (PlayerItemEffectDate*)item->GetEffect(983);
+
+		if(exItem->GetEffect(970) != NULL)
+			return;
+		if(obviXp == NULL || obviType == NULL || obviState == NULL || obviSkin == NULL || obviTime == NULL)
+			return;
+		if(exItem->GetEffect(983) != NULL)
+		{
+			// TODO: message
+			return;
+		}
+
+		exItem->AddEffect(new PlayerItemEffectInteger(970, item->GetItem()->GetId()));
+		exItem->AddEffect(obviXp->Clone());
+		exItem->AddEffect(obviTime->Clone());
+		exItem->AddEffect(obviType->Clone());
+		exItem->AddEffect(obviState->Clone());
+		exItem->AddEffect(obviSkin->Clone());
+		if(exchangeTime != NULL)
+			exItem->AddEffect(exchangeTime->Clone());
+		if(item->GetQuantity() == 1)
+		{
+			Send(ObjectDeletedMessage(item->GetGuid()));
+			m_char->DeleteItem(item->GetGuid(), true, true);
+		}
+		else
+		{
+			item->SetQuantity(item->GetQuantity() - 1);
+			Send(ObjectQuantityMessage(item->GetGuid(), item->GetQuantity()));
+		}
+		Send(ObjectModifiedMessage(ObjectItem(exItem)));
+		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLook(m_char->GetLook(), m_char)));
+		return;
+	}
+
 	if(exItem != NULL)
 		m_char->MoveItem(exItem, INVENTORY_POSITION_NOT_EQUIPED);
 
@@ -157,7 +352,7 @@ void Session::HandleObjectSetPositionMessage(ByteBuffer& packet)
 		return;
 	}
 
-	ConditionsParser P(m_char->GetItems(), m_char->GetName());
+	ConditionsParser P(m_char->GetEmotes(), m_char->GetItems(), m_char->GetName());
 	DofusUtils::FillParser(P, this);
 
 	if(!item->GetItem()->GetCriteria().empty() && item->GetItem()->GetCriteria() != "null" && data.position != INVENTORY_POSITION_NOT_EQUIPED)

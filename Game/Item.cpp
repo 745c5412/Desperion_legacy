@@ -94,22 +94,23 @@ PlayerItem* Item::Create(int qua, bool max, Character* owner)
 	{
 		Field* fields = QR->Fetch();
 		std::vector<PlayerItemEffect*> addEffects;
-		Desperion::FastSplit<','>(addEffects, std::string(fields[0].GetString()), G, true);
+		Desperion::FastSplit<';'>(addEffects, std::string(fields[0].GetString()), G, true);
+		time_t t = time(NULL);
 		for(std::vector<PlayerItemEffect*>::iterator it = addEffects.begin(); it != addEffects.end(); ++it)
 		{
 			if((*it)->IsDate())
 			{
 				PlayerItemEffectDate* date = (PlayerItemEffectDate*)(*it);
-				if(date->year == 0 && date->month == 0 && date->day == 0
-					&& date->hour == 0 && date->minute == 0)
+				struct tm* tm = localtime(&t);
+				date->year = tm->tm_year; // 0 = 1900
+				date->month += tm->tm_mon; // 0-11
+				date->day = tm->tm_mday; // 1-31
+				date->hour = tm->tm_hour; // 0-23
+				date->minute = tm->tm_min; // 0-59
+				while(date->month > 11)
 				{
-					time_t t = time(NULL);
-					struct tm* tm = localtime(&t);
-					date->year = tm->tm_year; // 0 = 1900
-					date->month = tm->tm_mon; // 0-11
-					date->day = tm->tm_mday; // 1-31
-					date->hour = tm->tm_hour; // 0-23
-					date->minute = tm->tm_min; // 0-59
+					date->month -= 11;
+					++date->year;
 				}
 			}
 			effects.push_back(*it);

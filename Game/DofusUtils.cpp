@@ -91,14 +91,32 @@ namespace DofusUtils
 		return true;
 	}
 
+	int16 GetObviAppearanceBySkinId(int skin, int type)
+	{
+		switch(type)
+		{
+		case 9233:
+			return 1115 + skin;
+		case 9234:
+			return 1135 + skin;
+		case 12425:
+			return 1469 + skin;
+		case 12424:
+			return 1489 + skin;
+		}
+		return 0;
+	}
+
 	bool IsValidPlaceForItem(const Item* item, uint8 pos)
 	{
 		switch(item->GetId()) // pour les obvis
 		{
+		case 12424:
 		case 9233:
 			if(pos == ACCESSORY_POSITION_CAPE)
 				return true;
 			break;
+		case 12425:
 		case 9234:
 			if(pos == ACCESSORY_POSITION_HAT)
 				return true;
@@ -109,6 +127,14 @@ namespace DofusUtils
 			break;
 		case 9256:
 			if(pos == INVENTORY_POSITION_RING_LEFT || pos == INVENTORY_POSITION_RING_RIGHT)
+				return true;
+			break;
+		case 12427:
+			if(pos == ACCESSORY_POSITION_BELT)
+				return true;
+			break;
+		case 12428:
+			if(pos == ACCESSORY_POSITION_BOOTS)
 				return true;
 			break;
 		}
@@ -205,6 +231,51 @@ namespace DofusUtils
 			}
 		}
 	}
+
+	uint8 GetLevelByObviXp(int xp)
+	{
+		if(xp < 10)
+			return 1;
+		else if(xp < 21)
+			return 2;
+		else if(xp < 33)
+			return 3;
+		else if(xp < 46)
+			return 4;
+		else if(xp < 60)
+			return 5;
+		else if(xp < 75)
+			return 6;
+		else if(xp < 91)
+			return 7;
+		else if(xp < 108)
+			return 8;
+		else if(xp < 126)
+			return 9;
+		else if(xp < 145)
+			return 10;
+		else if(xp < 165)
+			return 11;
+		else if(xp < 186)
+			return 12;
+		else if(xp < 208)
+			return 13;
+		else if(xp < 231)
+			return 14;
+		else if(xp < 255)
+			return 15;
+		else if(xp < 280)
+			return 16;
+		else if(xp < 306)
+			return 17;
+		else if(xp < 333)
+			return 18;
+		else if(xp < 361)
+			return 19;
+		else
+			return 20;
+	}
+
 
 	void FillParser(ConditionsParser& P, Session* S, bool full)
 	{

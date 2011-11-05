@@ -51,12 +51,37 @@ void Session::InitCommandsTable()
 	m_commands["nameannounce"].argc = 1;
 	m_commands["nameannounce"].description = "Send specified admin message to the world";
 	m_commands["nameannounce"].arguments = "[message]";
+	
+	m_commands["infomessage"].handler = &Session::HandleInfoMessageCommand;
+	m_commands["infomessage"].level = 1;
+	m_commands["infomessage"].argc = 2;
+	m_commands["infomessage"].description = "(DEBUG) Send specified info message to client";
+	m_commands["infomessage"].arguments = "[typeId] [messageId] {param 1} {param 2} ... {param n}";
+}
+
+void Session::HandleInfoMessageCommand(std::vector<std::string>& args, bool quiet)
+{
+	int8 type = atoi(args[0].c_str());
+	int16 message = atoi(args[1].c_str());
+	args.erase(args.begin(), args.begin() + 1);
+	Send(TextInformationMessage(type, message, args));
+
+	if(!quiet)
+		Send(ConsoleMessage(CONSOLE_INFO_MESSAGE, "Message sent."));
 }
 
 void Session::HandleNameAnnounceCommand(std::vector<std::string>& args, bool quiet)
 {
+	std::string message = "";
+	for(size_t a = 0; a < args.size(); ++a)
+	{
+		if(a != 0)
+			message += " ";
+		message += args[a];
+	}
+
 	// actuellement, deconnecte le client :x
-	World::Instance().Send(ChatAdminServerMessage(0, args[0], time(NULL), ""));
+	World::Instance().Send(ChatAdminServerMessage(0, message, time(NULL), ""));
 
 	if(!quiet)
 		Send(ConsoleMessage(CONSOLE_INFO_MESSAGE, "Message sent."));

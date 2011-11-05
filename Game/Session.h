@@ -94,6 +94,7 @@ private:
 	void HandleAdminQuietCommandMessage(ByteBuffer&);
 	void HandleListCommand(std::vector<std::string>&, bool);
 	void HandleNameAnnounceCommand(std::vector<std::string>&, bool);
+	void HandleInfoMessageCommand(std::vector<std::string>&, bool);
 
 	// CharacterHandler.cpp
 	void HandleCharactersListRequestMessage(ByteBuffer&);
@@ -119,6 +120,10 @@ private:
 	void HandleObjectDeleteMessage(ByteBuffer&);
 	void HandleObjectDropMessage(ByteBuffer&);
 	void HandleObjectSetPositionMessage(ByteBuffer&);
+	void HandleLivingObjectChangeSkinRequestMessage(ByteBuffer&);
+	void HandleLivingObjectDissociateMessage(ByteBuffer&);
+	void HandleLivingObjectMessageRequestMessage(ByteBuffer&);
+	void HandleObjectFeedMessage(ByteBuffer&);
 
 	// Session.cpp
 	void HandleAuthenticationTicketMessage(ByteBuffer&);

@@ -378,6 +378,10 @@ public:
 	static bool SameStats(PlayerItem*, PlayerItem*);
 	std::string StatsToString();
 	PlayerItemEffect* GetEffect(int16);
+	void DeleteEffect(int16);
+
+	void AddEffect(PlayerItemEffect* effect)
+	{ m_effects.push_back(effect); }
 
 	Character* GetOwner()
 	{ return m_owner; }

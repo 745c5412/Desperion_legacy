@@ -51,7 +51,7 @@ ByteBuffer CharacterMinimals::Serialize() const
 
 ByteBuffer DEntityLook::Serialize(int guid) const
 {
-	std::vector<int16> items;
+	std::vector<int16> items, bones;
 	if(guid != -1)
 	{
 		QueryResult* QR = Desperion::sDatabase->Query("SELECT * FROM character_items WHERE (pos=%d OR pos=%d OR pos=%d OR pos=%d OR pos=%d) AND owner=%u;",
@@ -64,29 +64,70 @@ ByteBuffer DEntityLook::Serialize(int guid) const
 				Field* fields = QR->Fetch();
 				PlayerItem item;
 				item.Init(fields);
-				items.push_back(item.GetItem()->GetAppearanceId());
+				if(item.GetPos() != ACCESSORY_POSITION_PETS)
+				{
+					int appearanceId;
+					PlayerItemEffectInteger* effect = (PlayerItemEffectInteger*)item.GetEffect(972);
+					if(effect == NULL)
+						appearanceId = item.GetItem()->GetAppearanceId();
+					else
+					{
+						PlayerItemEffectInteger* type = (PlayerItemEffectInteger*)item.GetEffect(970);
+						if(type != NULL)
+							appearanceId = DofusUtils::GetObviAppearanceBySkinId(effect->value, type->value);
+					}
+					if(appearanceId != 0)
+						items.push_back(appearanceId);
+				}
+				else
+					bones.push_back(item.GetItem()->GetAppearanceId());
 			}while(QR->NextRow());
 		}
 		delete QR;
 	}
-	return Serialize(items);
+	return Serialize(items, bones);
 }
 
 ByteBuffer DEntityLook::Serialize(Character* ch) const
 {
 	const std::list<PlayerItem*>& list = ch->GetItems();
-	std::vector<int16> items;
+	std::vector<int16> items, bones;
 	for(std::list<PlayerItem*>::const_iterator it = list.begin(); it != list.end(); ++it)
-		if((*it)->GetPos() != INVENTORY_POSITION_NOT_EQUIPED)
-			items.push_back((*it)->GetItem()->GetAppearanceId());
-	return Serialize(items);
+	{
+		switch((*it)->GetPos())
+		{
+		case ACCESSORY_POSITION_HAT:
+		case ACCESSORY_POSITION_CAPE:
+		case ACCESSORY_POSITION_WEAPON:
+		case ACCESSORY_POSITION_SHIELD:
+			{
+				int appearanceId = 0;
+				PlayerItemEffectInteger* effect = (PlayerItemEffectInteger*)(*it)->GetEffect(972);
+				if(effect == NULL)
+					appearanceId = (*it)->GetItem()->GetAppearanceId();
+				else
+				{
+					PlayerItemEffectInteger* type = (PlayerItemEffectInteger*)(*it)->GetEffect(970);
+					if(type != NULL)
+						appearanceId = DofusUtils::GetObviAppearanceBySkinId(effect->value, type->value);
+				}
+				if(appearanceId != 0)
+					items.push_back(appearanceId);
+			}
+			break;
+		case ACCESSORY_POSITION_PETS:
+			bones.push_back((*it)->GetItem()->GetAppearanceId());
+			break;
+		}
+	}
+	return Serialize(items, bones);
 }
 
-ByteBuffer DEntityLook::Serialize(const std::vector<int16>& items) const
+ByteBuffer DEntityLook::Serialize(const std::vector<int16>& items, const std::vector<int16>& bones) const
 {
 	ByteBuffer buffer;
 	buffer<<bonesId;
-
+	
 	uint16 skinsSize = skins.size();
 	uint16 itemsSize = items.size();
 	buffer<<uint16(skinsSize + itemsSize);
@@ -106,9 +147,19 @@ ByteBuffer DEntityLook::Serialize(const std::vector<int16>& items) const
 		buffer<<scales[a];
 
 	uint16 subSize = subentities.size();
-	buffer<<subSize;
+	uint16 bonesSize = bones.size();
+	buffer<<uint16(subSize + bonesSize);
 	for(uint16 a = 0; a < subSize; ++a)
 		buffer<<subentities[a].Serialize();
+	for(uint16 a = 0; a < bonesSize; ++a)
+	{
+		DSubEntity d;
+		d.bindingPointCategory = 1;
+		d.bindingPointIndex = 0;
+		d.subEntityLook = new DEntityLook;
+		d.subEntityLook->bonesId = bones[a];
+		buffer<<d.Serialize();
+	}
 
 	return buffer;
 }

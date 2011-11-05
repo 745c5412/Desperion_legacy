@@ -24,7 +24,7 @@ inline void SwapBytes(uint8 *p, size_t n)
     size_t lo, hi;
     for(lo=0, hi=n-1; hi>lo; lo++, hi--)
     {
-        char tmp=p[lo];
+        uint8 tmp=p[lo];
         p[lo] = p[hi];
         p[hi] = tmp;
     }
@@ -78,17 +78,16 @@ public:
 
 	void HexLike()
 	{
-		uint32 j = 1, k = 1;
 		size_t s = Size();
-		printf("STORAGE_SIZE: %u\n", (unsigned int) s);
-		for(uint32 i = 0; i < s; ++i)
+		std::cout<<"STORAGE SIZE: "<<s<<std::endl;
+		for(size_t i = 0; i < s; ++i)
 		{
-			if (Read<uint8>(i) <= 0x0F)
-				printf("0%X ", Read<uint8>(i));
-			else
-				printf("%X ", Read<uint8>(i));
+			uint8 val = Read<uint8>(i);
+			if (val <= 0x0F)
+				std::cout<<0;
+			std::cout<<std::hex<<val;
 		}
-		printf("\n");
+		std::cout<<std::endl;
 	}
 
 	void Clear()

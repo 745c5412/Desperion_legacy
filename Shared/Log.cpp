@@ -33,46 +33,6 @@ static const char* colorstrings[TBLUE+1] = {
 };
 #endif
 
-AtomicLog::AtomicLog(std::string name, uint32 color)
-{
-	m_name = name;
-	m_color = color;
-}
-
-void AtomicLog::PutName()
-{
-	Log::Instance().outColor(TWHITE, "[%s] ", m_name.c_str());
-}
-
-void AtomicLog::Line()
-{
-	Log::Instance().outString("\n");
-}
-
-void AtomicLog::String(std::ostringstream& str, bool line)
-{
-	PutName();
-	Log::Instance().outColor(m_color, str.str().c_str());
-	if(line)
-		Line();
-}
-
-void AtomicLog::Error(std::ostringstream& str, bool line)
-{
-	PutName();
-	Log::Instance().outError(str.str().c_str());
-	if(line)
-		Line();
-}
-
-void AtomicLog::Debug(std::ostringstream& str, bool line)
-{
-	PutName();
-	Log::Instance().outDebug(str.str().c_str());
-	if(line)
-		Line();
-}
-
 void Log::outColor(uint32 colorcode, const char * str, ...)
 {
 	if(!str) 

@@ -171,6 +171,9 @@
     <ClCompile Include="ObjectEffectString.cpp">
       <Filter>Models\CPP</Filter>
     </ClCompile>
+    <ClCompile Include="Mount.cpp">
+      <Filter>Objects\CPP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StdAfx.h">
@@ -553,6 +556,9 @@
     </ClInclude>
     <ClInclude Include="ObjectEffectMount.h">
       <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Mount.h">
+      <Filter>Objects\H</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

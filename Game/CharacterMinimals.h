@@ -78,7 +78,7 @@ struct DEntityLook
 	std::vector<int16> GetSkins() const;
 	ByteBuffer Serialize(int) const;
 	ByteBuffer Serialize(Character*) const;
-	ByteBuffer Serialize(const std::vector<int16>&) const;
+	ByteBuffer Serialize(const std::vector<int16>&, const std::vector<int16>&) const;
 };
 
 struct CharacterMinimals

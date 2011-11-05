@@ -18,9 +18,12 @@
 
 #include "StdAfx.h"
 
+// ATTENTION: NE REGARDEZ PAS CE CODE SI VOUS NE VOULEZ PAS MOURRIR D'UN INFARCTUS!!!
+
 #define VAR_LENGTH 2
 
-ConditionsParser::ConditionsParser(const std::list<PlayerItem*>& items, std::string name) : m_playerItems(items)
+ConditionsParser::ConditionsParser(const std::vector<int8>& emotes, const std::list<PlayerItem*>& items, std::string name) : m_playerItems(items),
+	m_emotes(emotes)
 {
 	m_formula = "";
 	m_playerName = Desperion::ToLowerCase(name);
@@ -31,33 +34,31 @@ void ConditionsParser::SetFormula(std::string formu)
 	m_formula = formu;
 }
 
-bool ConditionsParser::_Eval()
-{
-	std::vector<std::string> table;
-	std::list<bool> ands;
-	std::list<bool> ors;
 
+bool ConditionsParser::Eval()
+{
+	bool isInPar = false;
 	for(int a = 0; a < m_formula.size(); ++a)
 	{
-		bool isInPar = false;
 		switch(m_formula[a])
 		{
-		case '&':
-			break;
-		case '|':
-			break;
 		case '(':
+			isInPar = true;
 			break;
 		case ')':
+			isInPar = false;
+			break;
+		case '&':
+			if(isInPar)
+				m_formula[a] = '`';
+			break;
+		case '|':
+			if(isInPar)
+				m_formula[a] = '~';
 			break;
 		}
 	}
 
-	return true;
-}
-
-bool ConditionsParser::Eval()
-{
 	std::vector<std::string> table; // table "ET"
 	Desperion::Split(table, m_formula, '&');
 	try
@@ -72,6 +73,18 @@ bool ConditionsParser::Eval()
 			for(int b = 0; b < table2.size(); b++) // boucle tableau "OU"
 			{
 				std::string cond_or = table2.at(b); // "OU" actuel
+
+				if(cond_or.at(0) == '(')
+				{
+					std::string par = "";
+					for(int c = 1; c < cond_or.size() - 1; ++c)
+						par += cond_or[c];
+					ConditionsParser P(m_emotes, m_playerItems, m_playerName);
+					for(std::tr1::unordered_map<std::string, int64>::iterator it = m_variables.begin(); it != m_variables.end(); ++it)
+						P.AddVar(it->first, it->second);
+					ors.push_back(P.Eval());
+					continue;
+				}
 				switch(cond_or.at(2)) // switch tableau "OU"
 				{
 				case '<': // inférieur à
@@ -134,6 +147,23 @@ bool ConditionsParser::Eval()
 								ors.push_back(false);
 							break;
 						}
+						else if(var == "PE")
+						{
+							bool have = false;
+							for(std::vector<int8>::const_iterator it = m_emotes.begin(); it != m_emotes.end(); ++it)
+							{
+								if(Desperion::ToString(*it) == value)
+								{
+									have = true;
+									break;
+								}
+							}
+							if(have)
+								ors.push_back(true);
+							else
+								ors.push_back(false);
+							break;
+						}
 						std::tr1::unordered_map<std::string, int64>::iterator it = m_variables.find(var);
 						if(it == m_variables.end())
 							return false;
@@ -143,6 +173,7 @@ bool ConditionsParser::Eval()
 							ors.push_back(false);
 					}
 					break;
+				case 'X':
 				case '!': // n'est pas égal à
 					{
 						std::string var = cond_or.substr(0,2);
@@ -167,6 +198,23 @@ bool ConditionsParser::Eval()
 						else if(var == "PN")
 						{
 							if(m_playerName != Desperion::ToLowerCase(value))
+								ors.push_back(true);
+							else
+								ors.push_back(false);
+							break;
+						}
+						else if(var == "PE")
+						{
+							bool have = false;
+							for(std::vector<int8>::const_iterator it = m_emotes.begin(); it != m_emotes.end(); ++it)
+							{
+								if(Desperion::ToString(*it) == value)
+								{
+									have = true;
+									break;
+								}
+							}
+							if(!have)
 								ors.push_back(true);
 							else
 								ors.push_back(false);

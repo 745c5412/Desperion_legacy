@@ -114,6 +114,9 @@ public:
 	std::tr1::unordered_map<int16, std::vector<int16> > GetTotalItemSets();
 	void UpdateItemSet(int16, boost::function<void()>);
 
+	const std::vector<int8>& GetEmotes()
+	{ return m_emotes; }
+
 	int8 GetNextDirection() const
 	{ return m_nextDirection; }
 

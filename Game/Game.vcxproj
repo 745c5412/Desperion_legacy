@@ -92,6 +92,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Master.cpp" />
+    <ClCompile Include="Mount.cpp" />
     <ClCompile Include="ObjectEffect.cpp" />
     <ClCompile Include="ObjectEffectCreature.cpp" />
     <ClCompile Include="ObjectEffectDate.cpp" />
@@ -197,6 +198,7 @@
     <ClInclude Include="MapComplementaryInformationsDataMessage.h" />
     <ClInclude Include="MapInformationsRequestMessage.h" />
     <ClInclude Include="Master.h" />
+    <ClInclude Include="Mount.h" />
     <ClInclude Include="ObjectAddedMessage.h" />
     <ClInclude Include="ObjectDeletedMessage.h" />
     <ClInclude Include="ObjectDeleteMessage.h" />
