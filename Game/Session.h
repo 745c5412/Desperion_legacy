@@ -116,6 +116,9 @@ private:
 	void HandleChatClientPrivateMessage(ByteBuffer&);
 	void HandleChatClientPrivateWithObjectMessage(ByteBuffer&);
 
+	// BasicHandler.cpp
+	void HandleBasicPingMessage(ByteBuffer&);
+
 	// InventoryHandler.cpp
 	void HandleObjectDeleteMessage(ByteBuffer&);
 	void HandleObjectDropMessage(ByteBuffer&);

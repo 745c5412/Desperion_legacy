@@ -143,6 +143,10 @@
 #include "ObjectGroundRemovedMessage.h"
 #include "ObjectGroundRemovedMultipleMessage.h"
 #include "CharacterCreationResultMessage.h"
+#include "BasicPingMessage.h"
+#include "BasicPongMessage.h"
+#include "BasicTimeMessage.h"
+#include "BasicDateMessage.h"
 
 #include "Mount.h"
 #include "ItemSet.h"

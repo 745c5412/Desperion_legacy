@@ -67,6 +67,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ActorRestrictionsInformations.cpp" />
+    <ClCompile Include="BasicHandler.cpp" />
     <ClCompile Include="Character.cpp" />
     <ClCompile Include="CharacterBaseInformations.cpp" />
     <ClCompile Include="CharacterCharacteristicsInformations.cpp" />
@@ -122,7 +123,11 @@
     <ClInclude Include="AuthenticationTicketAcceptedMessage.h" />
     <ClInclude Include="AuthenticationTicketMessage.h" />
     <ClInclude Include="AuthenticationTicketRefusedMessage.h" />
+    <ClInclude Include="BasicDateMessage.h" />
     <ClInclude Include="BasicNoOperationMessage.h" />
+    <ClInclude Include="BasicPingMessage.h" />
+    <ClInclude Include="BasicPongMessage.h" />
+    <ClInclude Include="BasicTimeMessage.h" />
     <ClInclude Include="ChangeMapMessage.h" />
     <ClInclude Include="Character.h" />
     <ClInclude Include="CharacterBaseCharacteristic.h" />

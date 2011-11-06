@@ -85,7 +85,7 @@ public:
 			uint8 val = Read<uint8>(i);
 			if (val <= 0x0F)
 				std::cout<<0;
-			std::cout<<std::hex<<val;
+			std::cout<<std::hex<<uint16(val)<<" ";
 		}
 		std::cout<<std::endl;
 	}

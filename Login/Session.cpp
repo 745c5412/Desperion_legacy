@@ -18,8 +18,8 @@
 
 #include "StdAfx.h"
 
-#define PROTOCOL_BUILD 1412
-#define PROTOCOL_REQUIRED_BUILD 1412
+#define PROTOCOL_BUILD 1413
+#define PROTOCOL_REQUIRED_BUILD 1413
 
 template <> Session::HandlerStorageMap BaseSession<LoginPacketHandler>::m_handlers;
 
@@ -192,18 +192,18 @@ void Session::HandleIdentification(IdentificationMessage* data)
 	}
 
 	Field* fields = QR->Fetch();
-	std::string dbPass = std::string(fields[0].GetString()) + m_key;
-	const char* charDbPass = dbPass.c_str();
+	std::string pass = data->password;
+	const char* charPass = pass.c_str();
 	md5_state_t state;
 	md5_byte_t digest[16];
 	char hex_output[16*2 + 1];
 	md5_init(&state);
-	md5_append(&state, (const md5_byte_t *)charDbPass, strlen(charDbPass));
+	md5_append(&state, (const md5_byte_t *)charPass, strlen(charPass));
 	md5_finish(&state, digest);
 	for (int i = 0; i < 16; i++)
 		sprintf(hex_output + i * 2, "%02x", digest[i]);
 
-	if(data->password != std::string(hex_output))
+	if(std::string(fields[0].GetString()) != std::string(hex_output))
 	{
 		Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
 		throw ServerError("Wrong crendentials");
@@ -290,9 +290,9 @@ Session::~Session()
 void Session::Start()
 {
 	Send(ProtocolRequired(PROTOCOL_BUILD, PROTOCOL_REQUIRED_BUILD));
-
+	
 	m_key = GenerateRandomKey();
-	Send(HelloConnectMessage(0, m_key));
+	Send(HelloConnectMessage(2, m_key));
 
 	Run();
 }

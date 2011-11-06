@@ -116,6 +116,7 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	features.push_back(1); // ankabox
 	features.push_back(2); // kolizéum
 	Send(ServerOptionalFeaturesMessage(features));
+	Send(BasicTimeMessage(time(NULL), 0));
 }
 
 Session::~Session()
