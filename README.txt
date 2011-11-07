@@ -4,7 +4,8 @@ Desperion est un émulateur pour le MMORPG Dofus 2.0, actuellement compatible ave
 2.4.6.51301.1
 
 L'équipe de développement de Desperion est composée de:
-- LittleScaraby AKA Alexandre Martin, fondateur du projet et développeur en chef
+- LittleScaraby AKA Alexandre Martin, co-fondateur du projet et développeur en chef
+- Nekkro, co-fondateur et développeur
 
 Pour nous, développeurs de Desperion, les quatre règles d'or sont les suivantes:
 - Performances
