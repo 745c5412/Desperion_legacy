@@ -46,24 +46,10 @@ void Session::HandleGameContextCreateRequestMessage(ByteBuffer& packet)
 
 	Send(GameContextDestroyMessage());
 	Send(GameContextCreateMessage(m_char->GetContextType()));
-	Send(InventoryContentMessage(m_char->GetItems(), m_char->GetStats().GetKamas()));
-	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
-	std::tr1::unordered_map<int16, std::vector<int16> > sets = m_char->GetTotalItemSets();
-	for(std::tr1::unordered_map<int16, std::vector<int16> >::iterator it = sets.begin(); it != sets.end(); ++it)
-	{
-		ItemSet* set = World::Instance().GetItemSet(it->first);
-		const std::vector<EffectInstance*>& effects = set->GetEffect(it->second.size());
-		ItemSet::ApplyEffects(m_char, effects, true);
-		Send(SetUpdateMessage(set->GetId(), it->second, effects));
-	}
-
-	Send(CharacterStatsListMessage(m_char));
-	
-	//spellList
-	//shortCuts
 	
 	Send(CurrentMapMessage(m_char->GetMap()->GetId()));
 	Send(TextInformationMessage(1, 89, std::vector<std::string>()));
+	Send(CharacterStatsListMessage(m_char));
 }
 
 void Session::HandleChangeMapMessage(ByteBuffer& packet)

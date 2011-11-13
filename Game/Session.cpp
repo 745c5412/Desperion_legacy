@@ -56,6 +56,8 @@ void Session::InitHandlersTable()
 	m_handlers[CMSG_LIVING_OBJECT_DISSOCIATE].Handler = &Session::HandleLivingObjectDissociateMessage;
 	m_handlers[CMSG_LIVING_OBJECT_MESSAGE_REQUEST].Handler = &Session::HandleLivingObjectMessageRequestMessage;
 	m_handlers[CMSG_OBJECT_FEED].Handler = &Session::HandleObjectFeedMessage;
+	
+	m_handlers[CMSG_BASIC_PING].Handler = &Session::HandleBasicPingMessage;
 }
 
 void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)

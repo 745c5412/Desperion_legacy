@@ -329,4 +329,16 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 
 	Send(CharacterSelectedSuccessMessage(ch));
 	m_char->GetMap()->AddActor(m_char);
+
+	
+	Send(InventoryContentMessage(m_char->GetItems(), m_char->GetStats().GetKamas()));
+	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
+	std::tr1::unordered_map<int16, std::vector<int16> > sets = m_char->GetTotalItemSets();
+	for(std::tr1::unordered_map<int16, std::vector<int16> >::iterator it = sets.begin(); it != sets.end(); ++it)
+	{
+		ItemSet* set = World::Instance().GetItemSet(it->first);
+		const std::vector<EffectInstance*>& effects = set->GetEffect(it->second.size());
+		ItemSet::ApplyEffects(m_char, effects, true);
+		Send(SetUpdateMessage(set->GetId(), it->second, effects));
+	}
 }
