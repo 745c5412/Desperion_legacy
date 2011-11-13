@@ -22,10 +22,18 @@
 class CharactersListRequestMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_CHARACTERS_LIST_REQUEST; }
 
-	CharactersListRequestMessage(ByteBuffer& data)
+	CharactersListRequestMessage()
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 	}
 };

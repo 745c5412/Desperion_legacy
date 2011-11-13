@@ -22,12 +22,29 @@
 class CharacterMinimalInformations : public DofusModel
 {
 public:
+	int id;
+	uint8 level;
+	std::string name;
+
 	virtual uint16 GetProtocol() const
 	{ return CHARACTER_MINIMAL_INFORMATIONS; }
 
-	CharacterMinimalInformations(int id, uint8 level, std::string name)
+	CharacterMinimalInformations()
 	{
-		m_buffer<<id<<level<<name;
+	}
+
+	CharacterMinimalInformations(int id, uint8 level, std::string name) : id(id), level(level), name(name)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<id<<level<<name;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>id>>level>>name;
 	}
 };
 

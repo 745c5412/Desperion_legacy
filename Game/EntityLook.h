@@ -22,20 +22,77 @@
 class EntityLook : public DofusModel
 {
 public:
+	int16 bonesId;
+	std::vector<int16> skins;
+	std::vector<int> indexedColors;
+	std::vector<int16> scales;
+	std::vector<SubEntityPtr> subentities;
+
 	virtual uint16 GetProtocol() const
 	{ return ENTITY_LOOK; }
 
-	EntityLook(const DEntityLook& look)
+	EntityLook()
 	{
-		m_buffer<<look.Serialize(-1);
 	}
 
-	EntityLook(const DEntityLook& look, int guid)
+	EntityLook(const DEntityLook& look, std::vector<SubEntityPtr> subentities) : bonesId(look.bonesId), skins(look.skins), indexedColors(look.indexedColors),
+		scales(look.scales), subentities(subentities)
 	{
-		m_buffer<<look.Serialize(guid);
 	}
 
-	EntityLook(const DEntityLook& look, Character* ch);
+	void Serialize(ByteBuffer& data)
+	{
+		data<<bonesId;
+		uint16 size = skins.size();
+		data<<size;
+		for(uint16 a = 0; a < size; ++a)
+			data<<skins[a];
+		size = indexedColors.size();
+		data<<size;
+		for(uint16 a = 0; a < size; ++a)
+			data<<indexedColors[a];
+		size = scales.size();
+		data<<size;
+		for(uint16 a = 0; a < size; ++a)
+			data<<scales[a];
+		size = subentities.size();
+		data<<size;
+		for(uint16 a = 0; a < size; ++a)
+			subentities[a]->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		skins.clear();
+		indexedColors.clear();
+		scales.clear();
+		subentities.clear();
+		data>>bonesId;
+		uint16 size;
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			int16 skin;
+			data>>skin;
+			skins.push_back(skin);
+		}
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			int color;
+			data>>color;
+			indexedColors.push_back(color);
+		}
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			SubEntityPtr sub(new SubEntity);
+			sub->Deserialize(data);
+			subentities.push_back(sub);
+		}
+	}
 };
+
+typedef boost::shared_ptr<EntityLook> EntityLookPtr;
 
 #endif

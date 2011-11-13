@@ -20,7 +20,8 @@
 
 void Session::HandleMapInformationsRequestMessage(ByteBuffer& packet)
 {
-	MapInformationsRequestMessage data(packet);
+	MapInformationsRequestMessage data;
+	data.Deserialize(packet);
 
 	Map* map = m_char->GetMap();
 
@@ -40,7 +41,8 @@ void Session::HandleMapInformationsRequestMessage(ByteBuffer& packet)
 
 void Session::HandleGameContextCreateRequestMessage(ByteBuffer& packet)
 {
-	GameContextCreateRequestMessage data(packet);
+	GameContextCreateRequestMessage data;
+	data.Deserialize(packet);
 
 	Send(GameContextDestroyMessage());
 	Send(GameContextCreateMessage(m_char->GetContextType()));
@@ -66,7 +68,8 @@ void Session::HandleGameContextCreateRequestMessage(ByteBuffer& packet)
 
 void Session::HandleChangeMapMessage(ByteBuffer& packet)
 {
-	ChangeMapMessage data(packet);
+	ChangeMapMessage data;
+	data.Deserialize(packet);
 
 	Map* newMap = World::Instance().GetMap(data.mapId);
 
@@ -96,7 +99,8 @@ void Session::HandleChangeMapMessage(ByteBuffer& packet)
 
 void Session::HandleGameMapMovementConfirmMessage(ByteBuffer& packet)
 {
-	GameMapMovementConfirmMessage data(packet);
+	GameMapMovementConfirmMessage data;
+	data.Deserialize(packet);
 
 	if(m_char->GetNextCell() == -1)
 		return;
@@ -119,7 +123,8 @@ void Session::HandleGameMapMovementConfirmMessage(ByteBuffer& packet)
 
 void Session::HandleGameMapMovementRequestMessage(ByteBuffer& packet)
 {
-	GameMapMovementRequestMessage data(packet);
+	GameMapMovementRequestMessage data;
+	data.Deserialize(packet);
 	
 	if(data.keyMovements.empty())
 		return;

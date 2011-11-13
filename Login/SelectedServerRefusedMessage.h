@@ -33,12 +33,28 @@ enum ServerConnectionError
 class SelectedServerRefusedMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	int16 id;
+	int8 reason, state;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_SELECTED_SERVER_REFUSED; }
 
-	SelectedServerRefusedMessage(int16 id, int8 reason, int8 state)
+	SelectedServerRefusedMessage()
 	{
-		m_buffer<<id<<reason<<state;
+	}
+
+	SelectedServerRefusedMessage(int16 id, int8 reason, int8 state) : id(id), reason(reason), state(state)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<id<<reason<<state;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>id>>reason>>state;
 	}
 };
 

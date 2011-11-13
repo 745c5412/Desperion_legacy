@@ -27,11 +27,28 @@ public:
 	bool sex;
 	std::vector<int> colors;
 
-	uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_CHARACTER_CREATION_REQUEST; }
 
-	CharacterCreationRequestMessage(ByteBuffer& data)
+	CharacterCreationRequestMessage()
 	{
+	}
+
+	CharacterCreationRequestMessage(std::string name, int8 breed, bool sex, std::vector<int>& colors) : name(name),
+		breed(breed), sex(sex), colors(colors)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<name<<breed<<sex;
+		for(uint16 a = 0; a < 5; ++a)
+			data<<colors[a];
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		colors.clear();
 		data>>name>>breed>>sex;
 		for(uint16 a = 0; a < 5; ++a)
 		{

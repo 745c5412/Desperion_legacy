@@ -22,12 +22,27 @@
 class ProtocolRequired : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	int requiredVersion, currentVersion;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_PROTOCOL_REQUIRED; }
 
-	ProtocolRequired(int requiredVersion, int currentVersion)
+	ProtocolRequired()
 	{
-		m_buffer<<requiredVersion<<currentVersion;
+	}
+
+	ProtocolRequired(int requiredVersion, int currentVersion) : requiredVersion(requiredVersion), currentVersion(currentVersion)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<requiredVersion<<currentVersion;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>requiredVersion>>currentVersion;
 	}
 
 };

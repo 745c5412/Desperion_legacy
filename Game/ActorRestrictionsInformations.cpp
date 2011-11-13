@@ -18,9 +18,8 @@
 
 #include "StdAfx.h"
 
-ActorRestrictionsInformations::ActorRestrictionsInformations(HumanEntity* ent)
+ActorRestrictionsInformations::ActorRestrictionsInformations(HumanEntity* ent) : r1(0), r2(0), r3(0)
 {
-	uint8 r1 = 0;
 	Desperion::BooleanByteWrapper::SetFlag(r1, 0, ent->GetRestriction(cantBeAggressed));
 	Desperion::BooleanByteWrapper::SetFlag(r1, 1, ent->GetRestriction(cantBeChallenged));
 	Desperion::BooleanByteWrapper::SetFlag(r1, 2, ent->GetRestriction(cantTrade));
@@ -29,8 +28,7 @@ ActorRestrictionsInformations::ActorRestrictionsInformations(HumanEntity* ent)
 	Desperion::BooleanByteWrapper::SetFlag(r1, 5, ent->GetRestriction(forceSlowWalk));
 	Desperion::BooleanByteWrapper::SetFlag(r1, 6, ent->GetRestriction(cantMinimize));
 	Desperion::BooleanByteWrapper::SetFlag(r1, 7, ent->GetRestriction(cantMove));
-	m_buffer<<r1;
-	uint8 r2 = 0;
+
 	Desperion::BooleanByteWrapper::SetFlag(r2, 0, ent->GetRestriction(cantAggress));
 	Desperion::BooleanByteWrapper::SetFlag(r2, 1, ent->GetRestriction(cantChallenge));
 	Desperion::BooleanByteWrapper::SetFlag(r2, 2, ent->GetRestriction(cantExchange));
@@ -39,12 +37,10 @@ ActorRestrictionsInformations::ActorRestrictionsInformations(HumanEntity* ent)
 	Desperion::BooleanByteWrapper::SetFlag(r2, 5, ent->GetRestriction(cantBeMerchant));
 	Desperion::BooleanByteWrapper::SetFlag(r2, 6, ent->GetRestriction(cantUseObject));
 	Desperion::BooleanByteWrapper::SetFlag(r2, 7, ent->GetRestriction(cantUseTaxCollector));
-	m_buffer<<r2;
-	uint8 r3 = 0;
+
 	Desperion::BooleanByteWrapper::SetFlag(r3, 0, ent->GetRestriction(cantUseInteractive));
 	Desperion::BooleanByteWrapper::SetFlag(r3, 1, ent->GetRestriction(cantSpeakToNPC));
 	Desperion::BooleanByteWrapper::SetFlag(r3, 2, ent->GetRestriction(cantChangeZone));
 	Desperion::BooleanByteWrapper::SetFlag(r3, 3, ent->GetRestriction(cantAttackMonster));
 	Desperion::BooleanByteWrapper::SetFlag(r3, 4, ent->GetRestriction(cantWalk8Directions));
-	m_buffer<<r3;
 }

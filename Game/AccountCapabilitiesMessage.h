@@ -22,12 +22,31 @@
 class AccountCapabilitiesMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	int accountId;
+	bool tutorialAvailable;
+	int16 breedsVisible, breedsAvailable;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_ACCOUNT_CAPABILITIES; }
 
-	AccountCapabilitiesMessage(int accountId, bool tutorialAvailable, int16 breedsVisible, int16 breedsAvailable)
+	AccountCapabilitiesMessage()
 	{
-		m_buffer<<accountId<<tutorialAvailable<<breedsVisible<<breedsAvailable;
+	}
+
+	AccountCapabilitiesMessage(int accountId, bool tutorialAvailable, int16 breedsVisible, int16 breedsAvailable)
+		: accountId(accountId), tutorialAvailable(tutorialAvailable), breedsVisible(breedsVisible),
+		breedsAvailable(breedsAvailable)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<accountId<<tutorialAvailable<<breedsVisible<<breedsAvailable;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>accountId>>tutorialAvailable>>breedsVisible>>breedsAvailable;
 	}
 };
 

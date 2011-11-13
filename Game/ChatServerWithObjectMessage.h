@@ -22,19 +22,41 @@
 class ChatServerWithObjectMessage : public ChatServerMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	std::vector<ObjectItemPtr> objects;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CHAT_SERVER_WITH_OBJECT; }
 
-	ChatServerWithObjectMessage(int8 channel, std::string content, int timestamp, std::string fingerprint, int senderId, std::string senderName,
-		int senderAccountId, std::vector<ObjectItem>& objects) : ChatServerMessage(channel, content, timestamp, fingerprint, senderId, senderName, 
-		senderAccountId)
+	ChatServerWithObjectMessage()
 	{
+	}
+
+	ChatServerWithObjectMessage(int8 channel, std::string content, int timestamp, std::string fingerprint, int senderId, std::string senderName,
+		int senderAccountId, std::vector<ObjectItemPtr>& objects) : ChatServerMessage(channel, content, timestamp, fingerprint, senderId, senderName, 
+		senderAccountId), objects(objects)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		ChatServerMessage::Serialize(data);
 		uint16 size = objects.size();
-		m_buffer<<size;
+		data<<size;
+		for(uint16 a = 0; a < size; ++a)
+			objects[a]->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		objects.clear();
+		ChatServerMessage::Deserialize(data);
+		uint16 size;
+		data>>size;
 		for(uint16 a = 0; a < size; ++a)
 		{
-			objects[a].FromThis();
-			m_buffer<<objects[a];
+			ObjectItemPtr obj(new ObjectItem);
+			obj->Deserialize(data);
+			objects.push_back(obj);
 		}
 	}
 };

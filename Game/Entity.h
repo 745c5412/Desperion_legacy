@@ -26,8 +26,8 @@ class DisplayableEntity
 public:
 	void Init(int, DEntityLook&, int16, Map*, int8);
 
-	const DEntityLook& GetLook() const
-	{ return m_look; }
+	virtual EntityLook* GetLook() const
+	{ return new EntityLook(m_look, std::vector<SubEntityPtr>()); }
 
 	int16 GetCell() const
 	{ return m_cell; }
@@ -132,13 +132,13 @@ public:
 	std::string GetTitleParams() const
 	{ return m_titleParams; }
 
-	const std::vector<DEntityLook>& GetFollowingCharacters() const
+	const std::vector<EntityLookPtr>& GetFollowingCharacters() const
 	{ return m_followingCharacters; }
 
 	virtual GameRolePlayActorInformationsPtr ToActor()
 	{ return GameRolePlayActorInformationsPtr(new GameRolePlayHumanoidInformations(this)); }
 protected:
-	std::vector<DEntityLook> m_followingCharacters;
+	std::vector<EntityLookPtr> m_followingCharacters;
 	int8 m_emoteId;
 	uint64 m_emoteStartTime;
 	bool m_restrictions[RESTRICTIONS_NUMBER];

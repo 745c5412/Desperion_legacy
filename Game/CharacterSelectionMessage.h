@@ -24,10 +24,23 @@ class CharacterSelectionMessage : public DofusMessage
 public:
 	int id;
 
-	uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_CHARACTER_SELECTION; }
 
-	CharacterSelectionMessage(ByteBuffer& data)
+	CharacterSelectionMessage()
+	{
+	}
+
+	CharacterSelectionMessage(int id) : id(id)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<id;
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 		data>>id;
 	}

@@ -22,10 +22,18 @@
 class AuthenticationTicketRefusedMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return SMSG_AUTHENTICATION_TICKET_REFUSED; }
 
 	AuthenticationTicketRefusedMessage()
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 	}
 };

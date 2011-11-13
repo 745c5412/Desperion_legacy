@@ -99,15 +99,18 @@ namespace Desperion
 
 		InitRandomNumberGenerators();
 
-		SetApplicationTitle("Desperion2 LoginServer v" + m_version);
+		SetApplicationTitle("Desperion LoginServer v%u.%u.%u", LOGIN_VERSION_MAJOR, LOGIN_VERSION_MINOR, LOGIN_VERSION_REVISION);
 		Log::Instance().outColor(TBLUE, 	",------,  ,-----. ,-----, ,------. ,-----. ,------.  ,------. ,------, ,,    ,,");
 		Log::Instance().outColor(TBLUE, 	"| ,--,  ` | .---' |  ,--` | ,--, | | .---' | ,--, |  `--||--' | ,--, | ||\\   ||");
 		Log::Instance().outColor(TBLUE, 	"| |  |  | | |--.  |  `--, | |  | | | |--.  | |  | |     ||    | |  | | || \\  ||");
 		Log::Instance().outColor(TBLUE, 	"| |  |  | | |--'  `---, | | `--` | | |--'  | `--` ,     ||    | |  | | ||  \\ ||");
 		Log::Instance().outColor(TBLUE, 	"| '--'  , | '---, ,---| | | ,----` | '---, | ,-\\  \\  .--||--, | '--' | ||   \\||");
-		Log::Instance().outColor(TBLUE, 	"`------`  `-----' `-----` `-`      `-----' `-`  '--' `------` `------` ``    `'");
-		Log::Instance().outColor(TBLUE, "By Little-scaraby for Dofus 2.0\n\n");
-		Log::Instance().outColor(TBLUE, "LoginServer v%s\n\n\n", m_version.c_str());
+		Log::Instance().outColor(TBLUE, 	"`------`  `-----' `-----` `-`      `-----' `-`  '--' `------` `------` ``    `'\n");
+		Log::Instance().outColor(TWHITE, "Dofus v%u.%u.%u.%u.%u.%u, protocol %u/%u", DOFUS_VERSION_MAJOR, 
+			DOFUS_VERSION_MINOR, DOFUS_VERSION_RELEASE, DOFUS_VERSION_REVISION, DOFUS_VERSION_PATCH, DOFUS_VERSION_BUILD_TYPE,
+			PROTOCOL_BUILD, PROTOCOL_REQUIRED_BUILD);
+		Log::Instance().outColor(TWHITE, "LoginServer v%u.%u.%u", LOGIN_VERSION_MAJOR, LOGIN_VERSION_MINOR, LOGIN_VERSION_REVISION);
+		Log::Instance().outColor(TWHITE, "Shared v%u.%u.%u\n\n", SHARED_VERSION_MAJOR, SHARED_VERSION_MINOR, SHARED_VERSION_REVISION);
 	
 		new Config;
 		Config::Instance().Init(configPath, TARGET_REALM);

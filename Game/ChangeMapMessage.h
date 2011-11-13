@@ -24,10 +24,23 @@ class ChangeMapMessage : public DofusMessage
 public:
 	int mapId;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_CHANGE_MAP; }
 
-	ChangeMapMessage(ByteBuffer& data)
+	ChangeMapMessage()
+	{
+	}
+
+	ChangeMapMessage(int mapId) : mapId(mapId)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<mapId;
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 		data>>mapId;
 	}

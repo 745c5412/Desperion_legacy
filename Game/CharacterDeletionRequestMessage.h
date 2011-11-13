@@ -25,10 +25,24 @@ public:
 	int characterId;
 	std::string secretAnswerHash;
 
-	uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_CHARACTER_DELETION_REQUEST; }
 
-	CharacterDeletionRequestMessage(ByteBuffer& data)
+	CharacterDeletionRequestMessage()
+	{
+	}
+
+	CharacterDeletionRequestMessage(int characterId, std::string secretAnswerHash) : characterId(characterId),
+		secretAnswerHash(secretAnswerHash)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<characterId<<secretAnswerHash;
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 		data>>characterId>>secretAnswerHash;
 	}

@@ -22,12 +22,22 @@
 class ChatAdminServerMessage : public ChatAbstractServerMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CHAT_ADMIN_SERVER; }
 
 	ChatAdminServerMessage(int8 channel, std::string content, int timestamp, std::string fingerprint)
 		: ChatAbstractServerMessage(channel, content, timestamp, fingerprint)
 	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		ChatAbstractServerMessage::Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		ChatAbstractServerMessage::Deserialize(data);
 	}
 };
 

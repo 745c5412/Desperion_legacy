@@ -22,13 +22,31 @@
 class GameRolePlayShowActorMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	GameRolePlayActorInformationsPtr actor;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_GAME_ROLE_PLAY_SHOW_ACTOR; }
 
-	GameRolePlayShowActorMessage(DisplayableEntity* ent)
+	GameRolePlayShowActorMessage()
 	{
-		GameRolePlayActorInformationsPtr actor = ent->ToActor();
-		m_buffer<<actor->GetProtocol()<<*actor;
+	}
+
+	GameRolePlayShowActorMessage(DisplayableEntity* ent) : actor(ent->ToActor())
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<actor->GetProtocol();
+		actor->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		uint16 protocol;
+		data>>protocol;
+		actor.reset(Desperion::ProtocolTypeManager::GetGameRolePlayActorInformations(protocol));
+		actor->Deserialize(data);
 	}
 };
 

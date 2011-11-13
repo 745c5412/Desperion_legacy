@@ -22,13 +22,31 @@
 class ChatServerCopyMessage : public ChatAbstractServerMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int receivedId;
+	std::string receivedName;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CHAT_SERVER_COPY; }
 
-	ChatServerCopyMessage(int8 channel, std::string content, int timestamp, std::string fingerprint, int receivedId, std::string receivedName)
-		: ChatAbstractServerMessage(channel, content, timestamp, fingerprint)
+	ChatServerCopyMessage()
 	{
-		m_buffer<<receivedId<<receivedName;
+	}
+
+	ChatServerCopyMessage(int8 channel, std::string content, int timestamp, std::string fingerprint, int receivedId, std::string receivedName)
+		: ChatAbstractServerMessage(channel, content, timestamp, fingerprint), receivedId(receivedId), receivedName(receivedName)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		ChatAbstractServerMessage::Serialize(data);
+		data<<receivedId<<receivedName;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		ChatAbstractServerMessage::Deserialize(data);
+		data>>receivedId>>receivedName;
 	}
 };
 

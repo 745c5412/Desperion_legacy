@@ -19,16 +19,32 @@
 #ifndef __OBJECT_USE_ON_CHARACTER_MESSAGE__
 #define __OBJECT_USE_ON_CHARACTER_MESSAGE__
 
-class ObjectUseOnCharacterMessage : public DofusMessage
+class ObjectUseOnCharacterMessage : public ObjectUseMessage
 {
 public:
 	int characterId;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_OBJECT_USE_ON_CHARACTER; }
 
-	ObjectUseOnCharacterMessage(ByteBuffer& data)
+	ObjectUseOnCharacterMessage()
 	{
+	}
+
+	ObjectUseOnCharacterMessage(int objectUID, int characterId) : ObjectUseMessage(objectUID),
+		characterId(characterId)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		ObjectUseMessage::Serialize(data);
+		data<<characterId;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		ObjectUseMessage::Deserialize(data);
 		data>>characterId;
 	}
 };

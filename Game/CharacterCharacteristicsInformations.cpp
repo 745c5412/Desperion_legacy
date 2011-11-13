@@ -22,9 +22,9 @@ CharacterCharacteristicsInformations::CharacterCharacteristicsInformations(Chara
 {
 	m_buffer<<ch->GetStats().GetXp()<<uint64(0)<<uint64(0); // floor, ceil
 	m_buffer<<ch->GetStats().GetKamas()<<ch->GetStats().GetStatsPoints()<<ch->GetStats().GetSpellsPoints();
-	m_buffer<<ActorExtendedAlignmentInformations(ch->GetStats().GetAlignmentSide(), ch->GetStats().GetAlignmentValue(),
+	ActorExtendedAlignmentInformations(ch->GetStats().GetAlignmentSide(), ch->GetStats().GetAlignmentValue(),
 		ch->GetStats().GetAlignmentGrade(), ch->GetStats().GetDishonor(), ch->GetLevel(),
-		ch->GetStats().GetHonor(), 0, 0, ch->GetStats().IsPvpEnabled());
+		ch->GetStats().GetHonor(), 0, 0, ch->GetStats().IsPvpEnabled()).Serialize(m_buffer);
 	m_buffer<<ch->GetCurrentLife()<<ch->GetMaxLife()<<ch->GetStats().GetEnergy()<<int16(10000); // maxEnergy
 	m_buffer<<ch->GetStats().GetCurrentAp()<<ch->GetStats().GetCurrentMp();
 

@@ -69,7 +69,7 @@ struct GamePacketHandler
 	}
 };
 
-class Session : public BaseSession<GamePacketHandler>
+class Session : public AbstractSession<GamePacketHandler>
 {
 private:
 	typedef std::tr1::unordered_map<std::string, CommandHandler> CommandStorageMap;

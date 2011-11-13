@@ -22,10 +22,18 @@
 class CharacterNameSuggestionRequestMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_CHARACTER_NAME_SUGGESTION_REQUEST; }
 
-	CharacterNameSuggestionRequestMessage(ByteBuffer& data)
+	CharacterNameSuggestionRequestMessage()
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 	}
 };

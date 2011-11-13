@@ -39,7 +39,7 @@ public:
 	DisplayableEntity* GetActor(int);
 	void AddActor(DisplayableEntity*);
 	void RemoveActor(int);
-	void Send(const DofusMessage&, int guid = -1);
+	void Send(DofusMessage&, int guid = -1);
 	PlayerItem* GetItem(int16);
 	void AddItem(PlayerItem*, int16);
 	void DeleteItem(int16);

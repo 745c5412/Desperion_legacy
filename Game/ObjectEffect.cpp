@@ -18,7 +18,6 @@
 
 #include "StdAfx.h"
 
-ObjectEffect::ObjectEffect(PlayerItemEffect* effect)
+ObjectEffect::ObjectEffect(PlayerItemEffect* effect) : actionId(effect->actionId)
 {
-	m_buffer<<effect->actionId;
 }

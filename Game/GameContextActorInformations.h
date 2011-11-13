@@ -27,12 +27,37 @@ class Character;
 class GameContextActorInformations : public DofusModel
 {
 public:
-	// todo: IDENTIFIED_DISPOSITION_INFORMATIONS
+	int contextualId;
+	EntityLookPtr look;
+	EntityDispositionInformationsPtr disposition;
+
 	virtual uint16 GetProtocol() const
 	{ return GAME_CONTEXT_ACTOR_INFORMATIONS; }
 
-	GameContextActorInformations(DisplayableEntity* ent, Character* ch);
+	GameContextActorInformations()
+	{
+	}
+
 	GameContextActorInformations(DisplayableEntity* ent);
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<contextualId;
+		look->Serialize(data);
+		data<<disposition->GetProtocol();
+		disposition->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>contextualId;
+		look.reset(new EntityLook);
+		look->Deserialize(data);
+		uint16 protocol;
+		data>>protocol;
+		disposition.reset(Desperion::ProtocolTypeManager::GetEntityDispositionInformations(protocol));
+		disposition->Deserialize(data);
+	}
 };
 
 #endif

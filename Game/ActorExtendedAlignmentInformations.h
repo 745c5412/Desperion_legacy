@@ -22,15 +22,36 @@
 class ActorExtendedAlignmentInformations : public ActorAlignmentInformations
 {
 public:
+	uint16 honor, honorGradeFloor, honorNextGradeFloor;
+	bool pvpEnabled;
+
 	virtual uint16 GetProtocol() const
 	{ return ACTOR_EXTENDED_ALIGNMENT_INFORMATIONS; }
 
+	ActorExtendedAlignmentInformations()
+	{
+	}
+
 	ActorExtendedAlignmentInformations(int8 alignmentSide, int8 alignmentValue, int8 alignmentGrade, uint16 dishonor, int characterPower,
 		uint16 honor, uint16 honorGradeFloor, uint16 honorNextGradeFloor, bool pvpEnabled) : ActorAlignmentInformations(alignmentSide,
-		alignmentValue, alignmentGrade, dishonor, characterPower)
+		alignmentValue, alignmentGrade, dishonor, characterPower), honor(honor), honorGradeFloor(honorGradeFloor),
+		honorNextGradeFloor(honorNextGradeFloor)
 	{
-		m_buffer<<honor<<honorGradeFloor<<honorNextGradeFloor<<pvpEnabled;
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		ActorAlignmentInformations::Serialize(data);
+		data<<honor<<honorGradeFloor<<honorNextGradeFloor<<pvpEnabled;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		ActorAlignmentInformations::Deserialize(data);
+		data>>honor>>honorGradeFloor>>honorNextGradeFloor>>pvpEnabled;
 	}
 };
+
+typedef boost::shared_ptr<ActorExtendedAlignmentInformations> ActorExtendedAlignmentInformationsPtr;
 
 #endif

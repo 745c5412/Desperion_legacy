@@ -26,7 +26,7 @@ namespace Desperion
 	class Master : public Singleton<Master>
 	{
 	public:
-		Master() : m_version("0.4.1")
+		Master()
 		{
 		}
 
@@ -38,6 +38,9 @@ namespace Desperion
 		uint32 GetUpTime() const
 		{ return getMSTime() - m_startTime; }
 
+		boost::asio::io_service& GetService()
+		{ return m_service; }
+
 		void Stop()
 		{ m_service.stop(); }
 
@@ -46,7 +49,6 @@ namespace Desperion
 
 		boost::asio::io_service m_service;
 		uint32 m_startTime;
-		std::string m_version;
 	};
 };
 

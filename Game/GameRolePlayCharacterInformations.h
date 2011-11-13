@@ -22,10 +22,31 @@
 class GameRolePlayCharacterInformations : public GameRolePlayHumanoidInformations
 {
 public:
+	ActorAlignmentInformationsPtr alignmentInfos;
+
 	virtual uint16 GetProtocol() const
 	{ return GAME_ROLE_PLAY_CHARACTER_INFORMATIONS; }
 
+	GameRolePlayCharacterInformations()
+	{
+	}
+
 	GameRolePlayCharacterInformations(Character* ch);
+
+	void Serialize(ByteBuffer& data)
+	{
+		GameRolePlayHumanoidInformations::Serialize(data);
+		alignmentInfos->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		GameRolePlayHumanoidInformations::Deserialize(data);
+		alignmentInfos.reset(new ActorAlignmentInformations);
+		alignmentInfos->Deserialize(data);
+	}
 };
+
+typedef boost::shared_ptr<GameRolePlayCharacterInformations> GameRolePlayCharacterInformationsPtr;
 
 #endif

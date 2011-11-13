@@ -18,13 +18,7 @@
 
 #include "StdAfx.h"
 
-GameRolePlayHumanoidInformations::GameRolePlayHumanoidInformations(HumanEntity* ent) : GameRolePlayNamedActorInformations(ent)
+GameRolePlayHumanoidInformations::GameRolePlayHumanoidInformations(HumanEntity* ent) : GameRolePlayNamedActorInformations(ent),
+	humanoidInfo(new HumanInformations(ent)) // TODO: ent->GetHumanInformations
 {
-	m_buffer<<uint16(HUMAN_INFORMATIONS)<<HumanInformations(ent);
-}
-
-GameRolePlayHumanoidInformations::GameRolePlayHumanoidInformations(HumanEntity* ent, Character* ch) : GameRolePlayNamedActorInformations(ent, ch)
-{
-	// todo: HumanWithGuildInformations
-	m_buffer<<uint16(HUMAN_INFORMATIONS)<<HumanInformations(ent);
 }

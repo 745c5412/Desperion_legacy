@@ -22,19 +22,52 @@
 class ObjectGroundListAddedMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	std::vector<int16> cells;
+	std::vector<int> referenceIds;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_OBJECT_GROUND_LIST_ADDED; }
 
-	ObjectGroundListAddedMessage(std::vector<int16>& cells, std::vector<int>& referenceIds)
+	ObjectGroundListAddedMessage()
+	{
+	}
+
+	ObjectGroundListAddedMessage(std::vector<int16>& cells, std::vector<int>& referenceIds) : cells(cells),
+		referenceIds(referenceIds)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
 	{
 		uint16 size = cells.size();
-		m_buffer<<size;
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<cells[a];
+			data<<cells[a];
 		size = referenceIds.size();
-		m_buffer<<size;
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<referenceIds[a];
+			data<<referenceIds[a];
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		cells.clear();
+		referenceIds.clear();
+		uint16 size;
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			int16 cell;
+			data>>cell;
+			cells.push_back(cell);
+		}
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			int ref;
+			data>>ref;
+			referenceIds.push_back(ref);
+		}
 	}
 };
 

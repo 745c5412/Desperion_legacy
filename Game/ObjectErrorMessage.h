@@ -35,12 +35,27 @@ enum ObjectError
 class ObjectErrorMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int8 reason;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_OBJECT_ERROR; }
 
-	ObjectErrorMessage(int8 reason)
+	ObjectErrorMessage()
 	{
-		m_buffer<<reason;
+	}
+
+	ObjectErrorMessage(int8 reason) : reason(reason)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<reason;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>reason;
 	}
 };
 

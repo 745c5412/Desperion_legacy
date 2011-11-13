@@ -34,12 +34,27 @@ enum ChatError
 class ChatErrorMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int8 reason;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CHAT_ERROR; }
 
-	ChatErrorMessage(int8 reason)
+	ChatErrorMessage()
 	{
-		m_buffer<<reason;
+	}
+
+	ChatErrorMessage(int8 reason) : reason(reason)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<reason;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>reason;
 	}
 };
 

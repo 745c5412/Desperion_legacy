@@ -22,20 +22,51 @@
 class CharactersListMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	bool hasStartupActions;
+	std::vector<CharacterBaseInformationsPtr> characters;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CHARACTERS_LIST; }
 
-	CharactersListMessage(bool hasStartupActions, std::list<CharacterMinimals*>& characters)
+	CharactersListMessage()
 	{
-		m_buffer<<hasStartupActions;
-		uint16 size = characters.size();
-		m_buffer<<size;
+	}
 
+	CharactersListMessage(bool hasStartupActions, std::list<CharacterMinimals*>& characters) : hasStartupActions(hasStartupActions)
+	{
 		for(std::list<CharacterMinimals*>::iterator it = characters.begin(); it != characters.end(); ++it)
 		{
-			m_buffer<<uint16(CHARACTER_BASE_INFORMATIONS); // todo: Hardcore, recolor, etc
-			m_buffer<<CharacterBaseInformations((*it)->id, (*it)->level, (*it)->name, (*it)->look, (*it)->breed,
-				(*it)->sex);
+			// TODO: recolorInformations, etc
+			this->characters.push_back(CharacterBaseInformationsPtr(new CharacterBaseInformations((*it)->id,
+				(*it)->level, (*it)->name, EntityLookPtr((*it)->GetLook()), (*it)->breed, (*it)->sex)));
+		}
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<hasStartupActions;
+		uint16 size = characters.size();
+		data<<size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			data<<characters[a]->GetProtocol();
+			characters[a]->Serialize(data);
+		}
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>hasStartupActions;
+		uint16 size;
+		characters.clear();
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			uint16 protocol;
+			data>>protocol;
+			CharacterBaseInformationsPtr ch(new CharacterBaseInformations);
+			ch->Deserialize(data);
+			characters.push_back(ch);
 		}
 	}
 };

@@ -35,12 +35,12 @@ public:
 
 	ObjectEffect(PlayerItemEffect*);
 
-	virtual void FromThis()
+	virtual void Serialize(ByteBuffer& data)
 	{
-		m_buffer<<actionId;
+		data<<actionId;
 	}
 
-	virtual void Init(ByteBuffer& data)
+	virtual void Deserialize(ByteBuffer& data)
 	{
 		data>>actionId;
 	}

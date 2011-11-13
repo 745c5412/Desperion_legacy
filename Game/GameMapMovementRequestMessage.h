@@ -25,11 +25,30 @@ public:
 	std::vector<int16> keyMovements;
 	int mapId;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_GAME_MAP_MOVEMENT_REQUEST; }
 
-	GameMapMovementRequestMessage(ByteBuffer& data)
+	GameMapMovementRequestMessage()
 	{
+	}
+
+	GameMapMovementRequestMessage(std::vector<int16>& keyMovements, int mapId) : keyMovements(keyMovements),
+		mapId(mapId)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		uint16 size = keyMovements.size();
+		data<<size;
+		for(uint16 a = 0; a < size; ++a)
+			data<<keyMovements[a];
+		data<<mapId;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		keyMovements.clear();
 		uint16 size;
 		data>>size;
 		for(uint16 a = 0; a < size; ++a)

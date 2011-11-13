@@ -22,13 +22,31 @@
 class EntityDispositionInformations : public DofusModel
 {
 public:
+	int16 cellId;
+	int8 direction;
+
 	virtual uint16 GetProtocol() const
 	{ return ENTITY_DISPOSITION_INFORMATIONS; }
 
-	EntityDispositionInformations(int16 cellId, int8 direction)
+	EntityDispositionInformations()
 	{
-		m_buffer<<cellId<<direction;
+	}
+
+	EntityDispositionInformations(int16 cellId, int8 direction) : cellId(cellId), direction(direction)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<cellId<<direction;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>cellId>>direction;
 	}
 };
+
+typedef boost::shared_ptr<EntityDispositionInformations> EntityDispositionInformationsPtr;
 
 #endif

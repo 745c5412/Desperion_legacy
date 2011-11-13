@@ -18,7 +18,7 @@
 
 #include "StdAfx.h"
 
-template <> GameSession::HandlerStorageMap BaseSession<GamePacketHandler>::m_handlers;
+template <> GameSession::HandlerStorageMap AbstractSession<GamePacketHandler>::m_handlers;
 
 void GameSession::InitHandlersTable()
 {

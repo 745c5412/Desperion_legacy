@@ -22,12 +22,27 @@
 class ObjectGroundRemovedMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int16 cell;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_OBJECT_GROUND_REMOVED; }
 
-	ObjectGroundRemovedMessage(int16 cell)
+	ObjectGroundRemovedMessage()
 	{
-		m_buffer<<cell;
+	}
+
+	ObjectGroundRemovedMessage(int16 cell) : cell(cell)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<cell;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>cell;
 	}
 };
 

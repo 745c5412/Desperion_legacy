@@ -111,9 +111,6 @@
     <ClCompile Include="CharacterMinimalPlusLookInformations.cpp">
       <Filter>Models\CPP</Filter>
     </ClCompile>
-    <ClCompile Include="EntityLook.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
     <ClCompile Include="HumanInformations.cpp">
       <Filter>Models\CPP</Filter>
     </ClCompile>
@@ -176,6 +173,12 @@
     </ClCompile>
     <ClCompile Include="BasicHandler.cpp">
       <Filter>Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="SubEntity.cpp">
+      <Filter>Models\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="ProtocolTypeManager.cpp">
+      <Filter>Desperion\CPP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -240,9 +243,6 @@
       <Filter>Messages</Filter>
     </ClInclude>
     <ClInclude Include="ServerOptionalFeaturesMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="HelloGame.h">
       <Filter>Messages</Filter>
     </ClInclude>
     <ClInclude Include="CharacterNameSuggestionFailureMessage.h">
@@ -573,6 +573,18 @@
       <Filter>Messages</Filter>
     </ClInclude>
     <ClInclude Include="BasicDateMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="TrustStatusMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="SubEntity.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ProtocolTypeManager.h">
+      <Filter>Desperion\H</Filter>
+    </ClInclude>
+    <ClInclude Include="HelloGameMessage.h">
       <Filter>Messages</Filter>
     </ClInclude>
   </ItemGroup>

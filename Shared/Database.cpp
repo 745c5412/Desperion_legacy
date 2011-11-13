@@ -178,9 +178,9 @@ bool Database::Execute(const char* QueryString, ...)
 	return result;
 }
 
-QueryResult* Database::StoreResult(Connection* con)
+ResultPtr Database::StoreResult(Connection* con)
 {
-	QueryResult* qResult;
+	ResultPtr qResult;
 
 	MYSQL_RES * pRes = mysql_store_result( con->conn );
 	uint32 uRows = (uint32)mysql_affected_rows( con->conn );
@@ -190,16 +190,15 @@ QueryResult* Database::StoreResult(Connection* con)
 	{
 		if( pRes != NULL )
 			mysql_free_result( pRes );
-
-		return NULL;
+		return qResult;
 	}
 
-	qResult = new QueryResult( pRes, uFields, uRows );
+	qResult.reset(new QueryResult( pRes, uFields, uRows ));
 	qResult->NextRow();
 	return qResult;
 }
 
-QueryResult * Database::Query(const char* QueryString, ...)
+ResultPtr Database::Query(const char* QueryString, ...)
 {	
 	char sql[32768];
 	va_list vlist;
@@ -208,7 +207,7 @@ QueryResult * Database::Query(const char* QueryString, ...)
 	va_end(vlist);
 
 	// Send the query
-	QueryResult * qResult = NULL;
+	ResultPtr qResult;
 	Connection * con = GetFreeConnection();
 
 	if(SendQuery(con, sql, false))

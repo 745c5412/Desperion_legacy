@@ -176,7 +176,7 @@ namespace Desperion
 	}
 
 	std::string ToUpperCase(std::string str);
-	void SetApplicationTitle(std::string title); 
+	void SetApplicationTitle(const char*, ...); 
 	int IndexOf(std::string str, char tofind);
 
 	inline std::string BufferToDb(const ByteBuffer& buffer)

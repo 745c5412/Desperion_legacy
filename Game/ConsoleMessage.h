@@ -29,12 +29,28 @@ enum ConsoleMessageType
 class ConsoleMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int8 type;
+	std::string content;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CONSOLE; }
 
-	ConsoleMessage(int8 type, std::string content)
+	ConsoleMessage()
 	{
-		m_buffer<<type<<content;
+	}
+
+	ConsoleMessage(int8 type, std::string content) : type(type), content(content)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<type<<content;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>type>>content;
 	}
 };
 

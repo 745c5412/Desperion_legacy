@@ -24,7 +24,7 @@ struct PlayerItemEffectLadder;
 class ObjectEffectLadder : public ObjectEffect
 {
 public:
-	int16 monsterFamilyId;
+	int16 monsterCount;
 	
 	virtual uint16 GetProtocol() const
 	{ return OBJECT_EFFECT_LADDER; }
@@ -35,16 +35,16 @@ public:
 	
 	ObjectEffectLadder(PlayerItemEffectLadder*);
 	
-	virtual void FromThis()
+	virtual void Serialize(ByteBuffer& data)
 	{
-		ObjectEffect::FromThis();
-		m_buffer<<monsterFamilyId;
+		ObjectEffect::Serialize(data);
+		data<<monsterCount;
 	}
 	
-	virtual void Init(ByteBuffer& data)
+	virtual void Deserialize(ByteBuffer& data)
 	{
-		ObjectEffect::Init(data);
-		m_buffer>>monsterFamilyId;
+		ObjectEffect::Deserialize(data);
+		data>>monsterCount;
 	}
 };
 

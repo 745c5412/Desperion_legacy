@@ -90,4 +90,6 @@ protected:
 	MYSQL_RES *m_result;
 };
 
+typedef boost::shared_ptr<QueryResult> ResultPtr;
+
 #endif

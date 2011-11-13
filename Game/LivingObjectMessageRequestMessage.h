@@ -26,11 +26,31 @@ public:
 	std::vector<std::string> parameters;
 	uint32 livingObject;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_LIVING_OBJECT_MESSAGE_REQUEST; }
 
-	LivingObjectMessageRequestMessage(ByteBuffer& data)
+	LivingObjectMessageRequestMessage()
 	{
+	}
+
+	LivingObjectMessageRequestMessage(int16 msgId, std::vector<std::string>& parameters, uint32 livingObject)
+		: msgId(msgId), parameters(parameters), livingObject(livingObject)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<msgId;
+		uint16 size = parameters.size();
+		data<<size;
+		for(uint16 a = 0; a < size; ++a)
+			data<<parameters[a];
+		data<<livingObject;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		parameters.clear();
 		data>>msgId;
 		uint16 size;
 		data>>size;

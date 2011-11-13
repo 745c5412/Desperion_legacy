@@ -22,10 +22,18 @@
 class GameContextCreateRequestMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_GAME_CONTEXT_CREATE_REQUEST; }
 
-	GameContextCreateRequestMessage(ByteBuffer& data)
+	GameContextCreateRequestMessage()
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+	}
+	
+	void Deserialize(ByteBuffer& data)
 	{
 	}
 };

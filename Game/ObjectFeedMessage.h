@@ -22,14 +22,27 @@
 class ObjectFeedMessage : public DofusMessage
 {
 public:
-	int objectUID;
-	int foodUID;
+	int objectUID, foodUID;
 	int16 foodQuantity;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_OBJECT_FEED; }
 
-	ObjectFeedMessage(ByteBuffer& data)
+	ObjectFeedMessage()
+	{
+	}
+
+	ObjectFeedMessage(int objectUID, int foodUID, int16 foodQuantity) : objectUID(objectUID),
+		foodUID(foodUID), foodQuantity(foodQuantity)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<objectUID<<foodUID<<foodQuantity;
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 		data>>objectUID>>foodUID>>foodQuantity;
 	}

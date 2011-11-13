@@ -22,12 +22,28 @@
 class CharacterBaseCharacteristic : public DofusModel
 {
 public:
+	int16 base, objectsAndMountBonus, alignGiftBonus, contextModif;
+
 	virtual uint16 GetProtocol() const
 	{ return CHARACTER_BASE_CHARACTERISTIC; }
 
-	CharacterBaseCharacteristic(int16 base, int16 objectsAndMountBonus, int16 alignGiftBonus, int16 contextModif)
+	CharacterBaseCharacteristic()
 	{
-		m_buffer<<base<<objectsAndMountBonus<<alignGiftBonus<<contextModif;
+	}
+
+	CharacterBaseCharacteristic(int16 base, int16 objectsAndMountBonus, int16 alignGiftBonus, int16 contextModif)
+		: base(base), objectsAndMountBonus(objectsAndMountBonus), alignGiftBonus(alignGiftBonus), contextModif(contextModif)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<base<<objectsAndMountBonus<<alignGiftBonus<<contextModif;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>base>>objectsAndMountBonus>>alignGiftBonus>>contextModif;
 	}
 };
 

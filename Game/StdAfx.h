@@ -19,8 +19,17 @@
 #ifndef __STDAFX__
 #define __STDAFX__
 
+#define GAME_VERSION_MAJOR 0
+#define GAME_VERSION_MINOR 8
+#define GAME_VERSION_REVISION 0
+
+#define REQUIRED_SHARED_VERSION_MAJOR 0
+#define REQUIRED_SHARED_VERSION_MINOR 0
+#define REQUIRED_SHARED_VERSION_REVISION 2
+
 #include "../Shared/StdAfx.h"
 
+#include "ProtocolTypeManager.h"
 #include "ConfigDefaults.h"
 #include "World.h"
 #include "Master.h"
@@ -48,6 +57,7 @@
 #include "Path.h"
 #include "GameClient.h"
 
+#include "SubEntity.h"
 #include "EntityLook.h"
 #include "CharacterMinimalInformations.h"
 #include "CharacterMinimalPlusLookInformations.h"
@@ -62,7 +72,7 @@
 #include "CharacterDeletionErrorMessage.h"
 #include "CharacterNameSuggestionRequestMessage.h"
 #include "ServerOptionalFeaturesMessage.h"
-#include "HelloGame.h"
+#include "HelloGameMessage.h"
 #include "CharacterNameSuggestionFailureMessage.h"
 #include "CharacterNameSuggestionSuccessMessage.h"
 #include "CharacterSelectionMessage.h"
@@ -147,6 +157,8 @@
 #include "BasicPongMessage.h"
 #include "BasicTimeMessage.h"
 #include "BasicDateMessage.h"
+#include "../Login/ProtocolRequired.h"
+#include "TrustStatusMessage.h"
 
 #include "Mount.h"
 #include "ItemSet.h"

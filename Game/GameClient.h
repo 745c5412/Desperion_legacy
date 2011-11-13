@@ -28,7 +28,7 @@ struct ComPacketHandler
 	void (GameClient::*Handler)(ByteBuffer&);
 };
 
-class GameClient : public BaseSession<ComPacketHandler>, public Singleton<GameClient>
+class GameClient : public AbstractSession<ComPacketHandler>, public Singleton<GameClient>
 {
 private:
 	uint8 m_state;
@@ -42,9 +42,10 @@ public:
 
 	void SendPlayers()
 	{
-		Packet data(CMSG_PLAYERS);
-		data<<World::Instance().GetPlayers();
-		Send(data);
+		ByteBuffer dest, src;
+		src<<World::Instance().GetPlayers();
+		Packet::Pack(CMSG_PLAYERS, dest, src);
+		_Send(dest);
 	}
 
 	void OnClose()

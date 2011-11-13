@@ -101,6 +101,7 @@
     <ClInclude Include="ServerStatusUpdateMessage.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="TrustCertificate.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>

@@ -22,13 +22,34 @@
 class GameServerInformations : public DofusModel
 {
 public:
+	int16 id;
+	int8 status, completion, charactersCount;
+	bool isSelectable;
+	uint64 date;
+
 	virtual uint16 GetProtocol() const
 	{ return GAME_SERVER_INFORMATIONS; }
 
-	GameServerInformations(int16 id, int8 status, int8 completion, bool isSelectable, int8 charactersCount, uint64 date)
+	GameServerInformations()
 	{
-		m_buffer<<id<<status<<completion<<isSelectable<<charactersCount<<date;
+	}
+
+	GameServerInformations(int16 id, int8 status, int8 completion, bool isSelectable, int8 charactersCount, uint64 date) : id(id),
+		status(status), completion(completion), isSelectable(isSelectable), charactersCount(charactersCount), date(date)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<id<<status<<completion<<isSelectable<<charactersCount<<date;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>id>>status>>completion>>isSelectable>>charactersCount>>date;
 	}
 };
+
+typedef boost::shared_ptr<GameServerInformations> GameServerInformationsPtr;
 
 #endif

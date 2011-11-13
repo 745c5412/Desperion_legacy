@@ -35,16 +35,16 @@ public:
 	
 	ObjectEffectDate(PlayerItemEffectDate*);
 	
-	void FromThis()
+	void Serialize(ByteBuffer& data)
 	{
-		ObjectEffect::FromThis();
-		m_buffer<<year<<month<<day<<hour<<minute;
+		ObjectEffect::Serialize(data);
+		data<<year<<month<<day<<hour<<minute;
 	}
 	
-	void Init(ByteBuffer& data)
+	void Deserialize(ByteBuffer& data)
 	{
-		ObjectEffect::Init(data);
-		m_buffer>>year>>month>>day>>hour>>minute;
+		ObjectEffect::Deserialize(data);
+		data>>year>>month>>day>>hour>>minute;
 	}
 };
 

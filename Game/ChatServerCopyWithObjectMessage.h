@@ -22,19 +22,41 @@
 class ChatServerCopyWithObjectMessage : public ChatServerCopyMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	std::vector<ObjectItemPtr> objects;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CHAT_SERVER_COPY_WITH_OBJECT; }
 
-	ChatServerCopyWithObjectMessage(int8 channel, std::string content, int timestamp, std::string fingerprint, int receivedId, 
-		std::string receivedName, std::vector<ObjectItem>& objects) : ChatServerCopyMessage(channel, content, timestamp, fingerprint, 
-		receivedId, receivedName)
+	ChatServerCopyWithObjectMessage()
 	{
+	}
+
+	ChatServerCopyWithObjectMessage(int8 channel, std::string content, int timestamp, std::string fingerprint, int receivedId, 
+		std::string receivedName, std::vector<ObjectItemPtr>& objects) : ChatServerCopyMessage(channel, content, timestamp, fingerprint, 
+		receivedId, receivedName), objects(objects)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		ChatServerCopyMessage::Serialize(data);
 		uint16 size = objects.size();
-		m_buffer<<size;
+		data<<size;
+		for(uint16 a = 0; a < size; ++a)
+			objects[a]->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		objects.clear();
+		ChatServerCopyMessage::Deserialize(data);
+		uint16 size;
+		data>>size;
 		for(uint16 a = 0; a < size; ++a)
 		{
-			objects[a].FromThis();
-			m_buffer<<objects[a];
+			ObjectItemPtr obj(new ObjectItem);
+			obj->Deserialize(data);
+			objects.push_back(obj);
 		}
 	}
 };

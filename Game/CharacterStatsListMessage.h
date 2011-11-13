@@ -22,12 +22,28 @@
 class CharacterStatsListMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	CharacterCharacteristicsInformationsPtr stats;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CHARACTER_STATS_LIST; }
 
-	CharacterStatsListMessage(Character* ch)
+	CharacterStatsListMessage()
 	{
-		m_buffer<<CharacterCharacteristicsInformations(ch);
+	}
+
+	CharacterStatsListMessage(Character* ch) : stats(new CharacterCharacteristicsInformations(ch))
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		stats->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		stats.reset(new CharacterCharacteristicsInformations);
+		stats->Deserialize(data);
 	}
 };
 

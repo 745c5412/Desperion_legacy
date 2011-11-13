@@ -22,10 +22,29 @@
 class CharacterCharacteristicsInformations : public DofusModel
 {
 public:
+	ByteBuffer m_buffer; // en attendant ^^
+
 	virtual uint16 GetProtocol() const
 	{ return CHARACTER_CHARACTERISTICS_INFORMATIONS; }
 
+	CharacterCharacteristicsInformations()
+	{
+	}
+
 	CharacterCharacteristicsInformations(Character*);
+
+	void Serialize(ByteBuffer& data) // idem :)
+	{
+		size_t size = m_buffer.Size();
+		if(size > 0)
+			data.AppendBytes(m_buffer.Contents(), size);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+	}
 };
+
+typedef boost::shared_ptr<CharacterCharacteristicsInformations> CharacterCharacteristicsInformationsPtr;
 
 #endif

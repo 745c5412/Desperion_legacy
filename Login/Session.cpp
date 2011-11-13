@@ -18,20 +18,17 @@
 
 #include "StdAfx.h"
 
-#define PROTOCOL_BUILD 1413
-#define PROTOCOL_REQUIRED_BUILD 1413
-
-template <> Session::HandlerStorageMap BaseSession<LoginPacketHandler>::m_handlers;
+template <> Session::HandlerStorageMap AbstractSession<LoginPacketHandler>::m_handlers;
 
 bool IsIpBanned(std::string address)
 {
-	QueryResult* QR = Desperion::sDatabase->Query("SELECT banTime, banDate FROM ip_bans WHERE IP='%s' LIMIT 1;", address.c_str());
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT banTime, banDate FROM ip_bans WHERE IP='%s' LIMIT 1;", address.c_str());
 	if(!QR)
 		return false;
 	Field* fields = QR->Fetch();
 	time_t banTime = fields[0].GetUInt64();
 	time_t banDate = fields[0].GetUInt64();
-	delete QR;
+	
 
 	if(banDate + banTime < time(NULL))
 	{
@@ -44,13 +41,13 @@ bool IsIpBanned(std::string address)
 
 bool IsAccountBanned(uint32 guid)
 {
-	QueryResult* QR = Desperion::sDatabase->Query("SELECT banTime, banDate FROM account_bans WHERE guid=%u LIMIT 1;", guid);
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT banTime, banDate FROM account_bans WHERE guid=%u LIMIT 1;", guid);
 	if(!QR)
 		return false;
 	Field* fields = QR->Fetch();
 	time_t banTime = fields[0].GetUInt64();
 	time_t banDate = fields[0].GetUInt64();
-	delete QR;
+	
 
 	if(banDate + banTime < time(NULL))
 	{
@@ -63,11 +60,12 @@ bool IsAccountBanned(uint32 guid)
 
 void Session::HandleAcquaintanceSearchMessage(ByteBuffer& packet)
 {
-	AcquaintanceSearchMessage data(packet);
+	AcquaintanceSearchMessage data;
+	data.Deserialize(packet);
 
 	const char* query = "SELECT serverID FROM character_counts INNER JOIN accounts ON accounts.guid = character_counts.accountGuid "\
 		"WHERE LOWER(accounts.pseudo)=LOWER('%s');";
-	QueryResult* QR = Desperion::sDatabase->Query(query, Desperion::sDatabase->EscapeString(data.nickName).c_str());
+	ResultPtr QR = Desperion::sDatabase->Query(query, Desperion::sDatabase->EscapeString(data.nickName).c_str());
 	if(!QR)
 	{
 		Send(AcquaintanceSearchErrorMessage(2));
@@ -81,7 +79,7 @@ void Session::HandleAcquaintanceSearchMessage(ByteBuffer& packet)
 		int16 id = fields[0].GetInt16();
 		results.push_back(id);
 	}while(QR->NextRow());
-	delete QR;
+	
 	Send(AcquaintanceServerListMessage(results));
 }
 
@@ -129,14 +127,16 @@ bool Session::HandleServerSelection(GameServer* G, bool quiet)
 
 void Session::HandleServerSelectionMessage(ByteBuffer& packet)
 {
-	ServerSelectionMessage data(packet);
+	ServerSelectionMessage data;
+	data.Deserialize(packet);
+
 	HandleServerSelection(World::Instance().GetGameServer(data.id), false);
 }
 
-GameServerInformations Session::GetServerStatusMessage(const GameServer* G, uint8 count)
+GameServerInformations* Session::GetServerStatusMessage(const GameServer* G, uint8 count)
 {
 	uint8 state = G->GetState(m_data[FLAG_LEVEL].intValue, IsSubscriber());
-	return GameServerInformations(G->GetID(), state, 0,
+	return new GameServerInformations(G->GetID(), state, 0,
 		CanSelect(state), count, uint64(0));
 }
 
@@ -150,7 +150,7 @@ void Session::SendServersList()
 	};
 
 	std::tr1::unordered_map<uint16, Count> counts;
-	QueryResult* QR = Desperion::sDatabase->Query("SELECT serverID FROM character_counts WHERE accountGuid=%u;", m_data[FLAG_GUID].intValue);
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT serverID FROM character_counts WHERE accountGuid=%u;", m_data[FLAG_GUID].intValue);
 	if(QR)
 	{
 		do
@@ -160,12 +160,12 @@ void Session::SendServersList()
 			++counts[serverID].m_count;
 		}while(QR->NextRow());
 	}
-	delete QR;
+	
 
 	const World::GameServerMap& servers = World::Instance().GetGameServers();
-	std::vector<GameServerInformations> infos;
+	std::vector<GameServerInformationsPtr> infos;
 	for(World::GameServerMap::const_iterator it = servers.begin(); it != servers.end(); ++it)
-		infos.push_back(GetServerStatusMessage(it->second, counts[it->first].m_count));
+		infos.push_back(GameServerInformationsPtr(GetServerStatusMessage(it->second, counts[it->first].m_count)));
 	Send(ServersListMessage(infos));
 }
 
@@ -176,14 +176,14 @@ void Session::HandleIdentification(IdentificationMessage* data)
 		Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
 		throw ServerError("Wrong crendentials");
 	}
-	else if(!VerifyVersion(data->version))
+	else if(!VerifyVersion(*(data->version)))
 	{
 		Send(IdentificationFailedMessage(BAD_VERSION));
 		throw ServerError("Bad Version");
 	}
 
 	const char* query = "SELECT password, guid, question, pseudo, logged, level, lastServer, subscriptionEnd FROM accounts WHERE account='%s' LIMIT 1;";
-	QueryResult* QR = Desperion::sDatabase->Query(query, data->userName.c_str());
+	ResultPtr QR = Desperion::sDatabase->Query(query, data->userName.c_str());
 	
 	if(!QR)
 	{
@@ -231,17 +231,18 @@ void Session::HandleIdentification(IdentificationMessage* data)
 	m_data[FLAG_LEVEL].intValue = fields[5].GetUInt8();
 	m_data[FLAG_QUESTION].stringValue = fields[2].GetString();
 	m_data[FLAG_ACCOUNT].stringValue = data->userName;
-	delete QR;
+	
 
 	World::Instance().AddSession(this);
 
-	Send(IdentificationSuccessMessage(m_data[FLAG_LEVEL].intValue, alreadyConnected, m_data[FLAG_PSEUDO].stringValue,
-		m_data[FLAG_GUID].intValue, m_data[FLAG_QUESTION].stringValue, m_subscriptionEnd));
+	Send(IdentificationSuccessMessage(m_data[FLAG_LEVEL].intValue > 0, alreadyConnected, m_data[FLAG_PSEUDO].stringValue,
+		m_data[FLAG_GUID].intValue, 0, m_data[FLAG_QUESTION].stringValue, m_subscriptionEnd));
 }
 
 void Session::HandleIdentificationWithServerIdMessage(ByteBuffer& packet)
 {
-	IdentificationWithServerIdMessage data(packet);
+	IdentificationWithServerIdMessage data;
+	data.Deserialize(packet);
 	HandleIdentification(&data);
 
 	if(!HandleServerSelection(World::Instance().GetGameServer(data.serverId), true))
@@ -250,7 +251,8 @@ void Session::HandleIdentificationWithServerIdMessage(ByteBuffer& packet)
 
 void Session::HandleIdentificationMessage(ByteBuffer& packet)
 {
-	IdentificationMessage data(packet);
+	IdentificationMessage data;
+	data.Deserialize(packet);
 	HandleIdentification(&data);
 
 	if(data.autoConnect)
@@ -290,7 +292,6 @@ Session::~Session()
 void Session::Start()
 {
 	Send(ProtocolRequired(PROTOCOL_BUILD, PROTOCOL_REQUIRED_BUILD));
-	
 	m_key = GenerateRandomKey();
 	Send(HelloConnectMessage(2, m_key));
 

@@ -27,7 +27,7 @@ namespace Desperion
 	class Master : public Singleton<Master>
 	{
 	public:
-		Master() : m_version("0.7.3")
+		Master()
 		{
 			sListener = NULL;
 		}
@@ -41,12 +41,14 @@ namespace Desperion
 
 		void Stop()
 		{ m_service.stop(); }
+
+		boost::asio::io_service& GetService()
+		{ return m_service; }
 	private:
 		bool StartUpDatabase();
 
 		boost::asio::io_service m_service;
 		uint32 m_startTime;
-		std::string m_version;
 	};
 }
 

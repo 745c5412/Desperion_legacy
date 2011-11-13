@@ -24,11 +24,27 @@ class ChatClientPrivateMessage : public ChatAbstractClientMessage
 public:
 	std::string receiver;
 
-	virtual uint32 GetOpcode()
+	virtual uint16 GetOpcode()
 	{ return CMSG_CHAT_CLIENT_PRIVATE; }
 
-	ChatClientPrivateMessage(ByteBuffer& data) : ChatAbstractClientMessage(data)
+	ChatClientPrivateMessage()
 	{
+	}
+
+	ChatClientPrivateMessage(std::string content, std::string receiver) : ChatAbstractClientMessage(content),
+		receiver(receiver)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		ChatAbstractClientMessage::Serialize(data);
+		data<<receiver;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		ChatAbstractClientMessage::Deserialize(data);
 		data>>receiver;
 	}
 };

@@ -32,10 +32,22 @@ public:
 	{
 	}
 
-	void Init(ByteBuffer& data)
+	Version(uint8 major, uint8 minor, uint8 release, uint16 rev, uint8 patch, uint8 buildType) : major(major),
+		minor(minor), release(release), rev(rev), patch(patch), buildType(buildType)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<major<<minor<<release<<rev<<patch<<buildType;
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 		data>>major>>minor>>release>>rev>>patch>>buildType;
 	}
 };
+
+typedef boost::shared_ptr<Version> VersionPtr;
 
 #endif

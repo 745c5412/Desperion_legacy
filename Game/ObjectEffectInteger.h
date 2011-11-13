@@ -33,17 +33,17 @@ public:
 	{
 	}
 
-	virtual void FromThis()
-	{
-		ObjectEffect::FromThis();
-		m_buffer<<value;
-	}
-
 	ObjectEffectInteger(PlayerItemEffectInteger*);
 
-	virtual void Init(ByteBuffer& data)
+	virtual void Serialize(ByteBuffer& data)
 	{
-		ObjectEffect::Init(data);
+		ObjectEffect::Serialize(data);
+		data<<value;
+	}
+
+	virtual void Deserialize(ByteBuffer& data)
+	{
+		ObjectEffect::Deserialize(data);
 		data>>value;
 	}
 };

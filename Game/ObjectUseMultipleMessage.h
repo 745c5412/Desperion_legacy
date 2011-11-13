@@ -24,11 +24,27 @@ class ObjectUseMultipleMessage : public ObjectUseMessage
 public:
 	int quantity;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_OBJECT_USE_MULTIPLE; }
 
-	ObjectUseMultipleMessage(ByteBuffer& data) : ObjectUseMessage(data)
+	ObjectUseMultipleMessage()
 	{
+	}
+
+	ObjectUseMultipleMessage(int objectUID, int quantity) : ObjectUseMessage(objectUID),
+		quantity(quantity)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		ObjectUseMessage::Serialize(data);
+		data<<quantity;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		ObjectUseMessage::Deserialize(data);
 		data>>quantity;
 	}
 };

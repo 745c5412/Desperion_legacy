@@ -22,13 +22,32 @@
 class GoldItem : public DItem
 {
 public:
+	int sum;
+
 	virtual uint16 GetProtocol() const
 	{ return GOLD_ITEM; }
 
-	GoldItem(int sum)
+	GoldItem()
 	{
-		m_buffer<<sum;
+	}
+
+	GoldItem(int sum) : sum(sum)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		DItem::Serialize(data);
+		data<<sum;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		DItem::Deserialize(data);
+		data>>sum;
 	}
 };
+
+typedef boost::shared_ptr<GoldItem> GoldItemPtr;
 
 #endif

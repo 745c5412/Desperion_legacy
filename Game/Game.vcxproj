@@ -80,7 +80,6 @@
     <ClCompile Include="ContextHandler.cpp" />
     <ClCompile Include="DofusUtils.cpp" />
     <ClCompile Include="Entity.cpp" />
-    <ClCompile Include="EntityLook.cpp" />
     <ClCompile Include="GameClient.cpp" />
     <ClCompile Include="GameContextActorInformations.cpp" />
     <ClCompile Include="GameRolePlayCharacterInformations.cpp" />
@@ -106,10 +105,12 @@
     <ClCompile Include="ObjectEffectString.cpp" />
     <ClCompile Include="Path.cpp" />
     <ClCompile Include="PlayerItem.cpp" />
+    <ClCompile Include="ProtocolTypeManager.cpp" />
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SubEntity.cpp" />
     <ClCompile Include="Weapon.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
@@ -188,7 +189,7 @@
     <ClInclude Include="GameRolePlayShowActorMessage.h" />
     <ClInclude Include="GoldAddedMessage.h" />
     <ClInclude Include="GoldItem.h" />
-    <ClInclude Include="HelloGame.h" />
+    <ClInclude Include="HelloGameMessage.h" />
     <ClInclude Include="HumanInformations.h" />
     <ClInclude Include="InventoryContentMessage.h" />
     <ClInclude Include="InventoryWeightMessage.h" />
@@ -239,11 +240,14 @@
     <ClInclude Include="ObjectUseOnCharacterMessage.h" />
     <ClInclude Include="Path.h" />
     <ClInclude Include="PlayerItem.h" />
+    <ClInclude Include="ProtocolTypeManager.h" />
     <ClInclude Include="ServerOptionalFeaturesMessage.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="SetUpdateMessage.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="SubEntity.h" />
     <ClInclude Include="TextInformationMessage.h" />
+    <ClInclude Include="TrustStatusMessage.h" />
     <ClInclude Include="Weapon.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>

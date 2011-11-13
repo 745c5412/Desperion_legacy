@@ -22,12 +22,27 @@
 class ObjectGroundAddedMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int16 cellID, objectGID;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_OBJECT_GROUND_ADDED; }
 
-	ObjectGroundAddedMessage(int16 cellId, int16 objectGID)
+	ObjectGroundAddedMessage()
 	{
-		m_buffer<<cellId<<objectGID;
+	}
+
+	ObjectGroundAddedMessage(int16 cellID, int16 objectGID) : cellID(cellID), objectGID(objectGID)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<cellID<<objectGID;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>cellID>>objectGID;
 	}
 };
 

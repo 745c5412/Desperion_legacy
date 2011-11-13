@@ -34,12 +34,27 @@ enum CharacterCreationResult
 class CharacterCreationResultMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int8 reason;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CHARACTER_CREATION_RESULT; }
 
-	CharacterCreationResultMessage(int8 reason)
+	CharacterCreationResultMessage()
 	{
-		m_buffer<<reason;
+	}
+
+	CharacterCreationResultMessage(int8 reason) : reason(reason)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<reason;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>reason;
 	}
 };
 

@@ -18,7 +18,7 @@
 
 #include "StdAfx.h"
 
-template<> Session::HandlerStorageMap BaseSession<GamePacketHandler>::m_handlers;
+template<> Session::HandlerStorageMap AbstractSession<GamePacketHandler>::m_handlers;
 
 void Session::InitHandlersTable()
 {
@@ -60,10 +60,11 @@ void Session::InitHandlersTable()
 
 void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 {
-	AuthenticationTicketMessage data(packet);
+	AuthenticationTicketMessage data;
+	data.Deserialize(packet);
 
 	const char* query = "SELECT guid, answer, pseudo, level, lastIP, lastConnectionDate, subscriptionEnd FROM accounts WHERE ticket='%s' LIMIT 1;";
-	QueryResult* QR = Desperion::eDatabase->Query(query, data.ticket.c_str());
+	ResultPtr QR = Desperion::eDatabase->Query(query, data.ticket.c_str());
 	if(QR)
 	{
 		Field* fields = QR->Fetch();
@@ -80,7 +81,7 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 		Send(AuthenticationTicketRefusedMessage());
 		throw ServerError("Failed ticket authentification!");
 	}
-	delete QR;
+	
 
 	QR = Desperion::eDatabase->Query("SELECT channels, disallowed FROM account_channels WHERE guid=%u LIMIT 1;", m_data[FLAG_GUID].intValue);
 	if(QR)
@@ -91,7 +92,7 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	}
 	else
 		Desperion::eDatabase->Execute("INSERT INTO account_channels VALUES(%u, '', '');", m_data[FLAG_GUID].intValue);
-	delete QR;
+	
 
 	QR = Desperion::eDatabase->Query("SELECT friends, ennemies FROM account_social WHERE guid=%u LIMIT 1;", m_data[FLAG_GUID].intValue);
 	if(QR)
@@ -102,7 +103,7 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	}
 	else
 		Desperion::eDatabase->Execute("INSERT INTO account_social VALUES(%u, '', '');", m_data[FLAG_GUID].intValue);
-	delete QR;
+	
 
 	uint16 servID = Desperion::Config::Instance().GetUInt(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT);
 	Desperion::eDatabase->Execute("UPDATE accounts SET ticket='', logged=%u, lastServer=%u WHERE guid=%u LIMIT 1;", servID, 
@@ -117,6 +118,8 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	features.push_back(2); // kolizéum
 	Send(ServerOptionalFeaturesMessage(features));
 	Send(BasicTimeMessage(time(NULL), 0));
+	Send(BasicNoOperationMessage());
+	Send(TrustStatusMessage(true));
 }
 
 Session::~Session()
@@ -137,7 +140,8 @@ Session::~Session()
 
 void Session::Start()
 {
-	Send(HelloGame());
+	Send(ProtocolRequired(PROTOCOL_BUILD, PROTOCOL_REQUIRED_BUILD));
+	Send(HelloGameMessage());
 
 	Run();
 }

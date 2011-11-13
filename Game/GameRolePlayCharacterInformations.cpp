@@ -18,8 +18,8 @@
 
 #include "StdAfx.h"
 
-GameRolePlayCharacterInformations::GameRolePlayCharacterInformations(Character* ch) : GameRolePlayHumanoidInformations(ch, ch)
+GameRolePlayCharacterInformations::GameRolePlayCharacterInformations(Character* ch)
+	: GameRolePlayHumanoidInformations(ch), alignmentInfos(new ActorAlignmentInformations(ch->GetStats().GetAlignmentSide(),
+	ch->GetStats().GetAlignmentValue(), ch->GetStats().GetAlignmentGrade(), ch->GetStats().GetDishonor(), ch->GetLevel()))
 {
-	m_buffer<<ActorAlignmentInformations(ch->GetStats().GetAlignmentSide(), ch->GetStats().GetAlignmentValue(),
-		ch->GetStats().GetAlignmentGrade(), ch->GetStats().GetDishonor(), ch->GetLevel());
 }

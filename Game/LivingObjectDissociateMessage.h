@@ -25,10 +25,24 @@ public:
 	int livingUID;
 	uint8 livingPosition;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_LIVING_OBJECT_DISSOCIATE; }
 
-	LivingObjectDissociateMessage(ByteBuffer& data)
+	LivingObjectDissociateMessage()
+	{
+	}
+
+	LivingObjectDissociateMessage(int livingUID, uint8 livingPosition) : livingUID(livingUID),
+		livingPosition(livingPosition)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<livingUID<<livingPosition;
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 		data>>livingUID>>livingPosition;
 	}

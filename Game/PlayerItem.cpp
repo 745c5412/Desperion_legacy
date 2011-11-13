@@ -67,10 +67,10 @@ int PlayerItem::GetNextItemGuid()
 {
 	int guid = 1;
 	m_guidLock.lock();
-	QueryResult* QR = Desperion::sDatabase->Query("SELECT guid FROM character_items ORDER BY guid DESC;");
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT guid FROM character_items ORDER BY guid DESC;");
 	if(QR)
 		guid = (QR->Fetch()[0].GetInt32()) + 1;
-	delete QR;
+	
 	m_guidLock.unlock();
 	return guid;
 }

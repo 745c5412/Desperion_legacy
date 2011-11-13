@@ -24,10 +24,23 @@ class ChatAbstractClientMessage : public DofusMessage
 public:
 	std::string content;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_CHAT_ABSTRACT_CLIENT; }
 
-	ChatAbstractClientMessage(ByteBuffer& data)
+	ChatAbstractClientMessage()
+	{
+	}
+
+	ChatAbstractClientMessage(std::string content) : content(content)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<content;
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 		data>>content;
 	}

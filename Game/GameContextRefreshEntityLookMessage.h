@@ -22,12 +22,31 @@
 class GameContextRefreshEntityLookMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int id;
+	EntityLookPtr look;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_GAME_CONTEXT_REFRESH_ENTITY_LOOK; }
 
-	GameContextRefreshEntityLookMessage(int id, EntityLook look)
+	GameContextRefreshEntityLookMessage()
 	{
-		m_buffer<<id<<look;
+	}
+
+	GameContextRefreshEntityLookMessage(int id, EntityLookPtr look) : id(id), look(look)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<id;
+		look->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>id;
+		look.reset(new EntityLook);
+		look->Deserialize(data);
 	}
 };
 

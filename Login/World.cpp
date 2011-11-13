@@ -33,10 +33,10 @@ void World::RefreshGameServer(GameServer* G)
 		uint32 guid = it->second->GetData(FLAG_GUID).intValue;
 		if(guid == 0)
 			continue;
-		QueryResult* QR = Desperion::sDatabase->Query("SELECT accountGuid FROM character_counts WHERE accountGuid=%u and serverID=%u LIMIT 1;",
+		ResultPtr QR = Desperion::sDatabase->Query("SELECT accountGuid FROM character_counts WHERE accountGuid=%u and serverID=%u LIMIT 1;",
 			guid, G->GetID());
 		it->second->Send(ServerStatusUpdateMessage(it->second->GetServerStatusMessage(G, QR->GetRowCount())));
-		delete QR;
+		
 	}
 	SessionsMutex.unlock();
 }
@@ -54,7 +54,7 @@ World::~World()
 void World::LoadGameServers()
 {
 	const char * query = "SELECT * FROM game_servers;";
-	QueryResult* QR = Desperion::sDatabase->Query(query);
+	ResultPtr QR = Desperion::sDatabase->Query(query);
 	if(!QR)
 		return;
 	do
@@ -65,7 +65,7 @@ void World::LoadGameServers()
 		g->Init(id, fields[1].GetString(), fields[2].GetUInt16(), fields[3].GetUInt8(), fields[5].GetString(), fields[4].GetUInt16(), fields[6].GetUInt8());
 		GameServers[id] = g;
 	}while(QR->NextRow());
-	delete QR;
+	
 	Log::Instance().outNotice("World", "%u game servers loaded!", GameServers.size());
 }
 

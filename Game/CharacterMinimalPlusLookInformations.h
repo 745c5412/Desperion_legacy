@@ -22,12 +22,29 @@
 class CharacterMinimalPlusLookInformations : public CharacterMinimalInformations
 {
 public:
+	EntityLookPtr look;
+
 	virtual uint16 GetProtocol() const
 	{ return CHARACTER_MINIMAL_PLUS_LOOK_INFORMATIONS; }
 
-	CharacterMinimalPlusLookInformations(int id, uint8 level, std::string name, DEntityLook& look);
+	CharacterMinimalPlusLookInformations()
+	{
+	}
 
-	CharacterMinimalPlusLookInformations(int id, uint8 level, std::string name, DEntityLook& look, Character* ch);
+	CharacterMinimalPlusLookInformations(int id, uint8 level, std::string name, EntityLookPtr look);
+
+	void Serialize(ByteBuffer& data)
+	{
+		CharacterMinimalInformations::Serialize(data);
+		look->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		CharacterMinimalInformations::Deserialize(data);
+		look.reset(new EntityLook);
+		look->Deserialize(data);
+	}
 };
 
 #endif

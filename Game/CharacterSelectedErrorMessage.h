@@ -22,10 +22,18 @@
 class CharacterSelectedErrorMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CHARACTER_SELECTED_ERROR; }
 
 	CharacterSelectedErrorMessage()
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 	}
 };

@@ -35,16 +35,16 @@ public:
 	
 	ObjectEffectDuration(PlayerItemEffectDuration*);
 	
-	virtual void FromThis()
+	virtual void Serialize(ByteBuffer& data)
 	{
-		ObjectEffect::FromThis();
-		m_buffer<<days<<hours<<minutes;
+		ObjectEffect::Serialize(data);
+		data<<days<<hours<<minutes;
 	}
 	
-	virtual void Init(ByteBuffer& data)
+	virtual void Deserialize(ByteBuffer& data)
 	{
-		ObjectEffect::Init(data);
-		m_buffer>>days>>hours>>minutes;
+		ObjectEffect::Deserialize(data);
+		data>>days>>hours>>minutes;
 	}
 };
 

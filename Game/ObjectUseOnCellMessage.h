@@ -19,16 +19,32 @@
 #ifndef __OBJECT_USE_ON_CELL_MESSAGE__
 #define __OBJECT_USE_ON_CELL_MESSAGE__
 
-class ObjectUseOnCellMessage : public DofusMessage
+class ObjectUseOnCellMessage : public ObjectUseMessage
 {
 public:
 	int16 cell;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_OBJECT_USE_ON_CELL; }
 
-	ObjectUseOnCellMessage(ByteBuffer& data)
+	ObjectUseOnCellMessage()
 	{
+	}
+
+	ObjectUseOnCellMessage(int objectUID, int16 cell) : ObjectUseMessage(objectUID),
+		cell(cell)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		ObjectUseMessage::Serialize(data);
+		data<<cell;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		ObjectUseMessage::Deserialize(data);
 		data>>cell;
 	}
 };

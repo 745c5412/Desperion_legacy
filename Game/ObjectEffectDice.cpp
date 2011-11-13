@@ -18,7 +18,7 @@
 
 #include "StdAfx.h"
 
-ObjectEffectDice::ObjectEffectDice(PlayerItemEffectDice* effect) : ObjectEffect(effect)
+ObjectEffectDice::ObjectEffectDice(PlayerItemEffectDice* effect) : ObjectEffect(effect), diceNum(effect->diceNum),
+	diceSide(effect->diceSide), diceConst(effect->diceConst)
 {
-	m_buffer<<effect->diceNum<<effect->diceSide<<effect->diceConst;
 }

@@ -25,10 +25,23 @@ public:
 	std::string lang;
 	std::string ticket;
 
-	uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_AUTHENTICATION_TICKET; }
 
-	AuthenticationTicketMessage(ByteBuffer& data)
+	AuthenticationTicketMessage()
+	{
+	}
+
+	AuthenticationTicketMessage(std::string lang, std::string ticket) : lang(lang), ticket(ticket)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<lang<<ticket;
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 		data>>lang>>ticket;
 	}

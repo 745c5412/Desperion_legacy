@@ -22,12 +22,27 @@
 class CurrentMapMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	int id;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CURRENT_MAP; }
 
-	CurrentMapMessage(int id)
+	CurrentMapMessage()
 	{
-		m_buffer<<id;
+	}
+
+	CurrentMapMessage(int id) : id(id)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<id;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>id;
 	}
 };
 

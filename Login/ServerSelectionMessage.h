@@ -22,12 +22,25 @@
 class ServerSelectionMessage : public DofusMessage
 {
 public:
-	uint16 id;
+	int16 id;
 
-	uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_SERVER_SELECTION; }
 
-	ServerSelectionMessage(ByteBuffer& data)
+	ServerSelectionMessage()
+	{
+	}
+
+	ServerSelectionMessage(int16 id) : id(id)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<id;
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 		data>>id;
 	}

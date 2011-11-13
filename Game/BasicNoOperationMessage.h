@@ -22,10 +22,18 @@
 class BasicNoOperationMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return SMSG_BASIC_NO_OPERATION; }
 
 	BasicNoOperationMessage()
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 	}
 };

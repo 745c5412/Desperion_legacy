@@ -18,8 +18,7 @@
 
 #include "StdAfx.h"
 
-ObjectEffectMount::ObjectEffectMount(PlayerItemEffectMount* effect) : ObjectEffect(effect)
+ObjectEffectMount::ObjectEffectMount(PlayerItemEffectMount* effect) : ObjectEffect(effect), mountId(effect->mountId),
+	date(effect->date), modelId(effect->modelId)
 {
-	// TODO: regarder comment fonctionnent les dates de type double chez le client
-	m_buffer<<effect->mountId<<uint64(effect->date)<<effect->modelId;
 }

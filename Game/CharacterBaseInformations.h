@@ -22,12 +22,31 @@
 class CharacterBaseInformations : public CharacterMinimalPlusLookInformations
 {
 public:
+	int8 breed;
+	bool sex;
+
 	virtual uint16 GetProtocol() const
 	{ return CHARACTER_BASE_INFORMATIONS; }
 
-	CharacterBaseInformations(int id, uint8 level, std::string name, DEntityLook& look, int8 breed, bool sex);
+	CharacterBaseInformations()
+	{
+	}
 
-	CharacterBaseInformations(int id, uint8 level, std::string name, DEntityLook& look, Character* ch, int8 breed, bool sex);
+	CharacterBaseInformations(int id, uint8 level, std::string name, EntityLookPtr look, int8 breed, bool sex);
+
+	void Serialize(ByteBuffer& data)
+	{
+		CharacterMinimalPlusLookInformations::Serialize(data);
+		data<<breed<<sex;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		CharacterMinimalPlusLookInformations::Deserialize(data);
+		data>>breed>>sex;
+	}
 };
+
+typedef boost::shared_ptr<CharacterBaseInformations> CharacterBaseInformationsPtr;
 
 #endif

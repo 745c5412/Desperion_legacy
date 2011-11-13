@@ -24,11 +24,28 @@ class IdentificationWithServerIdMessage : public IdentificationMessage
 public:
 	int16 serverId;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_IDENTIFICATION_WITH_SERVER_ID; }
 
-	IdentificationWithServerIdMessage(ByteBuffer& data) : IdentificationMessage(data)
+	IdentificationWithServerIdMessage()
 	{
+	}
+
+	IdentificationWithServerIdMessage(Version* version, std::vector<TrustCertificatePtr>& certificates, std::string userName,
+		std::string password, bool autoConnect, int16 serverId) : IdentificationMessage(version, certificates, userName, password,
+		autoConnect), serverId(serverId)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		IdentificationMessage::Serialize(data);
+		data<<serverId;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		IdentificationMessage::Deserialize(data);
 		data>>serverId;
 	}
 };

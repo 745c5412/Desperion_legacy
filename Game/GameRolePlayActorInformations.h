@@ -25,12 +25,22 @@ public:
 	virtual uint16 GetProtocol() const
 	{ return GAME_ROLE_PLAY_ACTOR_INFORMATIONS; }
 
-	GameRolePlayActorInformations(DisplayableEntity* ent, Character* ch) : GameContextActorInformations(ent, ch)
+	GameRolePlayActorInformations()
 	{
 	}
 
 	GameRolePlayActorInformations(DisplayableEntity* ent) : GameContextActorInformations(ent)
 	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		GameContextActorInformations::Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		GameContextActorInformations::Deserialize(data);
 	}
 };
 

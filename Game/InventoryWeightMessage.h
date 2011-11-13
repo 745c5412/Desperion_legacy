@@ -22,12 +22,27 @@
 class InventoryWeightMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	int pods, maxPods;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_INVENTORY_WEIGHT; }
 
-	InventoryWeightMessage(int pods, int maxPods)
+	InventoryWeightMessage()
 	{
-		m_buffer<<pods<<maxPods;
+	}
+
+	InventoryWeightMessage(int pods, int maxPods) : pods(pods), maxPods(maxPods)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<pods<<maxPods;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>pods>>maxPods;
 	}
 };
 

@@ -35,16 +35,16 @@ public:
 	
 	ObjectEffectMinMax(PlayerItemEffectMinMax*);
 	
-	virtual void FromThis()
+	virtual void Serialize(ByteBuffer& data)
 	{
-		ObjectEffect::FromThis();
-		m_buffer<<min<<max;
+		ObjectEffect::Serialize(data);
+		data<<min<<max;
 	}
 	
-	virtual void Init(ByteBuffer& data)
+	virtual void Deserialize(ByteBuffer& data)
 	{
-		ObjectEffect::Init(data);
-		m_buffer>>min>>max;
+		ObjectEffect::Deserialize(data);
+		data>>min>>max;
 	}
 };
 

@@ -18,7 +18,7 @@
 
 #include "StdAfx.h"
 
-ObjectEffectDuration::ObjectEffectDuration(PlayerItemEffectDuration* effect) : ObjectEffect(effect)
+ObjectEffectDuration::ObjectEffectDuration(PlayerItemEffectDuration* effect) : ObjectEffect(effect), days(effect->days),
+	hours(effect->hours), minutes(effect->minutes)
 {
-	m_buffer<<effect->days<<effect->hours<<effect->minutes;
 }

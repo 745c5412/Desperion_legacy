@@ -18,7 +18,6 @@
 
 #include "StdAfx.h"
 
-ObjectEffectLadder::ObjectEffectLadder(PlayerItemEffectLadder* effect) : ObjectEffect(effect)
+ObjectEffectLadder::ObjectEffectLadder(PlayerItemEffectLadder* effect) : ObjectEffect(effect), monsterCount(effect->monsterCount)
 {
-	m_buffer<<effect->monsterCount;
 }

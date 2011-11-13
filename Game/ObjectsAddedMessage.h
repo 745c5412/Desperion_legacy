@@ -22,15 +22,38 @@
 class ObjectsAddedMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	std::vector<ObjectItemPtr> objects;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_OBJECTS_ADDED; }
 
-	ObjectsAddedMessage(std::vector<ObjectItem>& objects)
+	ObjectsAddedMessage()
+	{
+	}
+
+	ObjectsAddedMessage(std::vector<ObjectItemPtr>& objects) : objects(objects)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
 	{
 		uint16 size = objects.size();
-		m_buffer<<size;
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<objects[a];
+			objects[a]->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		objects.clear();
+		uint16 size;
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			ObjectItemPtr obj(new ObjectItem);
+			obj->Deserialize(data);
+			objects.push_back(obj);
+		}
 	}
 };
 

@@ -35,15 +35,15 @@ public:
 	
 	ObjectEffectCreature(PlayerItemEffectCreature*);
 	
-	virtual void FromThis()
+	virtual void Serialize(ByteBuffer& data)
 	{
-		ObjectEffect::FromThis();
-		m_buffer<<monsterFamilyId;
+		ObjectEffect::Serialize(data);
+		data<<monsterFamilyId;
 	}
 	
-	virtual void Init(ByteBuffer& data)
+	virtual void Deserialize(ByteBuffer& data)
 	{
-		ObjectEffect::Init(data);
+		ObjectEffect::Deserialize(data);
 		data>>monsterFamilyId;
 	}
 };

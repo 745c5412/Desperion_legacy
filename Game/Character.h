@@ -113,6 +113,7 @@ public:
 	std::vector<int16> GetItemsFromSet(int16);
 	std::tr1::unordered_map<int16, std::vector<int16> > GetTotalItemSets();
 	void UpdateItemSet(int16, boost::function<void()>);
+	EntityLook* GetLook() const;
 
 	const std::vector<int8>& GetEmotes()
 	{ return m_emotes; }

@@ -22,13 +22,34 @@
 class ActorAlignmentInformations : public DofusModel
 {
 public:
+	int8 alignmentSide, alignmentValue, alignmentGrade;
+	uint16 dishonor;
+	int characterPower;
+
 	virtual uint16 GetProtocol() const
 	{ return ACTOR_ALIGNMENT_INFORMATIONS; }
 
-	ActorAlignmentInformations(int8 alignmentSide, int8 alignmentValue, int8 alignmentGrade, uint16 dishonor, int characterPower)
+	ActorAlignmentInformations()
 	{
-		m_buffer<<alignmentSide<<alignmentValue<<alignmentGrade<<dishonor<<characterPower;
+	}
+
+	ActorAlignmentInformations(int8 alignmentSide, int8 alignmentValue, int8 alignmentGrade, uint16 dishonor, int characterPower)
+		: alignmentSide(alignmentSide), alignmentValue(alignmentValue), alignmentGrade(alignmentGrade), dishonor(dishonor),
+		characterPower(characterPower)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<alignmentSide<<alignmentValue<<alignmentGrade<<dishonor<<characterPower;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>alignmentSide>>alignmentValue>>alignmentGrade>>dishonor>>characterPower;
 	}
 };
+
+typedef boost::shared_ptr<ActorAlignmentInformations> ActorAlignmentInformationsPtr;
 
 #endif

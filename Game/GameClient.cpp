@@ -19,7 +19,7 @@
 #include "StdAfx.h"
 
 template<> GameClient * Singleton<GameClient>::m_singleton = NULL;
-template<> GameClient::HandlerStorageMap BaseSession<ComPacketHandler>::m_handlers;
+template<> GameClient::HandlerStorageMap AbstractSession<ComPacketHandler>::m_handlers;
 
 GameClient::~GameClient()
 {
@@ -51,15 +51,19 @@ void GameClient::HandleConnect(const boost::system::error_code& error)
 
 void GameClient::Start()
 {
-	Packet data(CMSG_CONNECT);
-	data<<uint16(Desperion::Config::Instance().GetUInt(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT));
-	data<<Desperion::Config::Instance().GetString(LOCAL_SERVER_AUTH_KEY_STRING, LOCAL_SERVER_AUTH_KEY_DEFAULT);
-	Send(data);
+	ByteBuffer dest, src;
 
-	Packet state(CMSG_STATE);
-	state<<m_state;
-	Send(state);
+	src<<uint16(Desperion::Config::Instance().GetUInt(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT));
+	src<<Desperion::Config::Instance().GetString(LOCAL_SERVER_AUTH_KEY_STRING, LOCAL_SERVER_AUTH_KEY_DEFAULT);
+	Packet::Pack(CMSG_CONNECT, dest, src);
+	_Send(dest);
+	
+	dest.Clear();
+	src.Clear();
 
-	//Wait();
+	src<<m_state;
+	Packet::Pack(CMSG_STATE, dest, src);
+	_Send(dest);
+
 	Run();
 }

@@ -42,8 +42,11 @@ struct StatsRow
 
 	operator ByteBuffer() const
 	{
-		return CharacterBaseCharacteristic(int16(int64(base) & 0xffff), int16(int64(objects) & 0xffff), 
+		CharacterBaseCharacteristic ch(int16(int64(base) & 0xffff), int16(int64(objects) & 0xffff), 
 			int16(int64(align) & 0xffff), int16(int64(context) & 0xffff));
+		ByteBuffer buffer;
+		ch.Serialize(buffer);
+		return buffer;
 	}
 };
 

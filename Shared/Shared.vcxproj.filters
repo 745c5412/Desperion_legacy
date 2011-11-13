@@ -75,9 +75,6 @@
     <ClInclude Include="Utils.h">
       <Filter>Utils\H</Filter>
     </ClInclude>
-    <ClInclude Include="BaseSession.h">
-      <Filter>Network\H</Filter>
-    </ClInclude>
     <ClInclude Include="BooleanByteWrapper.h">
       <Filter>Network\H</Filter>
     </ClInclude>
@@ -94,6 +91,9 @@
       <Filter>Network\H</Filter>
     </ClInclude>
     <ClInclude Include="QueryResult.h">
+      <Filter>Network\H</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractSession.h">
       <Filter>Network\H</Filter>
     </ClInclude>
   </ItemGroup>

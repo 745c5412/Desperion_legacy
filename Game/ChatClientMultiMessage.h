@@ -39,11 +39,26 @@ class ChatClientMultiMessage : public ChatAbstractClientMessage
 public:
 	int8 channel;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_CHAT_CLIENT_MULTI; }
 
-	ChatClientMultiMessage(ByteBuffer& data) : ChatAbstractClientMessage(data)
+	ChatClientMultiMessage()
 	{
+	}
+
+	ChatClientMultiMessage(std::string content, int8 channel) : ChatAbstractClientMessage(content), channel(channel)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		ChatAbstractClientMessage::Serialize(data);
+		data<<channel;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		ChatAbstractClientMessage::Deserialize(data);
 		data>>channel;
 	}
 };

@@ -22,15 +22,34 @@
 class ObjectGroundRemovedMultipleMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	std::vector<int16> cells;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_OBJECT_GROUND_REMOVED_MULTIPLE; }
 
-	ObjectGroundRemovedMultipleMessage(std::vector<int16>& cells)
+	ObjectGroundRemovedMultipleMessage(std::vector<int16>& cells) : cells(cells)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
 	{
 		uint16 size = cells.size();
-		m_buffer<<size;
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<cells[a];
+			data<<cells[a];
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		cells.clear();
+		uint16 size;
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			int16 cell;
+			data>>cell;
+			cells.push_back(cell);
+		}
 	}
 };
 

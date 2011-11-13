@@ -18,7 +18,7 @@
 
 #include "StdAfx.h"
 
-ObjectEffectCreature::ObjectEffectCreature(PlayerItemEffectCreature* effect) : ObjectEffect(effect)
+ObjectEffectCreature::ObjectEffectCreature(PlayerItemEffectCreature* effect) : ObjectEffect(effect),
+	monsterFamilyId(effect->monsterFamilyId)
 {
-	m_buffer<<effect->monsterFamilyId;
 }

@@ -22,13 +22,25 @@
 class ObjectDeleteMessage : public DofusMessage
 {
 public:
-	int objectUID;
-	int quantity;
+	int objectUID, quantity;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_OBJECT_DELETE; }
 
-	ObjectDeleteMessage(ByteBuffer& data)
+	ObjectDeleteMessage()
+	{
+	}
+
+	ObjectDeleteMessage(int objectUID, int quantity) : objectUID(objectUID), quantity(quantity)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<objectUID<<quantity;
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 		data>>objectUID>>quantity;
 	}

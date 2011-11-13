@@ -22,14 +22,27 @@
 class ObjectSetPositionMessage : public DofusMessage
 {
 public:
-	int objectUID;
+	int objectUID, quantity;
 	uint8 position;
-	int quantity;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_OBJECT_SET_POSITION; }
 
-	ObjectSetPositionMessage(ByteBuffer& data)
+	ObjectSetPositionMessage()
+	{
+	}
+
+	ObjectSetPositionMessage(int objectUID, uint8 position, int quantity) : objectUID(objectUID),
+		position(position), quantity(quantity)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<objectUID<<position<<quantity;
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 		data>>objectUID>>position>>quantity;
 	}

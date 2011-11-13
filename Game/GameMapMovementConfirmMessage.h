@@ -22,10 +22,18 @@
 class GameMapMovementConfirmMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_GAME_MAP_MOVEMENT_CONFIRM; }
 
-	GameMapMovementConfirmMessage(ByteBuffer& data)
+	GameMapMovementConfirmMessage()
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 	}
 };

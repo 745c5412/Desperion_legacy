@@ -22,12 +22,28 @@
 class HelloConnectMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	int8 connectionType;
+	std::string key;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_HELLO_CONNECT; }
 
-	HelloConnectMessage(int8 connectionType, std::string key)
+	HelloConnectMessage()
 	{
-		m_buffer<<connectionType<<key;
+	}
+
+	HelloConnectMessage(int8 connectionType, std::string key) : connectionType(connectionType), key(key)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<connectionType<<key;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>connectionType>>key;
 	}
 };
 

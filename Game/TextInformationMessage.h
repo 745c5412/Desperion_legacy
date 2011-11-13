@@ -22,16 +22,43 @@
 class TextInformationMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	int8 type;
+	int16 id;
+	std::vector<std::string> params;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_TEXT_INFORMATION; }
 
-	TextInformationMessage(int8 type, int16 id, std::vector<std::string>& params)
+	TextInformationMessage()
 	{
-		m_buffer<<type<<id;
+	}
+
+	TextInformationMessage(int8 type, int16 id, std::vector<std::string>& params) : type(type),
+		id(id), params(params)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<type<<id;
 		uint16 size = params.size();
-		m_buffer<<size;
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<params[a];
+			data<<params[a];
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		params.clear();
+		data>>type>>id;
+		uint16 size;
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			std::string param;
+			data>>param;
+			params.push_back(param);
+		}
 	}
 };
 

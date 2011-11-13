@@ -22,12 +22,27 @@
 class ObjectDeletedMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int objectUID;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_OBJECT_DELETED; }
 
-	ObjectDeletedMessage(int objectUID)
+	ObjectDeletedMessage()
 	{
-		m_buffer<<objectUID;
+	}
+
+	ObjectDeletedMessage(int objectUID) : objectUID(objectUID)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<objectUID;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>objectUID;
 	}
 };
 

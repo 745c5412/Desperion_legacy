@@ -18,14 +18,8 @@
 
 #include "StdAfx.h"
 
-HumanInformations::HumanInformations(HumanEntity* ent)
+HumanInformations::HumanInformations(HumanEntity* ent) : followers(ent->GetFollowingCharacters()), emoteId(ent->GetCurrentEmote()),
+	emoteStartTime(ent->GetEmoteStartTime()), restrictions(new ActorRestrictionsInformations(ent)), titleId(ent->GetTitle()),
+	titleParam(ent->GetTitleParams())
 {
-	const std::vector<DEntityLook>& followers = ent->GetFollowingCharacters();
-	uint16 size = followers.size();
-	m_buffer<<size;
-	for(uint16 a = 0; a < size; ++a)
-		m_buffer<<followers[a].Serialize(-1);
-	m_buffer<<ent->GetCurrentEmote()<<ent->GetEmoteStartTime();
-	m_buffer<<ActorRestrictionsInformations(ent);
-	m_buffer<<ent->GetTitle()<<ent->GetTitleParams();
 }

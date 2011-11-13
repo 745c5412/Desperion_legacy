@@ -22,11 +22,21 @@
 class AdminQuietCommandMessage : public AdminCommandMessage
 {
 public:
-	uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_ADMIN_QUIET_COMMAND; }
 
-	AdminQuietCommandMessage(ByteBuffer& data) : AdminCommandMessage(data)
+	AdminQuietCommandMessage()
 	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		AdminCommandMessage::Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		AdminCommandMessage::Deserialize(data);
 	}
 };
 

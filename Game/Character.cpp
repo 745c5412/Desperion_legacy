@@ -18,6 +18,49 @@
 
 #include "StdAfx.h"
 
+EntityLook* Character::GetLook() const
+{
+	EntityLook* l = new EntityLook;
+	l->bonesId = m_look.bonesId;
+	l->skins = m_look.skins;
+	l->indexedColors = m_look.indexedColors;
+	l->scales = m_look.scales;
+
+	for(std::list<PlayerItem*>::const_iterator it = m_items.begin(); it != m_items.end(); ++it)
+	{
+		switch((*it)->GetPos())
+		{
+		case ACCESSORY_POSITION_HAT:
+		case ACCESSORY_POSITION_CAPE:
+		case ACCESSORY_POSITION_WEAPON:
+		case ACCESSORY_POSITION_SHIELD:
+			{
+				int appearanceId = 0;
+				PlayerItemEffectInteger* effect = (PlayerItemEffectInteger*)(*it)->GetEffect(972);
+				if(effect == NULL)
+					appearanceId = (*it)->GetItem()->GetAppearanceId();
+				else
+				{
+					PlayerItemEffectInteger* type = (PlayerItemEffectInteger*)(*it)->GetEffect(970);
+					if(type != NULL)
+						appearanceId = DofusUtils::GetObviAppearanceBySkinId(effect->value, type->value);
+				}
+				if(appearanceId != 0)
+					l->skins.push_back(appearanceId);
+			}
+			break;
+		case ACCESSORY_POSITION_PETS:
+			{
+				EntityLook* ent = new EntityLook;
+				ent->bonesId = (*it)->GetItem()->GetAppearanceId();
+				l->subentities.push_back(SubEntityPtr(new SubEntity(1, 0, ent)));
+			}
+			break;
+		}
+	}
+	return l;
+}
+
 PlayerItem* Character::GetItem(int guid)
 {
 	for(std::list<PlayerItem*>::iterator it = m_items.begin(); it != m_items.end(); ++it)
@@ -148,7 +191,7 @@ void Character::MoveItem(PlayerItem* item, uint8 pos, bool create)
 			newItem->SetPos(pos);
 			PlayerItem::InsertIntoDB(newItem);
 
-			m_session->Send(ObjectAddedMessage(ObjectItem(newItem)));
+			m_session->Send(ObjectAddedMessage(ObjectItemPtr(new ObjectItem(item))));
 			m_session->Send(ObjectQuantityMessage(item->GetGuid(), item->GetQuantity()));
 		}
 		else
@@ -159,7 +202,7 @@ void Character::MoveItem(PlayerItem* item, uint8 pos, bool create)
 				m_session->Send(ObjectMovementMessage(item->GetGuid(), item->GetPos()));
 			}
 			else
-				m_session->Send(ObjectAddedMessage(ObjectItem(item)));
+				m_session->Send(ObjectAddedMessage(ObjectItemPtr(new ObjectItem(item))));
 		}
 	}
 }
@@ -180,7 +223,7 @@ void Character::MoveItemFromMap(PlayerItem* item)
 		item->SetOwner(this);
 		AddItem(item);
 
-		m_session->Send(ObjectAddedMessage(ObjectItem(item)));
+		m_session->Send(ObjectAddedMessage(ObjectItemPtr(new ObjectItem(item))));
 		item->Save();
 	}
 }
@@ -210,7 +253,7 @@ void Character::Save()
 								  WHERE guid=%u LIMIT 1;", zaaps.str().c_str(), m_map->GetId(), m_cell, "", m_saveMap, m_saveCell,
 								  "", m_mountXp, -1, 0, m_title, 0, emotes.str().c_str(), m_guid);
 	Desperion::sDatabase->Execute("UPDATE character_minimals SET level=%u, name='%s', entityLook='%s', breed=%u, sex=%u \
-								  WHERE id=%u LIMIT 1;", m_level, m_name.c_str(), Desperion::BufferToDb(m_look.Serialize(-1)).c_str(), m_breed, 
+								  WHERE id=%u LIMIT 1;", m_level, m_name.c_str(), m_look.ToString().c_str(), m_breed, 
 								  m_sex ? 1 : 0, m_guid);
 	// TODO: update stats
 }
@@ -274,7 +317,7 @@ void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 
 void Character::InitItems()
 {
-	QueryResult* QR = Desperion::sDatabase->Query("SELECT * FROM character_items WHERE owner=%u;", m_guid);
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT * FROM character_items WHERE owner=%u;", m_guid);
 	if(!QR)
 		return;
 	do
@@ -329,7 +372,7 @@ void Character::InitItems()
 
 		m_items.push_back(it);
 	}while(QR->NextRow());
-	delete QR;
+	
 }
 
 bool Character::ApplyEffect(double StatsRow::*stat, int id, int val, bool add)

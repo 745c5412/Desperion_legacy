@@ -18,14 +18,8 @@
 
 #include "StdAfx.h"
 
-GameContextActorInformations::GameContextActorInformations(DisplayableEntity* ent, Character* ch)
-{
-	m_buffer<<ent->GetGuid()<<ent->GetLook().Serialize(ch)<<uint16(ENTITY_DISPOSITION_INFORMATIONS);
-	m_buffer<<EntityDispositionInformations(ent->GetCell(), ent->GetDirection());
-}
 
-GameContextActorInformations::GameContextActorInformations(DisplayableEntity* ent)
+GameContextActorInformations::GameContextActorInformations(DisplayableEntity* ent) : contextualId(ent->GetGuid()), look(ent->GetLook()),
+	disposition(new EntityDispositionInformations(ent->GetCell(), ent->GetDirection())) // TODO: ent->GetEntityDispositionInformations
 {
-	m_buffer<<ent->GetGuid()<<ent->GetLook().Serialize(-1)<<uint16(ENTITY_DISPOSITION_INFORMATIONS);
-	m_buffer<<EntityDispositionInformations(ent->GetCell(), ent->GetDirection());
 }

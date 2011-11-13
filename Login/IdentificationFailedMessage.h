@@ -37,12 +37,27 @@ enum IdentificationFailureReason
 class IdentificationFailedMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	uint8 reason;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_IDENTIFICATION_FAILED; }
 
-	IdentificationFailedMessage(uint8 reason)
+	IdentificationFailedMessage()
 	{
-		m_buffer<<reason;
+	}
+
+	IdentificationFailedMessage(uint8 reason) : reason(reason)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<reason;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>reason;
 	}
 };
 

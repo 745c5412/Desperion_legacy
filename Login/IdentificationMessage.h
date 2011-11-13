@@ -22,26 +22,48 @@
 class IdentificationMessage : public DofusMessage
 {
 public:
-	Version version;
-	std::map<int, std::string> certificates;
+	VersionPtr version;
+	std::vector<TrustCertificatePtr> certificates;
 	std::string userName;
 	std::string password;
 	bool autoConnect;
 
-	uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_IDENTIFICATION; }
 
-	IdentificationMessage(ByteBuffer& data)
+	IdentificationMessage()
 	{
-		version.Init(data);
-		uint16 certificateLength;
-		data>>userName>>password>>certificateLength;
-		for(uint16 a = 0; a < certificateLength; ++a)
+	}
+
+	IdentificationMessage(Version* version, std::vector<TrustCertificatePtr>& certificates, std::string userName,
+		std::string password, bool autoConnect) : version(version), certificates(certificates), userName(userName), 
+		password(password), autoConnect(autoConnect)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		version->Serialize(data);
+		uint16 size = certificates.size();
+		data<<userName<<password<<size;
+		for(uint16 a = 0; a < size; ++a)
+			certificates[a]->Serialize(data);
+		data<<autoConnect;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		certificates.clear();
+		version.reset(new Version);
+		version->Deserialize(data);
+
+		uint16 size;
+		data>>userName>>password>>size;
+		for(uint16 a = 0; a < size; ++a)
 		{
-			uint32 id;
-			std::string hash;
-			data>>id>>hash;
-			certificates[id] = hash;
+			TrustCertificatePtr certif(new TrustCertificate);
+			certif->Deserialize(data);
+			certificates.push_back(certif);
 		}
 		data>>autoConnect;
 	}

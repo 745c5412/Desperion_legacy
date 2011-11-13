@@ -22,12 +22,29 @@
 class ObjectMovementMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int objectUID;
+	uint8 position;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_OBJECT_MOVEMENT; }
 
-	ObjectMovementMessage(int objectUID, uint8 position)
+	ObjectMovementMessage()
 	{
-		m_buffer<<objectUID<<position;
+	}
+
+	ObjectMovementMessage(int objectUID, uint8 position) : objectUID(objectUID),
+		position(position)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<objectUID<<position;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>objectUID>>position;
 	}
 };
 

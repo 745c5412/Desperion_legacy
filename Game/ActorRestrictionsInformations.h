@@ -22,10 +22,30 @@
 class ActorRestrictionsInformations : public DofusModel
 {
 public:
+	uint8 r1;
+	uint8 r2;
+	uint8 r3;
+
 	virtual uint16 GetProtocol() const
 	{ return ACTOR_RESTRICTIONS_INFORMATIONS; }
 
+	ActorRestrictionsInformations()
+	{
+	}
+
 	ActorRestrictionsInformations(HumanEntity* ent);
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<r1<<r2<<r3;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>r1>>r2>>r3;
+	}
 };
+
+typedef boost::shared_ptr<ActorRestrictionsInformations> ActorRestrictionsInformationsPtr;
 
 #endif

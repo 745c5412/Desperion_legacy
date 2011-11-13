@@ -21,16 +21,11 @@
 
 class DofusModel
 {
-protected:
-	ByteBuffer m_buffer;
 public:
 	virtual uint16 GetProtocol() const = 0;
 
-	operator ByteBuffer() const
-	{ return m_buffer; }
-	
-	void Clear()
-	{ m_buffer.Clear(); }
+	virtual void Serialize(ByteBuffer&) = 0;
+	virtual void Deserialize(ByteBuffer&) = 0;
 
 	DofusModel()
 	{

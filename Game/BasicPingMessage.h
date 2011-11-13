@@ -6,10 +6,23 @@ class BasicPingMessage : public DofusMessage
 public:
 	bool quiet;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_BASIC_PING; }
 
-	BasicPingMessage(ByteBuffer& data)
+	BasicPingMessage()
+	{
+	}
+
+	BasicPingMessage(bool quiet) : quiet(quiet)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<quiet;
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 		data>>quiet;
 	}

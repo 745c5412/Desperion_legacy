@@ -22,13 +22,30 @@
 class ObjectItemQuantity : public DofusModel
 {
 public:
+	int objectUID, quantity;
+
 	virtual uint16 GetProtocol() const
 	{ return OBJECT_ITEM_QUANTITY; }
 
-	ObjectItemQuantity(int objectUID, int quantity)
+	ObjectItemQuantity()
 	{
-		m_buffer<<objectUID<<quantity;
+	}
+
+	ObjectItemQuantity(int objectUID, int quantity) : objectUID(objectUID), quantity(quantity)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<objectUID<<quantity;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>objectUID>>quantity;
 	}
 };
+
+typedef boost::shared_ptr<ObjectItemQuantity> ObjectItemQuantityPtr;
 
 #endif

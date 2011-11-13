@@ -22,15 +22,38 @@
 class ObjectsQuantityMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	std::vector<ObjectItemQuantityPtr> objectsUIDAndQty;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_OBJECTS_QUANTITY; }
 
-	ObjectsQuantityMessage(std::vector<ObjectItemQuantity>& objectsUIDAndQty)
+	ObjectsQuantityMessage()
+	{
+	}
+
+	ObjectsQuantityMessage(std::vector<ObjectItemQuantityPtr>& objectsUIDAndQty) : objectsUIDAndQty(objectsUIDAndQty)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
 	{
 		uint16 size = objectsUIDAndQty.size();
-		m_buffer<<size;
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<objectsUIDAndQty[a];
+			objectsUIDAndQty[a]->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		objectsUIDAndQty.clear();
+		uint16 size;
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			ObjectItemQuantityPtr obj(new ObjectItemQuantity);
+			obj->Deserialize(data);
+			objectsUIDAndQty.push_back(obj);
+		}
 	}
 };
 

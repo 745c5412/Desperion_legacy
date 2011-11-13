@@ -22,13 +22,32 @@
 class ChatServerMessage : public ChatAbstractServerMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int senderId, senderAccountId;
+	std::string senderName;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CHAT_SERVER; }
 
-	ChatServerMessage(int8 channel, std::string content, int timestamp, std::string fingerprint, int senderId, std::string senderName,
-		int senderAccountId) : ChatAbstractServerMessage(channel, content, timestamp, fingerprint)
+	ChatServerMessage()
 	{
-		m_buffer<<senderId<<senderName<<senderAccountId;
+	}
+
+	ChatServerMessage(int8 channel, std::string content, int timestamp, std::string fingerprint, int senderId, std::string senderName,
+		int senderAccountId) : ChatAbstractServerMessage(channel, content, timestamp, fingerprint), senderId(senderId),
+		senderAccountId(senderAccountId), senderName(senderName)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		ChatAbstractServerMessage::Serialize(data);
+		data<<senderId<<senderName<<senderAccountId;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		ChatAbstractServerMessage::Deserialize(data);
+		data>>senderId>>senderName>>senderAccountId;
 	}
 };
 

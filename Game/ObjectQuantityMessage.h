@@ -22,12 +22,28 @@
 class ObjectQuantityMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int objectUID, quantity;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_OBJECT_QUANTITY; }
 
-	ObjectQuantityMessage(int objectUID, int quantity)
+	ObjectQuantityMessage()
 	{
-		m_buffer<<objectUID<<quantity;
+	}
+
+	ObjectQuantityMessage(int objectUID, int quantity) : objectUID(objectUID),
+		quantity(quantity)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<objectUID<<quantity;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>objectUID>>quantity;
 	}
 };
 

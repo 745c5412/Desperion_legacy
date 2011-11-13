@@ -22,12 +22,34 @@
 class GameRolePlayHumanoidInformations : public GameRolePlayNamedActorInformations
 {
 public:
+	HumanInformationsPtr humanoidInfo;
+
 	virtual uint16 GetProtocol() const
 	{ return GAME_ROLE_PLAY_HUMANOID_INFORMATIONS; }
 
+	GameRolePlayHumanoidInformations()
+	{
+	}
+
 	GameRolePlayHumanoidInformations(HumanEntity* ent);
 
-	GameRolePlayHumanoidInformations(HumanEntity* ent, Character* ch);
+	void Serialize(ByteBuffer& data)
+	{
+		GameRolePlayNamedActorInformations::Serialize(data);
+		data<<humanoidInfo->GetProtocol();
+		humanoidInfo->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		GameRolePlayNamedActorInformations::Deserialize(data);
+		uint16 protocol;
+		data>>protocol;
+		humanoidInfo.reset(Desperion::ProtocolTypeManager::GetHumanInformations(protocol));
+		humanoidInfo->Deserialize(data);
+	}
 };
+
+typedef boost::shared_ptr<GameRolePlayHumanoidInformations> GameRolePlayHumanoidInformationsPtr;
 
 #endif

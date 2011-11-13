@@ -4,12 +4,28 @@
 class BasicTimeMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int timestamp;
+	int16 offset;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_BASIC_TIME; }
 
-	BasicTimeMessage(int timestamp, int16 offset)
+	BasicTimeMessage()
 	{
-		m_buffer<<timestamp<<offset;
+	}
+
+	BasicTimeMessage(int timestamp, int16 offset) : timestamp(timestamp), offset(offset)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<timestamp<<offset;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>timestamp>>offset;
 	}
 };
 

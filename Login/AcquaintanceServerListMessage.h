@@ -22,15 +22,38 @@
 class AcquaintanceServerListMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
-	{ return SMSG_ACQUAINTANCE_SERVER_LIST; }
+	std::vector<int16> servers;
 
-	AcquaintanceServerListMessage(std::vector<int16>& servers)
+	virtual uint16 GetOpcode() const
+	{ return SMSG_ACQUAINTANCE_SERVER_LIST; }
+	
+	AcquaintanceServerListMessage()
+	{
+	}
+
+	AcquaintanceServerListMessage(std::vector<int16>& servers) : servers(servers)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
 	{
 		uint16 size = servers.size();
-		m_buffer<<size;
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<servers[a];
+			data<<servers[a];
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		uint16 size;
+		data>>size;
+		servers.clear();
+		for(uint16 a = 0; a < size; ++a)
+		{
+			uint16 serv;
+			data>>serv;
+			servers.push_back(a);
+		}
 	}
 };
 

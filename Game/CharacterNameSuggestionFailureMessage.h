@@ -28,12 +28,27 @@ enum NicknameGeneratingFailure
 class CharacterNameSuggestionFailureMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	uint8 reason;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CHARACTER_NAME_SUGGESTION_FAILURE; }
 
-	CharacterNameSuggestionFailureMessage(uint8 reason)
+	CharacterNameSuggestionFailureMessage()
 	{
-		m_buffer<<reason;
+	}
+
+	CharacterNameSuggestionFailureMessage(uint8 reason) : reason(reason)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<reason;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>reason;
 	}
 };
 

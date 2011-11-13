@@ -18,9 +18,12 @@
 
 #include "StdAfx.h"
 
+// TODO: refaire un truc pour eviter la reecriture
+
 void Session::HandleChatClientMultiMessage(ByteBuffer& packet)
 {
-	ChatClientMultiMessage data(packet);
+	ChatClientMultiMessage data;
+	data.Deserialize(packet);
 
 	// TODO: gestion des differents timers, zones et ChatError en fonction du packet
 	switch(data.channel)
@@ -36,7 +39,8 @@ void Session::HandleChatClientMultiMessage(ByteBuffer& packet)
 
 void Session::HandleChatClientMultiWithObjectMessage(ByteBuffer& packet)
 {
-	ChatClientMultiWithObjectMessage data(packet);
+	ChatClientMultiWithObjectMessage data;
+	data.Deserialize(packet);
 
 	// idem
 	switch(data.channel)
@@ -52,7 +56,8 @@ void Session::HandleChatClientMultiWithObjectMessage(ByteBuffer& packet)
 
 void Session::HandleChatClientPrivateMessage(ByteBuffer& packet)
 {
-	ChatClientPrivateMessage data(packet);
+	ChatClientPrivateMessage data;
+	data.Deserialize(packet);
 	
 	CharacterMinimals* cm = World::Instance().GetCharacterMinimals(data.receiver);
 	if(cm == NULL || cm->onlineCharacter == NULL)
@@ -75,7 +80,8 @@ void Session::HandleChatClientPrivateMessage(ByteBuffer& packet)
 
 void Session::HandleChatClientPrivateWithObjectMessage(ByteBuffer& packet)
 {
-	ChatClientPrivateWithObjectMessage data(packet);
+	ChatClientPrivateWithObjectMessage data;
+	data.Deserialize(packet);
 
 	CharacterMinimals* cm = World::Instance().GetCharacterMinimals(data.receiver);
 	if(cm == NULL || cm->onlineCharacter == NULL)

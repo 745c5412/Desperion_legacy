@@ -29,11 +29,11 @@ public:
 	{
 	}
 
-	virtual void FromThis()
+	void Serialize(ByteBuffer& data)
 	{
 	}
 
-	virtual void Init(ByteBuffer& data)
+	void Deserialize(ByteBuffer& data)
 	{
 	}
 };

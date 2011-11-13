@@ -46,7 +46,7 @@ private:
 
 	Connection* GetFreeConnection();
 	bool SendQuery(Connection*, const char*, bool);
-	QueryResult* StoreResult(Connection*);
+	ResultPtr StoreResult(Connection*);
 	bool HandleError(Connection*, uint32);
 	bool Reconnect(Connection*);
 public:
@@ -56,7 +56,7 @@ public:
 
 	bool Init(std::string, uint16, std::string, std::string, std::string);
 
-	QueryResult* Query(const char*, ...);
+	ResultPtr Query(const char*, ...);
 	bool Execute(const char*, ...);
 	void AsyncExecute(const char*, ...);
 	bool _AsyncExecute(const char*);

@@ -22,10 +22,18 @@
 class GameContextDestroyMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return SMSG_GAME_CONTEXT_DESTROY; }
 
 	GameContextDestroyMessage()
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 	}
 };

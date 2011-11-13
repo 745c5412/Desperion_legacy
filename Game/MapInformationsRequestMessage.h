@@ -22,10 +22,18 @@
 class MapInformationsRequestMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_MAP_INFORMATIONS_REQUEST; }
 
-	MapInformationsRequestMessage(ByteBuffer& data)
+	MapInformationsRequestMessage()
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 	}
 };

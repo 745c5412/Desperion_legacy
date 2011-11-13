@@ -89,7 +89,7 @@ PlayerItem* Item::Create(int qua, bool max, Character* owner)
 		}
 	}
 	
-	QueryResult* QR = Desperion::sDatabase->Query("SELECT effects FROM item_additional_effects WHERE id=%u LIMIT 1;", m_id);
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT effects FROM item_additional_effects WHERE id=%u LIMIT 1;", m_id);
 	if(QR)
 	{
 		Field* fields = QR->Fetch();
@@ -116,7 +116,7 @@ PlayerItem* Item::Create(int qua, bool max, Character* owner)
 			effects.push_back(*it);
 		}
 	}
-	delete QR;
+	
 	
 	item->Init(PlayerItem::GetNextItemGuid(), this, qua, INVENTORY_POSITION_NOT_EQUIPED, effects, owner);
 	for(std::vector<PlayerItemEffect*>::iterator it = effects.begin(); it != effects.end(); ++it)

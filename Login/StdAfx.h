@@ -19,6 +19,14 @@
 #ifndef __STDAFX__
 #define __STDAFX__
 
+#define LOGIN_VERSION_MAJOR 0
+#define LOGIN_VERSION_MINOR 5
+#define LOGIN_VERSION_REVISION 0
+
+#define REQUIRED_SHARED_VERSION_MAJOR 0
+#define REQUIRED_SHARED_VERSION_MINOR 0
+#define REQUIRED_SHARED_VERSION_REVISION 2
+
 #include "../Shared/StdAfx.h"
 
 #include "ConfigDefaults.h"
@@ -26,6 +34,7 @@
 #include "GameServer.h"
 #include "Master.h"
 
+#include "TrustCertificate.h"
 #include "SelectedServerDataMessage.h"
 #include "IdentificationFailedMessage.h"
 #include "Version.h"

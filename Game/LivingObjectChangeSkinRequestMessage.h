@@ -26,10 +26,24 @@ public:
 	uint8 livingPosition;
 	int skinId;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_LIVING_OBJECT_CHANGE_SKIN_REQUEST; }
 
-	LivingObjectChangeSkinRequestMessage(ByteBuffer& data)
+	LivingObjectChangeSkinRequestMessage()
+	{
+	}
+
+	LivingObjectChangeSkinRequestMessage(int livingUID, uint8 livingPosition, int skinId) : livingUID(livingUID),
+		livingPosition(livingPosition), skinId(skinId)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<livingUID<<livingPosition<<skinId;
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 		data>>livingUID>>livingPosition>>skinId;
 	}

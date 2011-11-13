@@ -22,17 +22,43 @@
 class GameMapMovementMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	std::vector<int16> keyMovements;
+	int guid;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_GAME_MAP_MOVEMENT; }
 
-	GameMapMovementMessage(std::vector<int16>& keyMovements, int guid)
+	GameMapMovementMessage()
+	{
+	}
+
+	GameMapMovementMessage(std::vector<int16>& keyMovements, int guid) : keyMovements(keyMovements),
+		guid(guid)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
 	{
 		uint16 size = keyMovements.size();
-		m_buffer<<size;
+		data<<size;
 
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<keyMovements[a];
-		m_buffer<<guid;
+			data<<keyMovements[a];
+		data<<guid;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		keyMovements.clear();
+		uint16 size;
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			int16 mov;
+			data>>mov;
+			keyMovements.push_back(mov);
+		}
+		data>>guid;
 	}
 };
 

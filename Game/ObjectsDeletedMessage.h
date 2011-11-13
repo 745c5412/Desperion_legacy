@@ -22,15 +22,38 @@
 class ObjectsDeletedMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	std::vector<int> objectUIDs;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_OBJECTS_DELETED; }
 
-	ObjectsDeletedMessage(std::vector<int>& objectUIDs)
+	ObjectsDeletedMessage()
+	{
+	}
+
+	ObjectsDeletedMessage(std::vector<int>& objectUIDs) : objectUIDs(objectUIDs)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
 	{
 		uint16 size = objectUIDs.size();
-		m_buffer<<size;
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<objectUIDs[a];
+			data<<objectUIDs[a];
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		objectUIDs.clear();
+		uint16 size;
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			int obj;
+			data>>obj;
+			objectUIDs.push_back(obj);
+		}
 	}
 };
 

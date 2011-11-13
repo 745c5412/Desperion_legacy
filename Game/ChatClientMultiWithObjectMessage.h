@@ -22,19 +22,39 @@
 class ChatClientMultiWithObjectMessage : public ChatClientMultiMessage
 {
 public:
-	std::vector<ObjectItem> objects;
+	std::vector<ObjectItemPtr> objects;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_CHAT_CLIENT_MULTI_WITH_OBJECT; }
 
-	ChatClientMultiWithObjectMessage(ByteBuffer& data) : ChatClientMultiMessage(data)
+	ChatClientMultiWithObjectMessage()
 	{
+	}
+
+	ChatClientMultiWithObjectMessage(std::string content, int8 channel, std::vector<ObjectItemPtr>& objects)
+		: ChatClientMultiMessage(content, channel), objects(objects)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		ChatClientMultiMessage::Serialize(data);
+		uint16 size = objects.size();
+		data<<size;
+		for(uint16 a = 0; a < size; ++a)
+			objects[a]->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		objects.clear();
+		ChatClientMultiMessage::Deserialize(data);
 		uint16 size;
 		data>>size;
 		for(uint16 a = 0; a < size; ++a)
 		{
-			ObjectItem obj;
-			obj.Init(data);
+			ObjectItemPtr obj(new ObjectItem);
+			obj->Deserialize(data);
 			objects.push_back(obj);
 		}
 	}

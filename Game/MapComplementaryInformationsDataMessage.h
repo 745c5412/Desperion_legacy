@@ -22,26 +22,65 @@
 class MapComplementaryInformationsDataMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	int16 subareaId;
+	int mapId;
+	int8 subareaAlignmentSide;
+	std::vector<GameRolePlayActorInformationsPtr> actors;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_MAP_COMPLEMENTARY_INFORMATIONS_DATA; }
+
+	MapComplementaryInformationsDataMessage()
+	{
+	}
 
 	MapComplementaryInformationsDataMessage(int16 subareaId, int mapId, int8 subareaAlignmentSide /*, vector<HouseInformations> */,
 		std::list<DisplayableEntity*>& actors /*, vector<InteractiveElement>, vector<StatedElement>, vector<MapObstacle>,
-													  vector<FightCommonInformations>*/)
+													  vector<FightCommonInformations>*/) : subareaId(subareaId),
+		mapId(mapId), subareaAlignmentSide(subareaAlignmentSide)
 	{
-		m_buffer<<subareaId<<mapId<<subareaAlignmentSide;
-		m_buffer<<uint16(0); // sizeof(vector<HouseInformations>)
-		uint16 size = actors.size();
-		m_buffer<<size;
 		for(std::list<DisplayableEntity*>::iterator it = actors.begin(); it != actors.end(); ++it)
 		{
-			GameRolePlayActorInformationsPtr rp = (*it)->ToActor();
-			m_buffer<<rp->GetProtocol()<<*rp;
+			GameRolePlayActorInformationsPtr rp((*it)->ToActor());
+			this->actors.push_back(rp);
 		}
-		m_buffer<<uint16(0); // sizeof(vector<InteractiveElement>)
-		m_buffer<<uint16(0); // sizeof(vector<StatedElement>)
-		m_buffer<<uint16(0); // sizeof(vector<MapObstacles>)
-		m_buffer<<uint16(0); // sizeof(vector<FightCommonInformations>)
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<subareaId<<mapId<<subareaAlignmentSide;
+		data<<uint16(0); // sizeof(vector<HouseInformations>)
+		uint16 size = actors.size();
+		data<<size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			data<<actors[a]->GetProtocol();
+			actors[a]->Serialize(data);
+		}
+		data<<uint16(0); // sizeof(vector<InteractiveElement>)
+		data<<uint16(0); // sizeof(vector<StatedElement>)
+		data<<uint16(0); // sizeof(vector<MapObstacles>)
+		data<<uint16(0); // sizeof(vector<FightCommonInformations>)
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		actors.clear();
+		data>>subareaId>>mapId>>subareaAlignmentSide;
+		uint16 size;
+		data>>size;
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			uint16 protocol;
+			data>>protocol;
+			GameRolePlayActorInformationsPtr rp(Desperion::ProtocolTypeManager::GetGameRolePlayActorInformations(protocol));
+			actors.push_back(rp);
+		}
+		data>>size;
+		data>>size;
+		data>>size;
+		data>>size;
 	}
 };
 

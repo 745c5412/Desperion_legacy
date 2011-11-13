@@ -40,12 +40,30 @@ enum ChatActivableChannels
 class ChatAbstractServerMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int8 channel;
+	std::string content, fingerprint;
+	int timestamp;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CHAT_ABSTRACT_SERVER; }
 
-	ChatAbstractServerMessage(int8 channel, std::string content, int timestamp, std::string fingerprint)
+	ChatAbstractServerMessage()
 	{
-		m_buffer<<channel<<content<<timestamp<<fingerprint;
+	}
+
+	ChatAbstractServerMessage(int8 channel, std::string content, int timestamp, std::string fingerprint) : channel(channel),
+		content(content), timestamp(timestamp), fingerprint(fingerprint)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<channel<<content<<timestamp<<fingerprint;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>channel>>content>>timestamp>>fingerprint;
 	}
 };
 

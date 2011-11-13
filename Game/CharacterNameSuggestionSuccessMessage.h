@@ -22,12 +22,27 @@
 class CharacterNameSuggestionSuccessMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	std::string name;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CHARACTER_NAME_SUGGESTION_SUCCESS; }
 
-	CharacterNameSuggestionSuccessMessage(std::string name)
+	CharacterNameSuggestionSuccessMessage()
 	{
-		m_buffer<<name;
+	}
+
+	CharacterNameSuggestionSuccessMessage(std::string name) : name(name)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<name;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>name;
 	}
 };
 

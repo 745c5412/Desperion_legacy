@@ -4,12 +4,27 @@
 class BasicPongMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	bool quiet;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_BASIC_PONG; }
 
-	BasicPongMessage(bool quiet)
+	BasicPongMessage()
 	{
-		m_buffer<<quiet;
+	}
+
+	BasicPongMessage(bool quiet) : quiet(quiet)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<quiet;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>quiet;
 	}
 };
 

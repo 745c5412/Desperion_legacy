@@ -21,13 +21,11 @@
 
 class DofusMessage
 {
-protected:
-	ByteBuffer m_buffer;
 public:
-	virtual uint32 GetOpcode() const = 0;
+	virtual uint16 GetOpcode() const = 0;
 
-	const ByteBuffer& GetBuffer() const
-	{ return m_buffer; }
+	virtual void Serialize(ByteBuffer&) = 0;
+	virtual void Deserialize(ByteBuffer&) = 0;
 
 	DofusMessage()
 	{

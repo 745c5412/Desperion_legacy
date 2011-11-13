@@ -20,7 +20,7 @@
 
 template<> World * Singleton<World>::m_singleton = NULL;
 
-void World::Send(const DofusMessage& data)
+void World::Send(DofusMessage& data)
 {
 	SessionsMutex.lock();
 	for(SessionMap::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
@@ -63,17 +63,17 @@ World::~World()
 	ValueTable& classes = file->GetClassDefs();
 	for(ValueTable::iterator it = classes.begin(); it != classes.end(); ++it)
 	{
-		QueryResult* QR = Desperion::sDatabase->Query("SELECT COUNT(*) FROM d2o_%s;", D2oClassDefinition::FormatName(it->second.GetName()).c_str());
+		ResultPtr QR = Desperion::sDatabase->Query("SELECT COUNT(*) FROM d2o_%s;", D2oClassDefinition::FormatName(it->second.GetName()).c_str());
 		if(QR)
 		{
 			if(QR->Fetch()[0].GetInt32() > 0)
 			{
 				Log::Instance().outDebug("Count not null %s, continuing ...", it->second.GetName().c_str());
-				delete QR;
+				
 				return;
 			}
 		}
-		delete QR;
+		
 	}
 
 	typedef std::vector<std::pair<D2oClassDefinition, Data> > Result;
@@ -168,7 +168,7 @@ void World::Init()
 void World::LoadItems()
 {
 	uint32 time = getMSTime();
-	QueryResult* QR = Desperion::sDatabase->Query("SELECT * FROM d2o_item;");
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT * FROM d2o_item;");
 	if(!QR)
 		return;
 	do
@@ -178,7 +178,7 @@ void World::LoadItems()
 		i->Init(fields);
 		Items[i->GetId()] = i;
 	}while(QR->NextRow());
-	delete QR;
+	
 
 	QR = Desperion::sDatabase->Query("SELECT * FROM d2o_weapon;");
 	if(!QR)
@@ -190,7 +190,7 @@ void World::LoadItems()
 		w->Init(fields);
 		Items[w->GetId()] = w;
 	}while(QR->NextRow());
-	delete QR;
+	
 
 	Log::Instance().outNotice("World", "%u items loaded in %ums!", Items.size(), getMSTime() - time);
 }
@@ -198,7 +198,7 @@ void World::LoadItems()
 void World::LoadItemSets()
 {
 	uint32 time = getMSTime();
-	QueryResult* QR = Desperion::sDatabase->Query("SELECT id, effects FROM d2o_item_set;");
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT id, effects FROM d2o_item_set;");
 	if(!QR)
 		return;
 	do
@@ -208,14 +208,14 @@ void World::LoadItemSets()
 		i->Init(fields);
 		ItemSets[i->GetId()] = i;
 	}while(QR->NextRow());
-	delete QR;
+	
 	Log::Instance().outNotice("World", "%u item sets loaded in %ums!", ItemSets.size(), getMSTime() - time);
 }
 
 void World::LoadMaps()
 {
 	uint32 time = getMSTime();
-	QueryResult* QR = Desperion::sDatabase->Query("SELECT * FROM maps JOIN d2o_map_position ON maps.id = d2o_map_position.id;");
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT * FROM maps JOIN d2o_map_position ON maps.id = d2o_map_position.id;");
 	if(!QR)
 		return;
 	do
@@ -225,14 +225,14 @@ void World::LoadMaps()
 		map->Init(fields);
 		Maps[map->GetId()] = map;
 	}while(QR->NextRow());
-	delete QR;
+	
 	Log::Instance().outNotice("World", "%u maps loaded in %ums!", Maps.size(), getMSTime() - time);
 }
 
 void World::LoadCharacterMinimals()
 {
 	uint32 time = getMSTime();
-	QueryResult* QR = Desperion::sDatabase->Query("SELECT * FROM character_minimals ORDER BY id DESC;");
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT * FROM character_minimals ORDER BY id DESC;");
 	if(!QR)
 		return;
 	do
@@ -242,7 +242,7 @@ void World::LoadCharacterMinimals()
 		ch->Init(fields);
 		Characters[ch->id] = ch;
 	}while(QR->NextRow());
-	delete QR;
+	
 	m_hiCharacterGuid = Characters.begin()->second->id;
 
 	Log::Instance().outNotice("World", "%u character minimals loaded in %ums!", Characters.size(), getMSTime() - time);

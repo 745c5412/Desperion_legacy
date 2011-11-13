@@ -30,7 +30,7 @@ struct GamePacketHandler
 	}
 };
 
-class GameSession : public BaseSession<GamePacketHandler>
+class GameSession : public AbstractSession<GamePacketHandler>
 {
 private:
 	GameServer* m_server;

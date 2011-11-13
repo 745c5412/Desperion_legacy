@@ -22,19 +22,46 @@
 class InventoryContentMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	std::vector<ObjectItemPtr> objects;
+	int kamas;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_INVENTORY_CONTENT; }
 
-	InventoryContentMessage(const std::list<PlayerItem*>& items, int kamas)
+	InventoryContentMessage()
 	{
-		uint16 size = items.size();
-		m_buffer<<size;
+	}
+
+	InventoryContentMessage(const std::list<PlayerItem*>& items, int kamas) : kamas(kamas)
+	{
 		for(std::list<PlayerItem*>::const_iterator it = items.begin(); it != items.end(); ++it)
 		{
-			ObjectItem obj(*it);
-			m_buffer<<obj;
+			ObjectItemPtr obj(new ObjectItem(*it));
+			objects.push_back(obj);
 		}
-		m_buffer<<kamas;
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		uint16 size = objects.size();
+		data<<size;
+		for(uint16 a = 0; a < size; ++a)
+			objects[a]->Serialize(data);
+		data<<kamas;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		objects.clear();
+		uint16 size;
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			ObjectItemPtr obj(new ObjectItem);
+			obj->Deserialize(data);
+			objects.push_back(obj);
+		}
+		data>>kamas;
 	}
 };
 

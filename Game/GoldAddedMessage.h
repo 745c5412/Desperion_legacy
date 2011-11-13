@@ -22,12 +22,24 @@
 class GoldAddedMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	GoldItemPtr gold;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_GOLD_ADDED; }
 
-	GoldAddedMessage(int sum)
+	GoldAddedMessage(int sum) : gold(new GoldItem(sum))
 	{
-		m_buffer<<GoldItem(sum);
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		gold->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		gold.reset(new GoldItem);
+		gold->Deserialize(data);
 	}
 };
 

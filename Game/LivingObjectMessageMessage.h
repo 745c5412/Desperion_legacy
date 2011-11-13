@@ -22,12 +22,30 @@
 class LivingObjectMessageMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int16 msgId;
+	uint32 timestamp, objectGenericId;
+	std::string owner;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_LIVING_OBJECT_MESSAGE; }
 
-	LivingObjectMessageMessage(int16 msgId, uint32 timestamp, std::string owner, uint32 objectGenericId)
+	LivingObjectMessageMessage()
 	{
-		m_buffer<<msgId<<timestamp<<owner<<objectGenericId;
+	}
+
+	LivingObjectMessageMessage(int16 msgId, uint32 timestamp, std::string owner, uint32 objectGenericId)
+		: msgId(msgId), timestamp(timestamp), owner(owner), objectGenericId(objectGenericId)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<msgId<<timestamp<<owner<<objectGenericId;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>msgId>>timestamp>>owner>>objectGenericId;
 	}
 };
 

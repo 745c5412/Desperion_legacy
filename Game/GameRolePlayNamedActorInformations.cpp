@@ -17,13 +17,7 @@
 */
 
 #include "StdAfx.h"
-
-GameRolePlayNamedActorInformations::GameRolePlayNamedActorInformations(NamedEntity* ent, Character* ch) : GameRolePlayActorInformations(ent, ch)
+GameRolePlayNamedActorInformations::GameRolePlayNamedActorInformations(NamedEntity* ent) : GameRolePlayActorInformations(ent),
+	name(ent->GetName())
 {
-	m_buffer<<ent->GetName();
-}
-
-GameRolePlayNamedActorInformations::GameRolePlayNamedActorInformations(NamedEntity* ent) : GameRolePlayActorInformations(ent)
-{
-	m_buffer<<ent->GetName();
 }

@@ -22,15 +22,38 @@
 class ServersListMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	std::vector<GameServerInformationsPtr> servers;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_SERVERS_LIST; }
 
-	ServersListMessage(std::vector<GameServerInformations>& servers)
+	ServersListMessage()
+	{
+	}
+
+	ServersListMessage(std::vector<GameServerInformationsPtr>& servers) : servers(servers)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
 	{
 		uint16 size = servers.size();
-		m_buffer<<size;
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<servers[a];
+			servers[a]->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		servers.clear();
+		uint16 size;
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			GameServerInformationsPtr server(new GameServerInformations);
+			server->Deserialize(data);
+			servers.push_back(server);
+		}
 	}
 };
 

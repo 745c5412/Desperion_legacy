@@ -37,16 +37,16 @@ public:
 	
 	ObjectEffectMount(PlayerItemEffectMount*);
 	
-	virtual void FromThis()
+	virtual void Serialize(ByteBuffer& data)
 	{
-		ObjectEffect::FromThis();
-		m_buffer<<mountId<<date<<modelId;
+		ObjectEffect::Serialize(data);
+		data<<mountId<<date<<modelId;
 	}
 	
-	virtual void Init(ByteBuffer& data)
+	virtual void Deserialize(ByteBuffer& data)
 	{
-		ObjectEffect::Init(data);
-		m_buffer>>mountId>>date>>modelId;
+		ObjectEffect::Deserialize(data);
+		data>>mountId>>date>>modelId;
 	}
 };
 

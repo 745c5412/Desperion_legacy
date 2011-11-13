@@ -22,12 +22,27 @@
 class AcquaintanceSearchErrorMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	uint8 reason;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_ACQUAINTANCE_SEARCH_ERROR; }
 
-	AcquaintanceSearchErrorMessage(uint8 reason)
+	AcquaintanceSearchErrorMessage()
 	{
-		m_buffer<<reason;
+	}
+
+	AcquaintanceSearchErrorMessage(uint8 reason) : reason(reason)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<reason;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>reason;
 	}
 };
 

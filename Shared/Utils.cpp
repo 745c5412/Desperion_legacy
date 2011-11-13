@@ -23,13 +23,20 @@ using namespace std;
 namespace Desperion
 {
 	
-	void SetApplicationTitle(std::string title) // changer le titre de la console
+	void SetApplicationTitle(const char* str, ...) // changer le titre de la console
 	{
+		char title[255];
+		va_list vlist;
+		va_start(vlist, str);
+		vsnprintf(title, 255, str, vlist);
+		va_end(vlist);
+
 	#ifdef _WIN32
-		title = "TITLE " + title;
-		system(title.c_str());
+		char command[255 + 6] = "TITLE ";
+		strcat(command, title);
+		system(command);
 	#else
-		printf("\033]0;%s\007", title.c_str());
+		printf("\033]0;%s\007", title);
 	#endif
 	}
 

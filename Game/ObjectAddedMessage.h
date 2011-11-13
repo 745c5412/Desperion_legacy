@@ -22,12 +22,28 @@
 class ObjectAddedMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	ObjectItemPtr item;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_OBJECT_ADDED; }
 
-	ObjectAddedMessage(ObjectItem item)
+	ObjectAddedMessage()
 	{
-		m_buffer<<item;
+	}
+
+	ObjectAddedMessage(ObjectItemPtr item) : item(item)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		item->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		item.reset(new ObjectItem);
+		item->Deserialize(data);
 	}
 };
 

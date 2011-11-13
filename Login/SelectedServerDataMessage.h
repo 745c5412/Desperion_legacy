@@ -22,12 +22,30 @@
 class SelectedServerDataMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	uint16 id, port;
+	std::string ip, ticket;
+	bool canCreateNewCharacter;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_SELECTED_SERVER_DATA; }
 
-	SelectedServerDataMessage(uint16 id, std::string ip, uint16 port, bool canCreateNewCharacter, std::string& ticket)
+	SelectedServerDataMessage()
 	{
-		m_buffer<<id<<ip<<port<<canCreateNewCharacter<<ticket;
+	}
+
+	SelectedServerDataMessage(uint16 id, std::string ip, uint16 port, bool canCreateNewCharacter, std::string ticket) : id(id),
+		ip(ip), port(port), canCreateNewCharacter(canCreateNewCharacter), ticket(ticket)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<id<<ip<<port<<canCreateNewCharacter<<ticket;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>id>>ip>>port>>canCreateNewCharacter>>ticket;
 	}
 };
 

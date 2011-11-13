@@ -22,12 +22,24 @@
 class ServerStatusUpdateMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	GameServerInformationsPtr infos;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_SERVER_STATUS_UPDATE; }
 
-	ServerStatusUpdateMessage(GameServerInformations infos)
+	ServerStatusUpdateMessage(GameServerInformations* infos) : infos(infos)
 	{
-		m_buffer<<infos;
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		infos->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		infos.reset(new GameServerInformations);
+		infos->Deserialize(data);
 	}
 };
 

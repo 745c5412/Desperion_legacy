@@ -18,7 +18,6 @@
 
 #include "StdAfx.h"
 
-ObjectEffectMinMax::ObjectEffectMinMax(PlayerItemEffectMinMax* effect) : ObjectEffect(effect)
+ObjectEffectMinMax::ObjectEffectMinMax(PlayerItemEffectMinMax* effect) : ObjectEffect(effect), min(effect->min), max(effect->max)
 {
-	m_buffer<<effect->min<<effect->max;
 }

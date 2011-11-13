@@ -22,12 +22,29 @@
 class CharacterSelectedSuccessMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	CharacterBaseInformationsPtr infos;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CHARACTER_SELECTED_SUCCESS; }
 
-	CharacterSelectedSuccessMessage(CharacterMinimals* ch)
+	CharacterSelectedSuccessMessage()
 	{
-		m_buffer<<CharacterBaseInformations(ch->id, ch->level, ch->name, ch->look, ch->onlineCharacter, ch->breed, ch->sex);
+	}
+
+	CharacterSelectedSuccessMessage(CharacterMinimals* ch)
+		: infos(new CharacterBaseInformations(ch->id, ch->level, ch->name, EntityLookPtr(ch->GetLook()), ch->breed, ch->sex))
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		infos->Serialize(data);
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		infos.reset(new CharacterBaseInformations);
+		infos->Deserialize(data);
 	}
 };
 

@@ -18,12 +18,7 @@
 
 #include "StdAfx.h"
 
-CharacterMinimalPlusLookInformations::CharacterMinimalPlusLookInformations(int id, uint8 level, std::string name, DEntityLook& look) : CharacterMinimalInformations(id, level, name)
+CharacterMinimalPlusLookInformations::CharacterMinimalPlusLookInformations(int id, uint8 level, std::string name, EntityLookPtr look)
+	: CharacterMinimalInformations(id, level, name), look(look)
 {
-	m_buffer<<EntityLook(look, id);
-}
-
-CharacterMinimalPlusLookInformations::CharacterMinimalPlusLookInformations(int id, uint8 level, std::string name, DEntityLook& look, Character* ch) : CharacterMinimalInformations(id, level, name)
-{
-	m_buffer<<EntityLook(look, ch);
 }

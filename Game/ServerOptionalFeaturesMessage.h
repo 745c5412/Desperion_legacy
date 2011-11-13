@@ -22,15 +22,38 @@
 class ServerOptionalFeaturesMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	std::vector<int16> features;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_SERVER_OPTIONAL_FEATURES; }
 
-	ServerOptionalFeaturesMessage(std::vector<int16>& features)
+	ServerOptionalFeaturesMessage()
+	{
+	}
+
+	ServerOptionalFeaturesMessage(std::vector<int16>& features) : features(features)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
 	{
 		uint16 size = features.size();
-		m_buffer<<size;
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<features[a];
+			data<<features[a];
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		features.clear();
+		uint16 size;
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			int16 feature;
+			data>>feature;
+			features.push_back(feature);
+		}
 	}
 };
 

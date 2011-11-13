@@ -22,23 +22,65 @@
 class ConsoleCommandsListMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	std::vector<std::string> aliases;
+	std::vector<std::string> arguments;
+	std::vector<std::string> descriptions;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CONSOLE_COMMANDS_LIST; }
 
+	ConsoleCommandsListMessage()
+	{
+	}
+
 	ConsoleCommandsListMessage(std::vector<std::string>& aliases, std::vector<std::string>& arguments, std::vector<std::string>& descriptions)
+		: aliases(aliases), arguments(arguments), descriptions(descriptions)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
 	{
 		uint16 size = aliases.size();
-		m_buffer<<size;
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<aliases[a];
+			data<<aliases[a];
 		size = arguments.size();
-		m_buffer<<size;
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<arguments[a];
+			data<<arguments[a];
 		size = descriptions.size();
-		m_buffer<<size;
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<descriptions[a];
+			data<<descriptions[a];
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		aliases.clear();
+		arguments.clear();
+		descriptions.clear();
+		uint16 size;
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			std::string alias;
+			data>>alias;
+			aliases.push_back(alias);
+		}
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			std::string arg;
+			data>>arg;
+			arguments.push_back(arg);
+		}
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			std::string desc;
+			data>>desc;
+			descriptions.push_back(desc);
+		}
 	}
 };
 

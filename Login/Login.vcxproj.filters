@@ -89,6 +89,9 @@
     <ClInclude Include="IdentificationWithServerIdMessage.h">
       <Filter>Messages</Filter>
     </ClInclude>
+    <ClInclude Include="TrustCertificate.h">
+      <Filter>Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Network">

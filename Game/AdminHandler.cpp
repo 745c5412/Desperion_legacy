@@ -272,7 +272,8 @@ void Session::HandleAdminCommandMessage(ByteBuffer& packet)
 {
 	if(m_data[FLAG_LEVEL].intValue < 1)
 		throw ServerError("Unauthorized access");
-	AdminCommandMessage data(packet);
+	AdminCommandMessage data;
+	data.Deserialize(packet);
 	HandleAdminCommand(data.content, false);
 }
 
@@ -280,6 +281,7 @@ void Session::HandleAdminQuietCommandMessage(ByteBuffer& packet)
 {
 	if(m_data[FLAG_LEVEL].intValue < 1)
 		throw ServerError("Unauthorized access");
-	AdminQuietCommandMessage data(packet);
+	AdminQuietCommandMessage data;
+	data.Deserialize(packet);
 	HandleAdminCommand(data.content, true);
 }

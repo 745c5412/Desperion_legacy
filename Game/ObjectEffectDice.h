@@ -35,15 +35,15 @@ public:
 
 	ObjectEffectDice(PlayerItemEffectDice*);
 
-	virtual void FromThis()
+	virtual void Serialize(ByteBuffer& data)
 	{
-		ObjectEffect::FromThis();
-		m_buffer<<diceNum<<diceSide<<diceConst;
+		ObjectEffect::Serialize(data);
+		data<<diceNum<<diceSide<<diceConst;
 	}
 
-	virtual void Init(ByteBuffer& data)
+	virtual void Deserialize(ByteBuffer& data)
 	{
-		ObjectEffect::Init(data);
+		ObjectEffect::Deserialize(data);
 		data>>diceNum>>diceSide>>diceConst;
 	}
 };

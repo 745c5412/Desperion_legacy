@@ -22,12 +22,28 @@
 class GameRolePlayNamedActorInformations : public GameRolePlayActorInformations
 {
 public:
+	std::string name;
+
 	virtual uint16 GetProtocol() const
 	{ return GAME_ROLE_PLAY_NAMED_ACTOR_INFORMATIONS; }
 
-	GameRolePlayNamedActorInformations(NamedEntity* ent, Character* ch);
+	GameRolePlayNamedActorInformations()
+	{
+	}
 
 	GameRolePlayNamedActorInformations(NamedEntity* ent);
+
+	void Serialize(ByteBuffer& data)
+	{
+		GameRolePlayActorInformations::Serialize(data);
+		data<<name;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		GameRolePlayActorInformations::Deserialize(data);
+		data>>name;
+	}
 };
 
 #endif

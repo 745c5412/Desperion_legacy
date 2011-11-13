@@ -24,10 +24,23 @@ class ObjectUseMessage : public DofusMessage
 public:
 	int objectUID;
 
-	virtual uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_OBJECT_USE; }
 
-	ObjectUseMessage(ByteBuffer& data)
+	ObjectUseMessage()
+	{
+	}
+
+	ObjectUseMessage(int objectUID) : objectUID(objectUID)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<objectUID;
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 		data>>objectUID;
 	}

@@ -24,10 +24,23 @@ class AcquaintanceSearchMessage : public DofusMessage
 public:
 	std::string nickName;
 
-	uint32 GetOpcode() const
+	virtual uint16 GetOpcode() const
 	{ return CMSG_ACQUAINTANCE_SEARCH; }
 
-	AcquaintanceSearchMessage(ByteBuffer& data)
+	AcquaintanceSearchMessage()
+	{
+	}
+
+	AcquaintanceSearchMessage(std::string nickName) : nickName(nickName)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<nickName;
+	}
+
+	void Deserialize(ByteBuffer& data)
 	{
 		data>>nickName;
 	}

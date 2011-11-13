@@ -22,12 +22,27 @@
 class GameContextCreateMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	int8 context;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_GAME_CONTEXT_CREATE; }
 
-	GameContextCreateMessage(int8 context)
+	GameContextCreateMessage()
 	{
-		m_buffer<<context;
+	}
+
+	GameContextCreateMessage(int8 context) : context(context)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<context;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>context;
 	}
 };
 

@@ -22,22 +22,60 @@
 class SetUpdateMessage : public DofusMessage
 {
 public:
-	virtual uint32 GetOpcode() const
+	int16 setId;
+	std::vector<int16> setObjects;
+	std::vector<ObjectEffectPtr> setEffects;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_SET_UPDATE; }
 
 	SetUpdateMessage(int16 setId, std::vector<int16>& setObjects, const std::vector<EffectInstance*>& setEffects)
+		: setId(setId), setObjects(setObjects)
 	{
-		m_buffer<<setId;
+		for(std::vector<EffectInstance*>::const_iterator it = setEffects.begin(); it != setEffects.end(); ++it)
+		{
+			ObjectEffectPtr obj((*it)->ToPlayerItemEffect()->ToObjectEffect());
+			this->setEffects.push_back(obj);
+		}
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<setId;
 		uint16 size = setObjects.size();
-		m_buffer<<size;
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
-			m_buffer<<setObjects[a];
+			data<<setObjects[a];
 		size = setEffects.size();
-		m_buffer<<size;
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
 		{
-			ObjectEffectPtr e = setEffects[a]->ToPlayerItemEffect()->ToObjectEffect();
-			m_buffer<<e->GetProtocol()<<*e;
+			data<<setEffects[a]->GetProtocol();
+			setEffects[a]->Serialize(data);
+		}
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		setObjects.clear();
+		setEffects.clear();
+		data>>setId;
+		uint16 size;
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			int16 obj;
+			data>>obj;
+			setObjects.push_back(obj);
+		}
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			uint16 protocol;
+			data>>protocol;
+			ObjectEffectPtr obj(Desperion::ProtocolTypeManager::GetObjectEffect(protocol));
+			obj->Deserialize(data);
+			setEffects.push_back(obj);
 		}
 	}
 };

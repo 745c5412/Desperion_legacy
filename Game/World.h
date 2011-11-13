@@ -48,7 +48,7 @@ public:
 	void AddSession(Session*);
 	void DeleteSession(int);
 	Session* GetSession(int);
-	void Send(const DofusMessage&);
+	void Send(DofusMessage&);
 
 	Map* GetMap(int);
 	Map* GetMap(int16, int16);

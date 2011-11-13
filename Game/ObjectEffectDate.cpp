@@ -18,7 +18,7 @@
 
 #include "StdAfx.h"
 
-ObjectEffectDate::ObjectEffectDate(PlayerItemEffectDate* effect) : ObjectEffect(effect)
+ObjectEffectDate::ObjectEffectDate(PlayerItemEffectDate* effect) : ObjectEffect(effect),
+	year(effect->year), month(effect->month), day(effect->day), hour(effect->hour), minute(effect->minute)
 {
-	m_buffer<<effect->year<<effect->month<<effect->day<<effect->hour<<effect->minute;
 }

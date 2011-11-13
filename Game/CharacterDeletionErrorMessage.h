@@ -30,12 +30,27 @@ enum CharacterDeletionError
 class CharacterDeletionErrorMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	uint8 reason;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_CHARACTER_DELETION_ERROR; }
 
-	CharacterDeletionErrorMessage(uint8 reason)
+	CharacterDeletionErrorMessage()
 	{
-		m_buffer<<reason;
+	}
+
+	CharacterDeletionErrorMessage(uint8 reason) : reason(reason)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<reason;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>reason;
 	}
 };
 

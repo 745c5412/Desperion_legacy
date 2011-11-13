@@ -18,7 +18,6 @@
 
 #include "StdAfx.h"
 
-ObjectEffectString::ObjectEffectString(PlayerItemEffectString* effect) : ObjectEffect(effect)
+ObjectEffectString::ObjectEffectString(PlayerItemEffectString* effect) : ObjectEffect(effect), value(effect->value)
 {
-	m_buffer<<effect->value;
 }

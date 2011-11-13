@@ -19,19 +19,7 @@
 #ifndef __CHARACTER_MINIMALS__
 #define __CHARACTER_MINIMALS__
 
-struct DEntityLook;
 class Character;
-
-struct DSubEntity
-{
-	int8 bindingPointCategory;
-	int8 bindingPointIndex;
-	DEntityLook* subEntityLook;
-
-	void Init(ByteBuffer& buffer);
-	ByteBuffer Serialize() const;
-	~DSubEntity();
-};
 
 struct DEntityLook
 {
@@ -39,47 +27,47 @@ struct DEntityLook
 	std::vector<int16> skins;
 	std::vector<int> indexedColors;
 	std::vector<int16> scales;
-	std::vector<DSubEntity> subentities;
 
-	void Init(ByteBuffer& buffer)
+	void Init(std::string str)
 	{
-		buffer>>bonesId;
-		uint16 size;
-		buffer>>size;
-		for(int a = 0; a < size; ++a)
-		{
-			int16 skin;
-			buffer>>skin;
-			skins.push_back(skin);
-		}
-		buffer>>size;
-		for(int a = 0; a < size; ++a)
-		{
-			int color;
-			buffer>>color;
-			indexedColors.push_back(color);
-		}
-		buffer>>size;
-		for(int a = 0; a < size; ++a)
-		{
-			int16 scale;
-			buffer>>scale;
-			scales.push_back(scale);
-		}
-		buffer>>size;
-		for(int a = 0; a < size; ++a)
-		{
-			DSubEntity sub;
-			sub.Init(buffer);
-			subentities.push_back(sub);
-		}
+		std::vector<std::string> table;
+		Desperion::FastSplitString<';'>(table, str, true);
+
+		bonesId = atoi(table.at(0).c_str());
+		Desperion::FastSplit<','>(skins, table[1], Desperion::SplitInt, true);
+		Desperion::FastSplit<','>(indexedColors, table[2], Desperion::SplitInt, true);
+		Desperion::FastSplit<','>(scales, table[3], Desperion::SplitInt, true);
 	}
 
-	std::vector<int16> GetSkins() const;
-	ByteBuffer Serialize(int) const;
-	ByteBuffer Serialize(Character*) const;
-	ByteBuffer Serialize(const std::vector<int16>&, const std::vector<int16>&) const;
+	std::string ToString()
+	{
+		std::ostringstream str;
+		str<<bonesId<<";";
+		for(size_t a = 0; a < skins.size(); ++a)
+		{
+			if(a != 0)
+				str<<",";
+			str<<skins[a];
+		}
+		str<<";";
+		for(size_t a = 0; a < indexedColors.size(); ++a)
+		{
+			if(a != 0)
+				str<<",";
+			str<<indexedColors[a];
+		}
+		str<<";";
+		for(size_t a = 0; a < scales.size(); ++a)
+		{
+			if(a != 0)
+				str<<",";
+			str<<scales[a];
+		}
+		return str.str();
+	}
 };
+
+class EntityLook;
 
 struct CharacterMinimals
 {
@@ -92,19 +80,19 @@ struct CharacterMinimals
 	int account;
 	Character* onlineCharacter;
 
+	EntityLook* GetLook() const;
+
 	void Init(Field* fields)
 	{
 		id = fields[0].GetInt32();
 		level = fields[1].GetUInt8();
 		name = fields[2].GetString();
-		look.Init(Desperion::DbToBuffer(fields[3].GetString()));
+		look.Init(fields[3].GetString());
 		breed = fields[4].GetInt8();
 		sex = fields[5].GetBool();
 		account = fields[6].GetInt32();
 		onlineCharacter = NULL;
 	}
-
-	ByteBuffer Serialize() const;
 };
 
 #endif

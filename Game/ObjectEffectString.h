@@ -35,16 +35,16 @@ public:
 	
 	ObjectEffectString(PlayerItemEffectString*);
 	
-	virtual void FromThis()
+	virtual void Serialize(ByteBuffer& data)
 	{
-		ObjectEffect::FromThis();
-		m_buffer<<value;
+		ObjectEffect::Serialize(data);
+		data<<value;
 	}
 	
-	virtual void Init(ByteBuffer& data)
+	virtual void Deserialize(ByteBuffer& data)
 	{
-		ObjectEffect::Init(data);
-		m_buffer>>value;
+		ObjectEffect::Deserialize(data);
+		data>>value;
 	}
 };
 

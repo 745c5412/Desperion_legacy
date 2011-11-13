@@ -19,12 +19,10 @@
 #ifndef __PACKET__
 #define __PACKET__
 
-class Packet : public ByteBuffer
+class Packet
 {
-private:
-	uint32 m_opcode;
 public:
-	uint16 ComputeTypeLen(size_t size) const
+	static uint8 ComputeTypeLen(size_t size)
 	{
 		if(size > 0xffff)
 			return 3;
@@ -36,36 +34,28 @@ public:
 			return 0;
 	}
 
-	Packet(uint32 opcode)
+	static void Pack(uint16 opcode, ByteBuffer& dest, ByteBuffer& src)
 	{
-		m_opcode = opcode;
-	}
-
-	ByteBuffer Pack() const
-	{
-		size_t size = Size();
-		uint16 compute = ComputeTypeLen(size);
-		ByteBuffer buffer;
-		uint16 value = (m_opcode << 2) | compute;
-		buffer<<value;
+		size_t size = src.Size();
+		uint8 compute = ComputeTypeLen(size);
+		uint16 value = (opcode << 2) | compute;
+		dest<<value;
 		switch(compute)
 		{
 		case 1:
-			buffer<<uint8(size);
+			dest<<uint8(size);
 			break;
 		case 2:
-			buffer<<uint16(size);
+			dest<<uint16(size);
 			break;
 		case 3:
 			uint8 num2 = (size >> 0x10) & 0xff;
             uint16 num3 = size & 0xffff;
-			buffer<<uint8(num2);
-			buffer<<uint16(num3);
+			dest<<num2<<num3;
 			break;
 		}
 		if(size > 0)
-			buffer.AppendBytes(Contents(), size);
-		return buffer;
+			dest.AppendBytes(src.Contents(), size);
 	}
 };
 

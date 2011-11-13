@@ -59,19 +59,12 @@ struct LoginPacketHandler
 
 inline static bool VerifyVersion(Version& v)
 {
-	uint8 currentMajor = 2;
-	uint8 currentMinor = 4;
-	uint8 currentRelease = 6;
-	uint16 currentRevision = 51301;
-	uint8 currentPatch = 1;
-	uint8 currentBuildType = 0;
-
-	return v.major == currentMajor
-		&& v.minor == currentMinor
-		&& v.release == currentRelease
-		&& v.rev == currentRevision
-		&& v.patch == currentPatch
-		&& v.buildType == currentBuildType;
+	return v.major == DOFUS_VERSION_MAJOR
+		&& v.minor == DOFUS_VERSION_MINOR
+		&& v.release == DOFUS_VERSION_RELEASE
+		&& v.rev == DOFUS_VERSION_REVISION
+		&& v.patch == DOFUS_VERSION_PATCH
+		&& v.buildType == DOFUS_VERSION_BUILD_TYPE;
 }
 
 inline static std::string GenerateRandomKey()
@@ -84,7 +77,7 @@ inline static std::string GenerateRandomKey()
 	return result;
 }
 
-class Session : public BaseSession<LoginPacketHandler>
+class Session : public AbstractSession<LoginPacketHandler>
 {
 private:
 	AccountData m_data[FLAGS_NUMBER];
@@ -160,7 +153,7 @@ public:
 	time_t GetSubscriptionEnd() const
 	{ return m_subscriptionEnd; }
 
-	GameServerInformations GetServerStatusMessage(const GameServer*, uint8);
+	GameServerInformations* GetServerStatusMessage(const GameServer*, uint8);
 };
 
 #endif

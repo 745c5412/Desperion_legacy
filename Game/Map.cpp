@@ -74,7 +74,7 @@ void Map::AddActor(DisplayableEntity* actor)
 	Send(GameRolePlayShowActorMessage(actor), actor->GetGuid());
 }
 
-void Map::Send(const DofusMessage& data, int guid)
+void Map::Send(DofusMessage& data, int guid)
 {
 	for(std::list<DisplayableEntity*>::iterator it = m_actors.begin(); it != m_actors.end(); ++it)
 	{

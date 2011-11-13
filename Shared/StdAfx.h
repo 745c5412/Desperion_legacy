@@ -19,6 +19,20 @@
 #ifndef __SHARED_STDAFX__
 #define __SHARED_STDAFX__
 
+#define PROTOCOL_BUILD 1413
+#define PROTOCOL_REQUIRED_BUILD 1413
+
+#define SHARED_VERSION_MAJOR 0
+#define SHARED_VERSION_MINOR 0
+#define SHARED_VERSION_REVISION 2
+
+#define DOFUS_VERSION_MAJOR 2
+#define DOFUS_VERSION_MINOR 4
+#define DOFUS_VERSION_RELEASE 6
+#define DOFUS_VERSION_REVISION 51895
+#define DOFUS_VERSION_PATCH 1
+#define DOFUS_VERSION_BUILD_TYPE 0
+
 #include "Common.h"
 
 #include "Singleton.h"
@@ -41,6 +55,6 @@
 #include "ProgressBar.h"
 #include "DofusMessage.h"
 #include "DofusModel.h"
-#include "BaseSession.h"
+#include "AbstractSession.h"
 
 #endif

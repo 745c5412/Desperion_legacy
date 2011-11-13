@@ -18,14 +18,7 @@
 
 #include "StdAfx.h"
 
-CharacterBaseInformations::CharacterBaseInformations(int id, uint8 level, std::string name, DEntityLook& look, int8 breed, bool sex)
-		: CharacterMinimalPlusLookInformations(id, level, name, look)
+CharacterBaseInformations::CharacterBaseInformations(int id, uint8 level, std::string name, EntityLookPtr look, int8 breed, bool sex)
+		: CharacterMinimalPlusLookInformations(id, level, name, look), breed(breed), sex(sex)
 {
-	m_buffer<<breed<<sex;
-}
-
-CharacterBaseInformations::CharacterBaseInformations(int id, uint8 level, std::string name, DEntityLook& look, Character* ch, int8 breed, bool sex)
-	: CharacterMinimalPlusLookInformations(id, level, name, look, ch)
-{
-	m_buffer<<breed<<sex;
 }

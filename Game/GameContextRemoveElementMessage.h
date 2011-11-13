@@ -22,12 +22,27 @@
 class GameContextRemoveElementMessage : public DofusMessage
 {
 public:
-	uint32 GetOpcode() const
+	int id;
+
+	virtual uint16 GetOpcode() const
 	{ return SMSG_GAME_CONTEXT_REMOVE_ELEMENT; }
 
-	GameContextRemoveElementMessage(int id)
+	GameContextRemoveElementMessage()
 	{
-		m_buffer<<id;
+	}
+
+	GameContextRemoveElementMessage(int id) : id(id)
+	{
+	}
+
+	void Serialize(ByteBuffer& data)
+	{
+		data<<id;
+	}
+
+	void Deserialize(ByteBuffer& data)
+	{
+		data>>id;
 	}
 };
 

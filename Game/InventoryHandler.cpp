@@ -20,7 +20,8 @@
 
 void Session::HandleLivingObjectChangeSkinRequestMessage(ByteBuffer& packet)
 {
-	LivingObjectChangeSkinRequestMessage data(packet);
+	LivingObjectChangeSkinRequestMessage data;
+	data.Deserialize(packet);
 
 	PlayerItem* item = m_char->GetItem(data.livingUID);
 	if(item == NULL)
@@ -35,14 +36,15 @@ void Session::HandleLivingObjectChangeSkinRequestMessage(ByteBuffer& packet)
 	item->DeleteEffect(972);
 	item->AddEffect(new PlayerItemEffectInteger(972, data.skinId));
 
-	Send(ObjectModifiedMessage(ObjectItem(item)));
+	Send(ObjectModifiedMessage(ObjectItemPtr(new ObjectItem(item))));
 	if(item->GetPos() != INVENTORY_POSITION_NOT_EQUIPED)
-		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLook(m_char->GetLook(), m_char)));
+		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
 }
 
 void Session::HandleLivingObjectDissociateMessage(ByteBuffer& packet)
 {
-	LivingObjectDissociateMessage data(packet);
+	LivingObjectDissociateMessage data;
+	data.Deserialize(packet);
 
 	PlayerItem* item = m_char->GetItem(data.livingUID);
 	if(item == NULL || item->GetPos() == INVENTORY_POSITION_NOT_EQUIPED)
@@ -91,13 +93,14 @@ void Session::HandleLivingObjectDissociateMessage(ByteBuffer& packet)
 		item->DeleteEffect(983);
 		item->DeleteEffect(970);
 
-		Send(ObjectModifiedMessage(ObjectItem(item)));
-		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLook(m_char->GetLook(), m_char)));
+		Send(ObjectModifiedMessage(ObjectItemPtr(new ObjectItem(item))));
+		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
 }
 
 void Session::HandleLivingObjectMessageRequestMessage(ByteBuffer& packet)
 {
-	LivingObjectMessageRequestMessage data(packet);
+	LivingObjectMessageRequestMessage data;
+	data.Deserialize(packet);
 
 	PlayerItem* item = m_char->GetItem(data.livingObject);
 	if(item == NULL)
@@ -108,7 +111,8 @@ void Session::HandleLivingObjectMessageRequestMessage(ByteBuffer& packet)
  
 void Session::HandleObjectFeedMessage(ByteBuffer& packet)
 {
-	ObjectFeedMessage data(packet);
+	ObjectFeedMessage data;
+	data.Deserialize(packet);
 	
 	PlayerItem* obvi = m_char->GetItem(data.objectUID),
 		* food = m_char->GetItem(data.foodUID);
@@ -164,12 +168,13 @@ void Session::HandleObjectFeedMessage(ByteBuffer& packet)
 	struct tm* tm = localtime(&t);
 	obvi->DeleteEffect(808);
 	obvi->AddEffect(new PlayerItemEffectDate(808, tm->tm_year, tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min));
-	Send(ObjectModifiedMessage(ObjectItem(obvi)));
+	Send(ObjectModifiedMessage(ObjectItemPtr(new ObjectItem(obvi))));
 }
 
 void Session::HandleObjectDeleteMessage(ByteBuffer& packet)
 {
-	ObjectDeleteMessage data(packet);
+	ObjectDeleteMessage data;
+	data.Deserialize(packet);
 
 	PlayerItem* item = m_char->GetItem(data.objectUID);
 	if(item == NULL || item->GetQuantity() < data.quantity)
@@ -194,14 +199,15 @@ void Session::HandleObjectDeleteMessage(ByteBuffer& packet)
 	ConditionsParser P(m_char->GetEmotes(), m_char->GetItems(), m_char->GetName());
 	DofusUtils::LoopItemConditions(P, this);
 
-	Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLook(m_char->GetLook(), m_char)));
+	Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
 	Send(CharacterStatsListMessage(m_char));
 	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
 }
 
 void Session::HandleObjectDropMessage(ByteBuffer& packet)
 {
-	ObjectDropMessage data(packet);
+	ObjectDropMessage data;
+	data.Deserialize(packet);
 	
 	PlayerItem* item = m_char->GetItem(data.objectUID);
 	if(item == NULL || item->GetQuantity() < data.quantity)
@@ -270,14 +276,15 @@ void Session::HandleObjectDropMessage(ByteBuffer& packet)
 	ConditionsParser P(m_char->GetEmotes(), m_char->GetItems(), m_char->GetName());
 	DofusUtils::LoopItemConditions(P, this);
 
-	Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLook(m_char->GetLook(), m_char)));
+	Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
 	Send(CharacterStatsListMessage(m_char));
 	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
 }
 
 void Session::HandleObjectSetPositionMessage(ByteBuffer& packet)
 {
-	ObjectSetPositionMessage data(packet);
+	ObjectSetPositionMessage data;
+	data.Deserialize(packet);
 	
 	PlayerItem* item = m_char->GetItem(data.objectUID);
 	if(item == NULL)
@@ -331,8 +338,8 @@ void Session::HandleObjectSetPositionMessage(ByteBuffer& packet)
 			item->SetQuantity(item->GetQuantity() - 1);
 			Send(ObjectQuantityMessage(item->GetGuid(), item->GetQuantity()));
 		}
-		Send(ObjectModifiedMessage(ObjectItem(exItem)));
-		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLook(m_char->GetLook(), m_char)));
+		Send(ObjectModifiedMessage(ObjectItemPtr(new ObjectItem(exItem))));
+		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
 		return;
 	}
 
@@ -369,7 +376,7 @@ void Session::HandleObjectSetPositionMessage(ByteBuffer& packet)
 			boost::bind(&Character::MoveItem, m_char, item, data.position, false));
 	DofusUtils::LoopItemConditions(P, this);
 
-	Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLook(m_char->GetLook(), m_char)));
+	Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
 	Send(CharacterStatsListMessage(m_char));
 	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
 }
