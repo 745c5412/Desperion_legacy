@@ -18,86 +18,126 @@
 
 #include "StdAfx.h"
 
-// TODO: refaire un truc pour eviter la reecriture
+void Session::HandleChannelEnablingMessage(ByteBuffer& packet)
+{
+	ChannelEnablingMessage data;
+	data.Deserialize(packet);
+
+	if(data.enable)
+	{
+		if(HasChannel(data.channel))
+			m_channels.push_back(data.channel);
+	}
+	else
+		RemoveChannel(data.channel);
+
+	Send(ChannelEnablingChangeMessage(data.channel, data.enable));
+}
+
+void Session::HandleMultiMessage(ChatClientMultiMessage* data)
+{
+	ChatServerMessage* toSend = NULL;
+	if(data->GetOpcode() == CMSG_CHAT_CLIENT_MULTI)
+	{
+		toSend = new ChatServerMessage(data->channel, data->content, time(NULL), "", m_char->GetGuid(), m_char->GetName(),
+			m_data[FLAG_GUID].intValue);
+	}
+	else if(data->GetOpcode() == CMSG_CHAT_CLIENT_MULTI_WITH_OBJECT)
+	{
+		toSend = new ChatServerWithObjectMessage(data->channel, data->content, time(NULL), "", m_char->GetGuid(), m_char->GetName(),
+			m_data[FLAG_GUID].intValue, ((ChatClientMultiWithObjectMessage*)data)->objects);
+	}
+	else
+		return;
+
+	// TODO: gestion des differents timers, zones et ChatError en fonction du packet
+	switch(data->channel)
+	{
+	case MULTI_CHANNEL_GLOBAL:
+		m_char->GetMap()->Send(*toSend);
+		break;
+	default:
+		break;
+	}
+	delete toSend;
+}
+
 
 void Session::HandleChatClientMultiMessage(ByteBuffer& packet)
 {
 	ChatClientMultiMessage data;
 	data.Deserialize(packet);
-
-	// TODO: gestion des differents timers, zones et ChatError en fonction du packet
-	switch(data.channel)
-	{
-	case MULTI_CHANNEL_GLOBAL:
-		m_char->GetMap()->Send(ChatServerMessage(data.channel, data.content, time(NULL), "", m_char->GetGuid(), m_char->GetName(),
-			m_data[FLAG_GUID].intValue));
-		break;
-	default:
-		return;
-	}
+	HandleMultiMessage(&data);
 }
 
 void Session::HandleChatClientMultiWithObjectMessage(ByteBuffer& packet)
 {
 	ChatClientMultiWithObjectMessage data;
 	data.Deserialize(packet);
+	HandleMultiMessage(&data);
+}
 
-	// idem
-	switch(data.channel)
+void Session::HandlePrivateMessage(ChatClientPrivateMessage* data)
+{
+	CharacterMinimals* cm = World::Instance().GetCharacterMinimals(data->receiver);
+	if(cm == NULL || cm->onlineCharacter == NULL)
 	{
-	case MULTI_CHANNEL_GLOBAL:
-		m_char->GetMap()->Send(ChatServerWithObjectMessage(data.channel, data.content, time(NULL), "", m_char->GetGuid(), m_char->GetName(),
-			m_data[FLAG_GUID].intValue, data.objects));
-		break;
-	default:
+		Send(ChatErrorMessage(CHAT_ERROR_RECEIVER_NOT_FOUND));
 		return;
 	}
+	else if(cm->id == m_char->GetGuid())
+	{
+		Send(ChatErrorMessage(CHAT_ERROR_INTERIOR_MONOLOGUE));
+		return;
+	}
+	else if(cm->onlineCharacter->GetSession()->IsAway()
+		|| cm->onlineCharacter->GetSession()->IsEnnemyWith(m_data[FLAG_PSEUDO].stringValue)
+		|| cm->onlineCharacter->GetSession()->IsIgnoredWith(m_data[FLAG_PSEUDO].stringValue)
+		|| (cm->onlineCharacter->GetSession()->IsInvisible() &&
+		!cm->onlineCharacter->GetSession()->IsFriendWith(m_data[FLAG_PSEUDO].stringValue)))
+	{
+		// todo: message
+		return;
+	}
+	
+	ChatServerMessage* distant = NULL;
+	ChatServerCopyMessage* local = NULL;
+
+	time_t t = time(NULL);
+
+	if(data->GetOpcode() == CMSG_CHAT_CLIENT_PRIVATE)
+	{
+		distant = new ChatServerMessage(PSEUDO_CHANNEL_PRIVATE, data->content, t, "", m_char->GetGuid(), m_char->GetName(),
+			m_data[FLAG_GUID].intValue);
+		local = new ChatServerCopyMessage(PSEUDO_CHANNEL_PRIVATE, data->content, t, "", cm->id, cm->name);
+	}
+	else if(data->GetOpcode() == CMSG_CHAT_CLIENT_PRIVATE_WITH_OBJECT)
+	{
+		distant = new ChatServerWithObjectMessage(PSEUDO_CHANNEL_PRIVATE, data->content, t, "", m_char->GetGuid(), m_char->GetName(),
+			m_data[FLAG_GUID].intValue, ((ChatClientPrivateWithObjectMessage*)data)->objects);
+		local = new ChatServerCopyWithObjectMessage(PSEUDO_CHANNEL_PRIVATE, data->content, t, "", cm->id, cm->name,
+			((ChatClientPrivateWithObjectMessage*)data)->objects);
+	}
+	else
+		return;
+
+	cm->onlineCharacter->GetSession()->Send(*distant);
+	Send(*local);
+
+	delete distant;
+	delete local;
 }
 
 void Session::HandleChatClientPrivateMessage(ByteBuffer& packet)
 {
 	ChatClientPrivateMessage data;
 	data.Deserialize(packet);
-	
-	CharacterMinimals* cm = World::Instance().GetCharacterMinimals(data.receiver);
-	if(cm == NULL || cm->onlineCharacter == NULL)
-	{
-		Send(ChatErrorMessage(CHAT_ERROR_RECEIVER_NOT_FOUND));
-		return;
-	}
-	else if(cm->id == m_char->GetGuid())
-	{
-		Send(ChatErrorMessage(CHAT_ERROR_INTERIOR_MONOLOGUE));
-		return;
-	}
-	// TODO: ennemy/ignored, invisible/away
-
-	time_t timestamp = time(NULL);
-	Send(ChatServerCopyMessage(PSEUDO_CHANNEL_PRIVATE, data.content, timestamp, "", cm->id, cm->name));
-	cm->onlineCharacter->GetSession()->Send(ChatServerMessage(PSEUDO_CHANNEL_PRIVATE, data.content, timestamp, "", m_char->GetGuid(), 
-		m_char->GetName(), m_data[FLAG_GUID].intValue));
+	HandlePrivateMessage(&data);
 }
 
 void Session::HandleChatClientPrivateWithObjectMessage(ByteBuffer& packet)
 {
 	ChatClientPrivateWithObjectMessage data;
 	data.Deserialize(packet);
-
-	CharacterMinimals* cm = World::Instance().GetCharacterMinimals(data.receiver);
-	if(cm == NULL || cm->onlineCharacter == NULL)
-	{
-		Send(ChatErrorMessage(CHAT_ERROR_RECEIVER_NOT_FOUND));
-		return;
-	}
-	else if(cm->id == m_char->GetGuid())
-	{
-		Send(ChatErrorMessage(CHAT_ERROR_INTERIOR_MONOLOGUE));
-		return;
-	}
-	// idem
-
-	time_t timestamp = time(NULL);
-	Send(ChatServerCopyWithObjectMessage(PSEUDO_CHANNEL_PRIVATE, data.content, timestamp, "", cm->id, cm->name, data.objects));
-	cm->onlineCharacter->GetSession()->Send(ChatServerWithObjectMessage(PSEUDO_CHANNEL_PRIVATE, data.content, timestamp, "", m_char->GetGuid(), 
-		m_char->GetName(), m_data[FLAG_GUID].intValue, data.objects));
+	HandlePrivateMessage(&data);
 }

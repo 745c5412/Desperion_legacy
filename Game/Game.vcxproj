@@ -130,6 +130,8 @@
     <ClInclude Include="BasicPongMessage.h" />
     <ClInclude Include="BasicTimeMessage.h" />
     <ClInclude Include="ChangeMapMessage.h" />
+    <ClInclude Include="ChannelEnablingChangeMessage.h" />
+    <ClInclude Include="ChannelEnablingMessage.h" />
     <ClInclude Include="Character.h" />
     <ClInclude Include="CharacterBaseCharacteristic.h" />
     <ClInclude Include="CharacterBaseInformations.h" />
@@ -168,6 +170,7 @@
     <ClInclude Include="ConsoleMessage.h" />
     <ClInclude Include="CurrentMapMessage.h" />
     <ClInclude Include="DofusUtils.h" />
+    <ClInclude Include="EnabledChannelsMessage.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityDispositionInformations.h" />
     <ClInclude Include="EntityLook.h" />
@@ -204,6 +207,7 @@
     <ClInclude Include="MapComplementaryInformationsDataMessage.h" />
     <ClInclude Include="MapInformationsRequestMessage.h" />
     <ClInclude Include="Master.h" />
+    <ClInclude Include="MoodSmileyResultMessage.h" />
     <ClInclude Include="Mount.h" />
     <ClInclude Include="ObjectAddedMessage.h" />
     <ClInclude Include="ObjectDeletedMessage.h" />

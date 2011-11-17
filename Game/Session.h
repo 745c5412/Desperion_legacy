@@ -77,12 +77,14 @@ private:
 	AccountData m_data[FLAGS_NUMBER];
 	time_t m_subscriptionEnd;
 	Character* m_char;
-	std::vector<uint32> m_channels;
-	std::vector<uint32> m_disallowed;
+	std::vector<int8> m_channels;
+	std::vector<int8> m_disallowed;
 	std::vector<int> m_friends;
 	std::vector<int> m_ennemies;
 	std::vector<int> m_ignored;
 	uint32 m_lastNameSuggestionRequest;
+	bool m_away;
+	bool m_invisible;
 
 	// AdminHandler.cpp
 	void HandleAdminCommand(std::string&, bool);
@@ -111,10 +113,14 @@ private:
 	void HandleChangeMapMessage(ByteBuffer&);
 
 	// ChatHandler.cpp
+	void HandlePrivateMessage(ChatClientPrivateMessage*);
+	void HandleMultiMessage(ChatClientMultiMessage*);
+
 	void HandleChatClientMultiMessage(ByteBuffer&);
 	void HandleChatClientMultiWithObjectMessage(ByteBuffer&);
 	void HandleChatClientPrivateMessage(ByteBuffer&);
 	void HandleChatClientPrivateWithObjectMessage(ByteBuffer&);
+	void HandleChannelEnablingMessage(ByteBuffer&);
 
 	// BasicHandler.cpp
 	void HandleBasicPingMessage(ByteBuffer&);
@@ -157,14 +163,14 @@ public:
 		return true;
 	}
 
-	Session()
+	Session() : m_char(NULL), m_away(false), m_invisible(false)
 	{
-		m_char = NULL;
 		m_data[FLAG_GUID].intValue = 0;
 		m_lastNameSuggestionRequest = 0;
 	}
 
 	~Session();
+	void Save();
 
 	AccountData GetData(uint32 index) const
 	{ return m_data[index]; }
@@ -177,6 +183,19 @@ public:
 
 	Character* GetCharacter() const
 	{ return m_char; }
+
+	bool IsAway() const
+	{ return m_away; }
+
+	bool IsInvisible() const
+	{ return m_invisible; }
+
+	void RemoveChannel(int8);
+	bool HasChannel(int8);
+
+	bool IsFriendWith(std::string);
+	bool IsEnnemyWith(std::string);
+	bool IsIgnoredWith(std::string);
 };
 
 #endif

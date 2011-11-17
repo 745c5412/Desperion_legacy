@@ -93,6 +93,7 @@ private:
 	std::vector<int> m_zaaps;
 	std::list<PlayerItem*> m_items;
 	int8 m_context;
+	int8 m_smileyId;
 
 	void InitItems();
 public:
@@ -114,6 +115,9 @@ public:
 	std::tr1::unordered_map<int16, std::vector<int16> > GetTotalItemSets();
 	void UpdateItemSet(int16, boost::function<void()>);
 	EntityLook* GetLook() const;
+
+	int8 GetSmileyId() const
+	{ return m_smileyId; }
 
 	const std::vector<int8>& GetEmotes()
 	{ return m_emotes; }

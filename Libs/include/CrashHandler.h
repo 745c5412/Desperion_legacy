@@ -10,6 +10,8 @@ void Init();
 void SetCrashReportFileName(const char* name);
 // crash.dmp by default
 void SetMiniDumpFileName(const char* name);
+
+void SetCrashHandler(void (*handler)());
 }
 }
 

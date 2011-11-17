@@ -270,6 +270,7 @@ Character::~Character()
 
 void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 {
+	m_smileyId = 0;
 	int mapId = fields[2].GetInt32();
 	Map* map = World::Instance().GetMap(mapId);
 	if(map == NULL)

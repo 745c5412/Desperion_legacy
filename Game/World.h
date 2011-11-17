@@ -39,6 +39,7 @@ public:
 	World();
 	~World();
 	void Init();
+	void SaveAll();
 
 	void LoadCharacterMinimals();
 	void LoadItems();

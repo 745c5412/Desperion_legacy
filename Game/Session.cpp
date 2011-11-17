@@ -20,6 +20,41 @@
 
 template<> Session::HandlerStorageMap AbstractSession<GamePacketHandler>::m_handlers;
 
+bool Session::IsFriendWith(std::string name)
+{
+	return false;
+}
+
+bool Session::IsEnnemyWith(std::string name)
+{
+	return false;
+}
+
+bool Session::IsIgnoredWith(std::string name)
+{
+	return false;
+}
+
+void Session::RemoveChannel(int8 chann)
+{
+	for(std::vector<int8>::iterator it = m_channels.begin(); it != m_channels.end(); ++it)
+	{
+		if((*it) == chann)
+		{
+			m_channels.erase(it);
+			return;
+		}
+	}
+}
+
+bool Session::HasChannel(int8 chann)
+{
+	for(std::vector<int8>::iterator it = m_channels.begin(); it != m_channels.end(); ++it)
+		if((*it) == chann)
+			return true;
+	return false;
+}
+
 void Session::InitHandlersTable()
 {
 	m_handlers[CMSG_AUTHENTICATION_TICKET].Handler = &Session::HandleAuthenticationTicketMessage;
@@ -48,6 +83,7 @@ void Session::InitHandlersTable()
 	m_handlers[CMSG_CHAT_CLIENT_MULTI_WITH_OBJECT].Handler = &Session::HandleChatClientMultiWithObjectMessage;
 	m_handlers[CMSG_CHAT_CLIENT_PRIVATE].Handler = &Session::HandleChatClientPrivateMessage;
 	m_handlers[CMSG_CHAT_CLIENT_PRIVATE_WITH_OBJECT].Handler = &Session::HandleChatClientPrivateWithObjectMessage;
+	m_handlers[CMSG_CHANNEL_ENABLING].Handler = &Session::HandleChannelEnablingMessage;
 
 	m_handlers[CMSG_OBJECT_DROP].Handler = &Session::HandleObjectDropMessage;
 	m_handlers[CMSG_OBJECT_DELETE].Handler = &Session::HandleObjectDeleteMessage;
@@ -124,6 +160,11 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	Send(TrustStatusMessage(true));
 }
 
+void Session::Save()
+{
+	Desperion::eDatabase->Execute("UPDATE accounts SET logged=0 WHERE guid=%u LIMIT 1;", m_data[FLAG_GUID].intValue);
+}
+
 Session::~Session()
 {
 	if(m_char != NULL)
@@ -134,7 +175,7 @@ Session::~Session()
 	}
 	if(m_data[FLAG_GUID].intValue != 0)
 	{
-		Desperion::eDatabase->Execute("UPDATE accounts SET logged=0 WHERE guid=%u LIMIT 1;", m_data[FLAG_GUID].intValue);
+		Save();
 		World::Instance().DeleteSession(m_data[FLAG_GUID].intValue);
 		Log::Instance().outDebug("Client %u disconnected", m_data[FLAG_GUID].intValue);
 	}

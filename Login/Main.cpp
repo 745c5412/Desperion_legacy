@@ -18,6 +18,13 @@
 
 #include "StdAfx.h"
 
+void OnCrash()
+{
+	std::cout<<"********* FATAL ERROR *********"<<std::endl;
+	std::cout<<"Press any key for termination."<<std::endl;
+	std::getchar();
+}
+
 int main(int argc, char *argv[])
 {
 #if COMPILER == COMPILER_MICROSOFT
@@ -29,7 +36,11 @@ int main(int argc, char *argv[])
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
 	_CrtSetReportFile(_CRT_WARN, hLogFile);
 
-	rde::CrashHandler::Init();
+	if(!CheckForDebugger())
+	{
+		rde::CrashHandler::Init();
+		rde::CrashHandler::SetCrashHandler(&OnCrash);
+	}
 #endif
 	new Desperion::Master;
 	

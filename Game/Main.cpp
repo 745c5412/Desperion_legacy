@@ -18,6 +18,19 @@
 
 #include "StdAfx.h"
 
+void OnCrash()
+{
+	std::cout<<"********* FATAL ERROR *********"<<std::endl;
+	if(World::InstancePtr() != 0)
+	{
+		std::cout<<"CrashHandler: Desperion will try to save all players data. It can take a lot of time."<<std::endl;
+		World::Instance().SaveAll();
+		std::cout<<"Save finished."<<std::endl;
+	}
+	std::cout<<"Press any key for termination."<<std::endl;
+	std::getchar();
+}
+
 int main(int argc, char *argv[])
 {
 #if COMPILER == COMPILER_MICROSOFT
@@ -28,10 +41,13 @@ int main(int argc, char *argv[])
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
 	_CrtSetReportFile(_CRT_WARN, hLogFile);
-
-	rde::CrashHandler::Init();
+	
+	if(!CheckForDebugger())
+	{
+		rde::CrashHandler::Init();
+		rde::CrashHandler::SetCrashHandler(&OnCrash);
+	}
 #endif
-
 	new Desperion::Master;
 	
 	if(Desperion::Master::Instance().Run(argc, argv))

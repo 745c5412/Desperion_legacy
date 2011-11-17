@@ -587,5 +587,17 @@
     <ClInclude Include="HelloGameMessage.h">
       <Filter>Messages</Filter>
     </ClInclude>
+    <ClInclude Include="EnabledChannelsMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelEnablingMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelEnablingChangeMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="MoodSmileyResultMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

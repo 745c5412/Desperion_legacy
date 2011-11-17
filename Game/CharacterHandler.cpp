@@ -341,4 +341,5 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 		ItemSet::ApplyEffects(m_char, effects, true);
 		Send(SetUpdateMessage(set->GetId(), it->second, effects));
 	}
+	Send(EnabledChannelsMessage(m_channels, m_disallowed));
 }

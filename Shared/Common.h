@@ -60,6 +60,22 @@
 #define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #include <CrashHandler.h>
 
+inline bool CheckForDebugger()
+{
+    __try 
+    {
+        DebugBreak();
+    }
+    __except(GetExceptionCode() == EXCEPTION_BREAKPOINT ? 
+             EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) 
+    {
+        // No debugger is attached, so return FALSE 
+        // and continue.
+        return false;
+    }
+    return true;
+}
+
 #else
 
 #define stricmp strcasecmp

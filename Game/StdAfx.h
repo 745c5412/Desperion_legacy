@@ -164,6 +164,10 @@
 #include "BasicDateMessage.h"
 #include "../Login/ProtocolRequired.h"
 #include "TrustStatusMessage.h"
+#include "EnabledChannelsMessage.h"
+#include "ChannelEnablingChangeMessage.h"
+#include "ChannelEnablingMessage.h"
+#include "MoodSmileyResultMessage.h"
 
 #include "Mount.h"
 #include "ItemSet.h"

@@ -34,6 +34,19 @@ World::World()
 	m_hiCharacterGuid = 0;
 }
 
+void World::SaveAll()
+{
+	for(SessionMap::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
+	{
+		if(it->second->GetData(FLAG_GUID).intValue != 0)
+		{
+			it->second->Save();
+			if(it->second->GetCharacter() != NULL)
+				it->second->GetCharacter()->Save();
+		}
+	}
+}
+
 World::~World()
 {
 	// les sessions sont delete par le ~io_service du Master (ce sont des shared_ptr)
