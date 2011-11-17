@@ -57,6 +57,9 @@
 #define snprintf _snprintf
 #define atoll __atoi64
 
+#define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#include <CrashHandler.h>
+
 #else
 
 #define stricmp strcasecmp
@@ -91,9 +94,5 @@ typedef uint8_t uint8;
 #endif
 
 #define ASSERT( assertion ) { if( !(assertion) ) { fprintf( stderr, "\n%s:%i ASSERTION FAILED:\n  %s\n", __FILE__, __LINE__, #assertion ); assert(assertion); } }
-
-#ifdef _WIN32
-#define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#endif
 
 #endif

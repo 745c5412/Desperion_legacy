@@ -29,6 +29,11 @@
 
 #include "../Shared/StdAfx.h"
 
+#if SHARED_VERSION_MAJOR != REQUIRED_SHARED_VERSION_MAJOR || SHARED_VERSION_MINOR != REQUIRED_SHARED_VERSION_MINOR \
+	|| SHARED_VERSION_REVISION != REQUIRED_SHARED_VERSION_REVISION
+#pragma error("This Shared version isn't compatible with this Desperion version.");
+#endif
+
 #include "ConfigDefaults.h"
 #include "World.h"
 #include "GameServer.h"

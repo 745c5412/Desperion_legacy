@@ -20,7 +20,7 @@
 
 int main(int argc, char *argv[])
 {
-#ifdef _WIN32
+#if COMPILER == COMPILER_MICROSOFT
 	HANDLE hLogFile;
 	hLogFile = CreateFile("./memory_leaks.log", GENERIC_WRITE, 
 		FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, 
@@ -28,7 +28,10 @@ int main(int argc, char *argv[])
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
 	_CrtSetReportFile(_CRT_WARN, hLogFile);
+
+	rde::CrashHandler::Init();
 #endif
+
 	new Desperion::Master;
 	
 	if(Desperion::Master::Instance().Run(argc, argv))
