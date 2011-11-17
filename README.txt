@@ -1,11 +1,11 @@
 Bienvenue sur le repository de Desperion!
 
-Desperion est un émulateur pour le MMORPG Dofus 2.0, actuellement compatible avec la version:
+Desperion est un émulateur pour le MMORPG Dofus 2.0 écrit en C++, actuellement compatible avec la version:
 2.4.6.51895.1
 
 L'équipe de développement de Desperion est composée de:
 - LittleScaraby AKA Alexandre Martin, co-fondateur du projet et développeur en chef
-- Nekkro, co-fondateur et développeur
+- Nekkro, développeur
 
 Pour nous, développeurs de Desperion, les quatre règles d'or sont les suivantes:
 - Performances
@@ -18,7 +18,5 @@ Les tables contenant les fichiers de cache du client (.D2O) sont mises à jour ré
 Contact:
 Mail -> martin.alex32@hotmail.fr
 Skype -> alexxxxxx195
-
-<http://wordemu-project.niloo.fr>
 
 Remerciements à bouh2 pour m'avoir donné un indice sur la manière de patcher le client :)
