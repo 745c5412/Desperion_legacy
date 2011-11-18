@@ -99,6 +99,8 @@ private:
 	void HandleInfoMessageCommand(std::vector<std::string>&, bool);
 
 	// CharacterHandler.cpp
+	void SendCharacterSelectedSuccess(CharacterMinimals*);
+
 	void HandleCharactersListRequestMessage(ByteBuffer&);
 	void HandleCharacterDeletionRequestMessage(ByteBuffer&);
 	void HandleCharacterNameSuggestionRequestMessage(ByteBuffer&);

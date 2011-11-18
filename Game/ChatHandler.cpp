@@ -25,7 +25,7 @@ void Session::HandleChannelEnablingMessage(ByteBuffer& packet)
 
 	if(data.enable)
 	{
-		if(HasChannel(data.channel))
+		if(!HasChannel(data.channel))
 			m_channels.push_back(data.channel);
 	}
 	else

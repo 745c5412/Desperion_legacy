@@ -20,6 +20,8 @@
 
 template<> Desperion::Master* Singleton<Desperion::Master>::m_singleton = NULL;
 
+void OnCrash();
+
 namespace Desperion
 {
 	Database* sDatabase = NULL;
@@ -42,22 +44,32 @@ namespace Desperion
 
 	void HookSignals()
 	{
-		signal( SIGINT, OnSignal );
-		signal( SIGTERM, OnSignal );
-		signal( SIGABRT, OnSignal );
-	#ifdef _WIN32
-		signal( SIGBREAK, OnSignal );
-	#endif
+		signal(SIGINT, OnSignal);
+		signal(SIGTERM, OnSignal);
+		signal(SIGABRT, OnSignal);
+#ifdef _WIN32
+		signal(SIGBREAK, OnSignal);
+#else
+		signal(SIGSEGV, ::OnCrash);
+		signal(SIGFPE, ::OnCrash);
+		signal(SIGILL, ::OnCrash);
+		signal(SIGBUS, ::OnCrash);
+#endif
 	}
 
 	void UnHookSignals()
 	{
-		signal( SIGINT, 0 );
-		signal( SIGTERM, 0 );
-		signal( SIGABRT, 0 );
-	#ifdef _WIN32
-		signal( SIGBREAK, 0 );
-	#endif
+		signal(SIGINT, 0);
+		signal(SIGTERM, 0);
+		signal(SIGABRT, 0);
+#ifdef _WIN32
+		signal(SIGBREAK, 0);
+#else
+		signal(SIGSEGV, 0);
+		signal(SIGFPE, 0);
+		signal(SIGILL, 0);
+		signal(SIGBUS, 0);
+#endif
 	}
 
 	Master::~Master()

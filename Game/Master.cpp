@@ -21,6 +21,8 @@
 
 template<> Desperion::Master* Singleton<Desperion::Master>::m_singleton = NULL;
 
+void OnCrash();
+
 namespace Desperion
 {
 	Database* sDatabase = NULL;
@@ -44,22 +46,32 @@ namespace Desperion
 
 	void HookSignals()
 	{
-		signal( SIGINT, OnSignal );
-		signal( SIGTERM, OnSignal );
-		signal( SIGABRT, OnSignal );
-	#ifdef _WIN32
-		signal( SIGBREAK, OnSignal );
-	#endif
+		signal(SIGINT, OnSignal);
+		signal(SIGTERM, OnSignal);
+		signal(SIGABRT, OnSignal);
+#ifdef _WIN32
+		signal(SIGBREAK, OnSignal);
+#else
+		signal(SIGSEGV, ::OnCrash);
+		signal(SIGFPE, ::OnCrash);
+		signal(SIGILL, ::OnCrash);
+		signal(SIGBUS, ::OnCrash);
+#endif
 	}
 
 	void UnHookSignals()
 	{
-		signal( SIGINT, 0 );
-		signal( SIGTERM, 0 );
-		signal( SIGABRT, 0 );
-	#ifdef _WIN32
-		signal( SIGBREAK, 0 );
-	#endif
+		signal(SIGINT, 0);
+		signal(SIGTERM, 0);
+		signal(SIGABRT, 0);
+#ifdef _WIN32
+		signal(SIGBREAK, 0);
+#else
+		signal(SIGSEGV, 0);
+		signal(SIGFPE, 0);
+		signal(SIGILL, 0);
+		signal(SIGBUS, 0);
+#endif
 	}
 
 	Master::~Master()
@@ -132,44 +144,6 @@ namespace Desperion
 
 		if(!StartUpDatabase())
 			return false;
-
-		/*new D2oFileAccessor;
-		sFileAccessor.Init(".");
-		D2oFile* file = sFileAccessor.LoadFile("ItemSets.d2o");
-		typedef std::vector<std::pair<D2oClassDefinition, Data> > Result;
-		Result result = file->ReadAllData();
-		barGoLink go(result.size());
-		for(Result::iterator it = result.begin(); it != result.end(); ++it)
-		{
-			std::vector<std::vector<Data> > effects = DoubleVectorCast<Data>(it->second["effects"]);
-			std::ostringstream e;
-			e<<(effects.size() - 1);
-			for(int a = 1; a < effects.size(); ++a)
-			{
-				if(effects[a].empty())
-					continue;
-				e<<":";
-				if(effects[a][0].GetClassID() != 2)
-				{
-					e<<0;
-					continue;
-				}
-				e<<effects[a].size();
-				for(int b = 0; b < effects[a].size(); ++b)
-				{
-					e<<";";
-					e<<8<<","<<DataCast<int>(effects[a][b]["targetId"])<<","<<DataCast<bool>(effects[a][b]["hidden"])<<",";
-					e<<DataCast<int>(effects[a][b]["effectId"])<<","<<DataCast<int>(effects[a][b]["duration"])<<",";
-					e<<DataCast<int>(effects[a][b]["random"])<<","<<DataCast<int>(effects[a][b]["zoneSize"])<<",";
-					e<<DataCast<int>(effects[a][b]["value"])<<","<<DataCast<int>(effects[a][b]["zoneShape"]);
-				}
-			}
-			sDatabase->Execute("UPDATE d2o_item_set SET effects='%s' WHERE id=%u LIMIT 1;", e.str().c_str(),
-				DataCast<int>(it->second["id"]));
-			go.step();
-		}
-		delete D2oFileAccessor::InstancePtr();
-		return true;*/
 
 		new World;
 		World::Instance().Init();

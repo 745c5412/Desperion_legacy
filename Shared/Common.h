@@ -19,7 +19,7 @@
 #ifndef __COMMON__
 #define __COMMON__
 
-#include <signal.h>
+#include <csignal>
 #include <cstdio>
 #include <boost/tr1/unordered_map.hpp>
 #include <cstdlib>
@@ -42,14 +42,14 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/threadpool.hpp>
 #include <deque>
-#include <assert.h>
+#include <cassert>
 #include <fstream>
 #include <iostream>
 #include <mysql/mysql.h>
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 
-#if COMPILER == COMPILER_MICROSOFT
+#ifdef _MSC_VER
 
 #define I64FMT "%016I64X"
 #define I64FMTD "%I64u"
@@ -97,7 +97,6 @@ typedef unsigned __int32 uint32;
 typedef unsigned __int16 uint16;
 typedef unsigned __int8 uint8;
 #else
-
 typedef uint64_t uint64;
 typedef uint32_t uint32;
 typedef int16_t int16;
@@ -106,7 +105,6 @@ typedef int64_t int64;
 typedef int32_t int32;
 typedef uint16_t uint16;
 typedef uint8_t uint8;
-
 #endif
 
 #define ASSERT( assertion ) { if( !(assertion) ) { fprintf( stderr, "\n%s:%i ASSERTION FAILED:\n  %s\n", __FILE__, __LINE__, #assertion ); assert(assertion); } }

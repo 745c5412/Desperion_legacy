@@ -63,7 +63,8 @@ void Session::HandleInfoMessageCommand(std::vector<std::string>& args, bool quie
 {
 	int8 type = atoi(args[0].c_str());
 	int16 message = atoi(args[1].c_str());
-	args.erase(args.begin(), args.begin() + 1);
+	std::vector<std::string>::iterator it = args.begin();
+	args.erase(it, ++it);
 	Send(TextInformationMessage(type, message, args));
 
 	if(!quiet)

@@ -101,7 +101,8 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	AuthenticationTicketMessage data;
 	data.Deserialize(packet);
 
-	const char* query = "SELECT guid, answer, pseudo, level, lastIP, lastConnectionDate, subscriptionEnd FROM accounts WHERE ticket='%s' LIMIT 1;";
+	const char* query = "SELECT guid, answer, pseudo, level, lastIP, lastConnectionDate, subscriptionEnd, channels, disallowed FROM accounts \
+						WHERE ticket='%s' LIMIT 1;";
 	ResultPtr QR = Desperion::eDatabase->Query(query, data.ticket.c_str());
 	if(QR)
 	{
@@ -113,31 +114,21 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 		m_data[FLAG_LAST_CONN].intValue = fields[4].GetUInt32();
 		m_data[FLAG_LAST_IP].stringValue = fields[5].GetString();
 		m_subscriptionEnd = fields[6].GetUInt32();
+		Desperion::FastSplit<','>(m_channels, std::string(fields[7].GetString()), Desperion::SplitInt, true);
+		Desperion::FastSplit<','>(m_disallowed, std::string(fields[8].GetString()), Desperion::SplitInt, true);
 	}
 	else
 	{
 		Send(AuthenticationTicketRefusedMessage());
 		throw ServerError("Failed ticket authentification!");
 	}
-	
-
-	QR = Desperion::eDatabase->Query("SELECT channels, disallowed FROM account_channels WHERE guid=%u LIMIT 1;", m_data[FLAG_GUID].intValue);
-	if(QR)
-	{
-		Field* fields = QR->Fetch();
-		Desperion::FastSplit<','>(m_channels, std::string(fields[0].GetString()), Desperion::SplitInt, false);
-		Desperion::FastSplit<','>(m_channels, std::string(fields[1].GetString()), Desperion::SplitInt, false);
-	}
-	else
-		Desperion::eDatabase->Execute("INSERT INTO account_channels VALUES(%u, '', '');", m_data[FLAG_GUID].intValue);
-	
 
 	QR = Desperion::eDatabase->Query("SELECT friends, ennemies FROM account_social WHERE guid=%u LIMIT 1;", m_data[FLAG_GUID].intValue);
 	if(QR)
 	{
 		Field* fields = QR->Fetch();
-		Desperion::FastSplit<','>(m_friends, std::string(fields[0].GetString()), Desperion::SplitInt, false);
-		Desperion::FastSplit<','>(m_ennemies, std::string(fields[1].GetString()), Desperion::SplitInt, false);
+		Desperion::FastSplit<','>(m_friends, std::string(fields[0].GetString()), Desperion::SplitInt, true);
+		Desperion::FastSplit<','>(m_ennemies, std::string(fields[1].GetString()), Desperion::SplitInt, true);
 	}
 	else
 		Desperion::eDatabase->Execute("INSERT INTO account_social VALUES(%u, '', '');", m_data[FLAG_GUID].intValue);
@@ -162,7 +153,22 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 
 void Session::Save()
 {
-	Desperion::eDatabase->Execute("UPDATE accounts SET logged=0 WHERE guid=%u LIMIT 1;", m_data[FLAG_GUID].intValue);
+	std::ostringstream channels, disallowed;
+	for(std::vector<int8>::iterator it = m_channels.begin(); it != m_channels.end(); ++it)
+	{
+		if(it != m_channels.begin())
+			channels<<",";
+		channels<<int16(*it);
+	}
+	for(std::vector<int8>::iterator it = m_disallowed.begin(); it != m_disallowed.end(); ++it)
+	{
+		if(it != m_disallowed.begin())
+			disallowed<<",";
+		disallowed<<int16(*it);
+	}
+	Desperion::eDatabase->Execute("UPDATE accounts SET logged=0, channels='%s', disallowed='%s' WHERE guid=%u LIMIT 1;",
+		channels.str().c_str(), disallowed.str().c_str(), m_data[FLAG_GUID].intValue);
+
 }
 
 Session::~Session()

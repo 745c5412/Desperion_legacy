@@ -33,7 +33,7 @@ void World::RefreshGameServer(GameServer* G)
 		uint32 guid = it->second->GetData(FLAG_GUID).intValue;
 		if(guid == 0)
 			continue;
-		ResultPtr QR = Desperion::sDatabase->Query("SELECT accountGuid FROM character_counts WHERE accountGuid=%u and serverID=%u LIMIT 1;",
+		ResultPtr QR = Desperion::sDatabase->Query("SELECT accountGuid FROM character_counts WHERE accountGuid=%u and serverID=%u;",
 			guid, G->GetID());
 		it->second->Send(ServerStatusUpdateMessage(it->second->GetServerStatusMessage(G, QR->GetRowCount())));
 		

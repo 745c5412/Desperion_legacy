@@ -27,7 +27,7 @@ void OnCrash()
 
 int main(int argc, char *argv[])
 {
-#if COMPILER == COMPILER_MICROSOFT
+#ifdef _MSC_VER
 	HANDLE hLogFile;
 	hLogFile = CreateFile("./memory_leaks.log", GENERIC_WRITE, 
 		FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, 

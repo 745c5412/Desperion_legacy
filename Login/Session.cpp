@@ -27,7 +27,7 @@ bool IsIpBanned(std::string address)
 		return false;
 	Field* fields = QR->Fetch();
 	time_t banTime = fields[0].GetUInt64();
-	time_t banDate = fields[0].GetUInt64();
+	time_t banDate = fields[1].GetUInt64();
 	
 
 	if(banDate + banTime < time(NULL))

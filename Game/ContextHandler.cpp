@@ -49,7 +49,6 @@ void Session::HandleGameContextCreateRequestMessage(ByteBuffer& packet)
 	
 	Send(CurrentMapMessage(m_char->GetMap()->GetId()));
 	Send(TextInformationMessage(1, 89, std::vector<std::string>()));
-	Send(CharacterStatsListMessage(m_char));
 }
 
 void Session::HandleChangeMapMessage(ByteBuffer& packet)
