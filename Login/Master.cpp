@@ -85,11 +85,11 @@ namespace Desperion
 		{
 			barGoLink bar(1);
 			sDatabase = new Database(3);
-			if(!sDatabase->Init(Config::Instance().GetString(LOCAL_DATABASE_HOST_STRING, LOCAL_DATABASE_HOST_DEFAULT), 
-				Config::Instance().GetUInt(LOCAL_DATABASE_PORT_STRING, LOCAL_DATABASE_PORT_DEFAULT), 
-				Config::Instance().GetString(LOCAL_DATABASE_USER_STRING, LOCAL_DATABASE_USER_DEFAULT), 
-				Config::Instance().GetString(LOCAL_DATABASE_PASSWORD_STRING, LOCAL_DATABASE_PASSWORD_DEFAULT), 
-				Config::Instance().GetString(LOCAL_DATABASE_NAME_STRING, LOCAL_DATABASE_NAME_DEFAULT)))
+			if(!sDatabase->Init(Config::Instance().GetParam<std::string>(LOCAL_DATABASE_HOST_STRING, LOCAL_DATABASE_HOST_DEFAULT), 
+				Config::Instance().GetParam(LOCAL_DATABASE_PORT_STRING, LOCAL_DATABASE_PORT_DEFAULT), 
+				Config::Instance().GetParam<std::string>(LOCAL_DATABASE_USER_STRING, LOCAL_DATABASE_USER_DEFAULT), 
+				Config::Instance().GetParam<std::string>(LOCAL_DATABASE_PASSWORD_STRING, LOCAL_DATABASE_PASSWORD_DEFAULT), 
+				Config::Instance().GetParam<std::string>(LOCAL_DATABASE_NAME_STRING, LOCAL_DATABASE_NAME_DEFAULT)))
 				return false;
 			bar.step();
 		}
@@ -125,7 +125,9 @@ namespace Desperion
 		Log::Instance().outColor(TWHITE, "Shared v%u.%u.%u\n\n", SHARED_VERSION_MAJOR, SHARED_VERSION_MINOR, SHARED_VERSION_REVISION);
 	
 		new Config;
-		Config::Instance().Init(configPath, TARGET_REALM);
+		std::vector<std::string> files;
+		files.push_back("server.properties"), files.push_back("misc.properties");
+		Config::Instance().Init(configPath, files);
 
 		if(!StartUpDatabase())
 			return false;
@@ -134,7 +136,7 @@ namespace Desperion
 		World::Instance().Init();
 
 		sListener = new SocketListener<Session>(m_service);
-		sListener->Init(Config::Instance().GetUInt(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
+		sListener->Init(Config::Instance().GetParam(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
 		if(sListener->IsOpen())
 			Log::Instance().outNotice("Network", "Local socket running!");
 		else
@@ -144,7 +146,7 @@ namespace Desperion
 		}
 
 		eListener = new SocketListener<GameSession>(m_service);
-		eListener->Init(Config::Instance().GetUInt(DISTANT_SERVER_PORT_STRING, DISTANT_SERVER_PORT_DEFAULT));
+		eListener->Init(Config::Instance().GetParam(DISTANT_SERVER_PORT_STRING, DISTANT_SERVER_PORT_DEFAULT));
 		if(eListener->IsOpen())
 			Log::Instance().outNotice("Network", "Distant socket running!\n");
 		else

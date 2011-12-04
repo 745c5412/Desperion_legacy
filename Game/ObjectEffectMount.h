@@ -25,7 +25,7 @@ class ObjectEffectMount : public ObjectEffect
 {
 public:
 	int mountId;
-	uint64 date;
+	time_t date;
 	int16 modelId;
 	
 	virtual uint16 GetProtocol() const

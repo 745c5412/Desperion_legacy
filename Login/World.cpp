@@ -27,18 +27,30 @@ World::World()
 
 void World::RefreshGameServer(GameServer* G)
 {
-	SessionsMutex.lock();
+	struct Count
+	{
+		uint8 count;
+		Count()
+		{ count = 0; }
+	};
+	std::tr1::unordered_map<int, Count> counts;
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT accountGuid FROM character_counts WHERE serverID=%u;",
+		G->GetID());
+	if(QR)
+	{
+		do
+		{
+			Field* fields = QR->Fetch();
+			++counts[fields[0].GetInt32()].count;
+		}while(QR->NextRow());
+	}
+
+	boost::mutex::scoped_lock lock(SessionsMutex);
 	for(SessionMap::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
 	{
-		uint32 guid = it->second->GetData(FLAG_GUID).intValue;
-		if(guid == 0)
-			continue;
-		ResultPtr QR = Desperion::sDatabase->Query("SELECT accountGuid FROM character_counts WHERE accountGuid=%u and serverID=%u;",
-			guid, G->GetID());
-		it->second->Send(ServerStatusUpdateMessage(it->second->GetServerStatusMessage(G, QR->GetRowCount())));
-		
+		it->second->Send(ServerStatusUpdateMessage(it->second->GetServerStatusMessage(G, 
+			counts[it->second->GetData(FLAG_GUID).intValue].count)));
 	}
-	SessionsMutex.unlock();
 }
 
 World::~World()
@@ -81,67 +93,60 @@ void World::Init()
 
 void World::AddSession(Session* s)
 {
-	SessionsMutex.lock();
+	boost::mutex::scoped_lock lock(SessionsMutex);
 	Sessions[s->GetData(FLAG_GUID).intValue] = s;
 	if(Sessions.size() > m_maxPlayers)
 		m_maxPlayers = Sessions.size();
-	SessionsMutex.unlock();
 }
 
 Session* World::GetSession(int guid)
 {
 	Session* s = NULL;
-	SessionsMutex.lock();
+	boost::mutex::scoped_lock lock(SessionsMutex);
 	SessionMap::iterator it = Sessions.find(guid);
 	if(it != Sessions.end())
 		s = it->second;
-	SessionsMutex.unlock();
 	return s;
 }
 
 void World::DeleteSession(int guid)
 {
-	SessionsMutex.lock();
+	boost::mutex::scoped_lock lock(SessionsMutex);
 	SessionMap::iterator it = Sessions.find(guid);
 	if(it != Sessions.end())
 		Sessions.erase(it);
-	SessionsMutex.unlock();
 }
 
 GameServer* World::GetGameServer(uint16 Guid)
 {
 	GameServer* G = NULL;
-	GameServersMutex.lock();
+	boost::mutex::scoped_lock lock(SessionsMutex);
 	GameServerMap::iterator it = GameServers.find(Guid);
 	if(it != GameServers.end())
 		G = it->second;
-	GameServersMutex.unlock();
 	return G;
 }
 
 void World::AddGameSession(GameSession* s)
 {
-	GameSessionsMutex.lock();
+	boost::mutex::scoped_lock lock(SessionsMutex);
 	GameSessions[s->GetServer()->GetID()] = s;
-	GameSessionsMutex.unlock();
 }
 
 GameSession* World::GetGameSession(uint16 guid)
 {
 	GameSession* s = NULL;
-	GameSessionsMutex.lock();
+	boost::mutex::scoped_lock lock(SessionsMutex);
 	GameSessionMap::iterator it = GameSessions.find(guid);
 	if(it != GameSessions.end())
 		s = it->second;
-	GameSessionsMutex.unlock();
 	return s;
 }
 
 void World::DeleteGameSession(uint16 guid)
 {
-	GameSessionsMutex.lock();
+	boost::mutex::scoped_lock lock(SessionsMutex);
 	GameSessionMap::iterator it = GameSessions.find(guid);
 	if(it != GameSessions.end())
 		GameSessions.erase(it);
-	GameSessionsMutex.unlock();
 }

@@ -77,11 +77,11 @@ private:
 	AccountData m_data[FLAGS_NUMBER];
 	time_t m_subscriptionEnd;
 	Character* m_char;
-	std::vector<int8> m_channels;
-	std::vector<int8> m_disallowed;
-	std::vector<int> m_friends;
-	std::vector<int> m_ennemies;
-	std::vector<int> m_ignored;
+	std::set<int8> m_channels;
+	std::set<int8> m_disallowed;
+	std::set<std::string> m_friends;
+	std::set<std::string> m_ennemies;
+	std::set<std::string> m_ignored;
 	uint32 m_lastNameSuggestionRequest;
 	bool m_away;
 	bool m_invisible;
@@ -123,9 +123,14 @@ private:
 	void HandleChatClientPrivateMessage(ByteBuffer&);
 	void HandleChatClientPrivateWithObjectMessage(ByteBuffer&);
 	void HandleChannelEnablingMessage(ByteBuffer&);
+	void HandleMoodSmileyRequestMessage(ByteBuffer&);
+	void HandleChatSmileyRequestMessage(ByteBuffer&);
 
 	// BasicHandler.cpp
 	void HandleBasicPingMessage(ByteBuffer&);
+	void HandleNumericWhoIsRequestMessage(ByteBuffer&);
+	void HandleBasicWhoIsRequestMessage(ByteBuffer&);
+	void HandleBasicWhoAmIRequestMessage(ByteBuffer&);
 
 	// InventoryHandler.cpp
 	void HandleObjectDeleteMessage(ByteBuffer&);
@@ -135,6 +140,9 @@ private:
 	void HandleLivingObjectDissociateMessage(ByteBuffer&);
 	void HandleLivingObjectMessageRequestMessage(ByteBuffer&);
 	void HandleObjectFeedMessage(ByteBuffer&);
+
+	// SocialHandler.cpp
+	void HandleFriendsGetListMessage(ByteBuffer&);
 
 	// Session.cpp
 	void HandleAuthenticationTicketMessage(ByteBuffer&);
@@ -193,11 +201,26 @@ public:
 	{ return m_invisible; }
 
 	void RemoveChannel(int8);
-	bool HasChannel(int8);
 
-	bool IsFriendWith(std::string);
-	bool IsEnnemyWith(std::string);
-	bool IsIgnoredWith(std::string);
+	bool IsFriendWith(std::string name)
+	{
+		return m_friends.find(Desperion::ToLowerCase(name)) != m_friends.end();
+	}
+
+	bool IsEnnemyWith(std::string name)
+	{
+		return m_ennemies.find(Desperion::ToLowerCase(name)) != m_ennemies.end();
+	}
+
+	bool IsIgnoredWith(std::string name)
+	{
+		return m_ignored.find(Desperion::ToLowerCase(name)) != m_ignored.end();
+	}
+
+	bool HasChannel(int8 chann)
+	{
+		return m_channels.find(chann) != m_channels.end();
+	}
 };
 
 #endif

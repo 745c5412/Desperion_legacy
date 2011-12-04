@@ -18,6 +18,23 @@
 
 #include "StdAfx.h"
 
+void Session::HandleChatSmileyRequestMessage(ByteBuffer& packet)
+{
+	ChatSmileyRequestMessage data;
+	data.Deserialize(packet);
+
+	Send(ChatSmileyMessage(m_char->GetGuid(), data.smileyId, m_data[FLAG_GUID].intValue));
+}
+
+void Session::HandleMoodSmileyRequestMessage(ByteBuffer& packet)
+{
+	MoodSmileyRequestMessage data;
+	data.Deserialize(packet);
+
+	m_char->SetSmileyId(data.smileyId);
+	Send(MoodSmileyResultMessage(0, data.smileyId));
+}
+
 void Session::HandleChannelEnablingMessage(ByteBuffer& packet)
 {
 	ChannelEnablingMessage data;
@@ -26,7 +43,7 @@ void Session::HandleChannelEnablingMessage(ByteBuffer& packet)
 	if(data.enable)
 	{
 		if(!HasChannel(data.channel))
-			m_channels.push_back(data.channel);
+			m_channels.insert(data.channel);
 	}
 	else
 		RemoveChannel(data.channel);

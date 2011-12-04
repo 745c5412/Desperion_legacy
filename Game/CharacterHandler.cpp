@@ -79,7 +79,7 @@ void Session::HandleCharacterDeletionRequestMessage(ByteBuffer& packet)
 	Desperion::sDatabase->Execute("DELETE FROM character_minimals WHERE id=%u LIMIT 1;", toDelete->id);
 	Desperion::sDatabase->Execute("DELETE FROM character_stats WHERE guid=%u LIMIT 1;", toDelete->id);
 	Desperion::eDatabase->Execute("DELETE FROM character_counts WHERE accountGuid=%u AND serverID=%u LIMIT 1;", m_data[FLAG_GUID].intValue,
-		Desperion::Config::Instance().GetUInt(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT));
+		Desperion::Config::Instance().GetParam(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT));
 	delete toDelete;
 
 	Send(CharactersListMessage(false, characters));
@@ -92,7 +92,7 @@ void Session::HandleCharacterNameSuggestionRequestMessage(ByteBuffer& packet)
 
 	uint32 time = getMSTime();
 	if(time < m_lastNameSuggestionRequest + 
-		Desperion::Config::Instance().GetUInt(NAME_SUGGESTION_RETRY_TIME_STRING, NAME_SUGGESTION_RETRY_TIME_DEFAULT))
+		Desperion::Config::Instance().GetParam(NAME_SUGGESTION_RETRY_TIME_STRING, NAME_SUGGESTION_RETRY_TIME_DEFAULT))
 	{
 		Send(CharacterNameSuggestionFailureMessage(NICKNAME_GENERATOR_RETRY_TOO_SHORT));
 		return;
@@ -268,11 +268,11 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 		return;
 	}
 
-	int16 id = Desperion::Config::Instance().GetUInt(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT);
+	int16 id = Desperion::Config::Instance().GetParam(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT);
 	ResultPtr QR = Desperion::eDatabase->Query("SELECT * FROM character_counts WHERE accountGuid=%u;", m_data[FLAG_GUID].intValue);
 	if(QR)
 	{
-		if(QR->GetRowCount() > Desperion::Config::Instance().GetUInt(MAX_CHARACTERS_COUNT_STRING, MAX_CHARACTERS_COUNT_DEFAULT))
+		if(QR->GetRowCount() > Desperion::Config::Instance().GetParam(MAX_CHARACTERS_COUNT_STRING, MAX_CHARACTERS_COUNT_DEFAULT))
 		{
 			Send(CharacterCreationResultMessage(ERR_TOO_MANY_CHARACTERS));
 			return;
@@ -280,8 +280,8 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 	}
 	
 
-	int startMap = Desperion::Config::Instance().GetUInt(CUSTOM_START_MAP_STRING, CUSTOM_START_MAP_DEFAULT);
-	int16 startCell = Desperion::Config::Instance().GetUInt(CUSTOM_START_CELL_STRING, CUSTOM_START_CELL_DEFAULT);
+	int startMap = Desperion::Config::Instance().GetParam(CUSTOM_START_MAP_STRING, CUSTOM_START_MAP_DEFAULT);
+	int16 startCell = Desperion::Config::Instance().GetParam(CUSTOM_START_CELL_STRING, CUSTOM_START_CELL_DEFAULT);
 	Map* map = World::Instance().GetMap(startMap);
 	if(map == NULL || map->GetCell(startCell).id == -1)
 	{
@@ -291,8 +291,9 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 
 	int guid = World::Instance().GetNextCharacterGuid();
 	if(!Desperion::sDatabase->Execute("INSERT INTO characters VALUES(%u, '%s', %u, %u, '%s', %u, %u, '', 0, -1, 0, 0, 0, '%s');",
-		guid, Desperion::Config::Instance().GetString(START_ZAAPS_STRING, START_ZAAPS_DEFAULT).c_str(),
-		startMap, startCell, "", startMap, startCell, Desperion::Config::Instance().GetString(START_EMOTES_STRING, START_EMOTES_DEFAULT).c_str()))
+		guid, Desperion::Config::Instance().GetParam<std::string>(START_ZAAPS_STRING, START_ZAAPS_DEFAULT).c_str(),
+		startMap, startCell, "", startMap, startCell,
+		Desperion::Config::Instance().GetParam<std::string>(START_EMOTES_STRING, START_EMOTES_DEFAULT).c_str()))
 	{
 		Send(CharacterCreationResultMessage(ERR_NO_REASON));
 		return;
@@ -308,13 +309,13 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 	look.indexedColors.push_back(data.colors[2]);
 	look.indexedColors.push_back(data.colors[3]);
 	look.indexedColors.push_back(data.colors[4]);
-	uint8 level = Desperion::Config::Instance().GetUInt(START_LEVEL_STRING, START_LEVEL_DEFAULT);
-	bool full = Desperion::Config::Instance().GetBool(FULL_SCROLLED_STRING, FULL_SCROLLED_DEFAULT);
+	uint8 level = Desperion::Config::Instance().GetParam(START_LEVEL_STRING, START_LEVEL_DEFAULT);
+	bool full = Desperion::Config::Instance().GetParam(FULL_SCROLLED_STRING, FULL_SCROLLED_DEFAULT);
 	Desperion::sDatabase->Execute("INSERT INTO character_minimals VALUES(%u, %u, '%s', '%s', %u, %u, %u);",
 		guid, level, data.name.c_str(), look.ToString().c_str(), data.breed, data.sex, m_data[FLAG_GUID].intValue);
 	Desperion::sDatabase->Execute("INSERT INTO character_stats VALUES(%u, %u, %u, %u, 0, 0, 0, 0, 0, 0, 10000, %u, %u, %u, %u, %u, %u, \
 								  %llu, 0);",
-								  guid, Desperion::Config::Instance().GetUInt(START_KAMAS_STRING, START_KAMAS_DEFAULT), (level - 1) * 5,
+								  guid, Desperion::Config::Instance().GetParam(START_KAMAS_STRING, START_KAMAS_DEFAULT), (level - 1) * 5,
 								  level - 1, full ? 101 : 0, full ? 101 : 0, full ? 101 : 0, full ? 101 : 0, full ? 101 : 0, 
 								  full ? 101 : 0, 0); // dernier 0: xp --> TODO
 	Desperion::eDatabase->Execute("INSERT INTO character_counts VALUES(%u, %u);", m_data[FLAG_GUID].intValue, id);

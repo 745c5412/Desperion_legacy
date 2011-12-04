@@ -19,26 +19,51 @@
 #ifndef __CONFIG__
 #define __CONFIG__
 
-#define TARGET_GAME 0
-#define TARGET_REALM 1
-
 namespace Desperion
 {
 	class Config : public Singleton<Config>
 	{
 	public:
-		void Init(std::string, uint8);
+		void Init(std::string, std::vector<std::string>&);
 		Config();
-		bool ParseFile(std::string);
-		std::string GetString(std::string, std::string);
-		int64 GetInt(std::string, int64);
-		uint64 GetUInt(std::string, uint64);
-		bool GetBool(std::string, bool);
+		void ParseAll();
+		
+		template<class T> T GetParam(std::string index, T def)
+		{
+			ConfigMap::iterator it = m_configMap.find(ToLowerCase(index));
+			if(it == m_configMap.end())
+				return def;
+			T value(def);
+			FromString(it->second, value);
+			return value;
+		}
+
+		const std::vector<std::string>& GetFiles() const
+		{ return m_files; }
 	private:
+		bool ParseFile(std::string);
+
+		std::vector<std::string> m_files;
 		std::string m_path;
 		typedef std::tr1::unordered_map<std::string, std::string> ConfigMap;
 		ConfigMap m_configMap;
 	};
+
+	template<> inline bool Config::GetParam(std::string index, bool def)
+	{
+		ConfigMap::iterator it = m_configMap.find(ToLowerCase(index));
+			if(it == m_configMap.end())
+				return def;
+		return ToLowerCase(it->second) != "false";
+	}
+
+	template<> inline std::string Config::GetParam(std::string index, std::string def)
+	{
+		ConfigMap::iterator it = m_configMap.find(ToLowerCase(index));
+			if(it == m_configMap.end())
+				return def;
+		return it->second;
+	}
 
 }
 

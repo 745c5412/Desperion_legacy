@@ -137,16 +137,16 @@ GameServerInformations* Session::GetServerStatusMessage(const GameServer* G, uin
 {
 	uint8 state = G->GetState(m_data[FLAG_LEVEL].intValue, IsSubscriber());
 	return new GameServerInformations(G->GetID(), state, 0,
-		CanSelect(state), count, uint64(0));
+		CanSelect(state), count, 0);
 }
 
 void Session::SendServersList()
 {
 	struct Count
 	{
-		uint8 m_count;
+		uint8 count;
 		Count()
-		{ m_count = 0; }
+		{ count = 0; }
 	};
 
 	std::tr1::unordered_map<uint16, Count> counts;
@@ -157,7 +157,7 @@ void Session::SendServersList()
 		{
 			Field* fields = QR->Fetch();
 			uint16 serverID = fields[0].GetUInt16();
-			++counts[serverID].m_count;
+			++counts[serverID].count;
 		}while(QR->NextRow());
 	}
 	
@@ -165,7 +165,7 @@ void Session::SendServersList()
 	const World::GameServerMap& servers = World::Instance().GetGameServers();
 	std::vector<GameServerInformationsPtr> infos;
 	for(World::GameServerMap::const_iterator it = servers.begin(); it != servers.end(); ++it)
-		infos.push_back(GameServerInformationsPtr(GetServerStatusMessage(it->second, counts[it->first].m_count)));
+		infos.push_back(GameServerInformationsPtr(GetServerStatusMessage(it->second, counts[it->first].count)));
 	Send(ServersListMessage(infos));
 }
 
@@ -224,7 +224,7 @@ void Session::HandleIdentification(IdentificationMessage* data)
 		S->GetSocket()->close();
 	}
 
-	m_subscriptionEnd = fields[7].GetUInt32();
+	m_subscriptionEnd = fields[7].GetUInt64();
 	m_data[FLAG_LAST_SERVER].intValue = fields[6].GetUInt16();
 	m_data[FLAG_PSEUDO].stringValue = fields[3].GetString();
 	m_data[FLAG_GUID].intValue = guid;

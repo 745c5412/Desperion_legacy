@@ -20,39 +20,11 @@
 
 template<> Session::HandlerStorageMap AbstractSession<GamePacketHandler>::m_handlers;
 
-bool Session::IsFriendWith(std::string name)
-{
-	return false;
-}
-
-bool Session::IsEnnemyWith(std::string name)
-{
-	return false;
-}
-
-bool Session::IsIgnoredWith(std::string name)
-{
-	return false;
-}
-
 void Session::RemoveChannel(int8 chann)
 {
-	for(std::vector<int8>::iterator it = m_channels.begin(); it != m_channels.end(); ++it)
-	{
-		if((*it) == chann)
-		{
-			m_channels.erase(it);
-			return;
-		}
-	}
-}
-
-bool Session::HasChannel(int8 chann)
-{
-	for(std::vector<int8>::iterator it = m_channels.begin(); it != m_channels.end(); ++it)
-		if((*it) == chann)
-			return true;
-	return false;
+	std::set<int8>::iterator it = m_channels.find(chann);
+	if(it != m_channels.end())
+		m_channels.erase(it);
 }
 
 void Session::InitHandlersTable()
@@ -84,6 +56,8 @@ void Session::InitHandlersTable()
 	m_handlers[CMSG_CHAT_CLIENT_PRIVATE].Handler = &Session::HandleChatClientPrivateMessage;
 	m_handlers[CMSG_CHAT_CLIENT_PRIVATE_WITH_OBJECT].Handler = &Session::HandleChatClientPrivateWithObjectMessage;
 	m_handlers[CMSG_CHANNEL_ENABLING].Handler = &Session::HandleChannelEnablingMessage;
+	m_handlers[CMSG_CHAT_SMILEY_REQUEST].Handler = &Session::HandleChatSmileyRequestMessage;
+	m_handlers[CMSG_MOOD_SMILEY_REQUEST].Handler = &Session::HandleMoodSmileyRequestMessage;
 
 	m_handlers[CMSG_OBJECT_DROP].Handler = &Session::HandleObjectDropMessage;
 	m_handlers[CMSG_OBJECT_DELETE].Handler = &Session::HandleObjectDeleteMessage;
@@ -94,6 +68,9 @@ void Session::InitHandlersTable()
 	m_handlers[CMSG_OBJECT_FEED].Handler = &Session::HandleObjectFeedMessage;
 	
 	m_handlers[CMSG_BASIC_PING].Handler = &Session::HandleBasicPingMessage;
+	m_handlers[CMSG_BASIC_WHO_AM_I_REQUEST].Handler = &Session::HandleBasicWhoAmIRequestMessage;
+	m_handlers[CMSG_BASIC_WHO_IS_REQUEST].Handler = &Session::HandleBasicWhoIsRequestMessage;
+	m_handlers[CMSG_NUMERIC_WHO_IS_REQUEST].Handler = &Session::HandleNumericWhoIsRequestMessage;
 }
 
 void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
@@ -114,8 +91,8 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 		m_data[FLAG_LAST_CONN].intValue = fields[4].GetUInt32();
 		m_data[FLAG_LAST_IP].stringValue = fields[5].GetString();
 		m_subscriptionEnd = fields[6].GetUInt32();
-		Desperion::FastSplit<','>(m_channels, std::string(fields[7].GetString()), Desperion::SplitInt, true);
-		Desperion::FastSplit<','>(m_disallowed, std::string(fields[8].GetString()), Desperion::SplitInt, true);
+		Desperion::FastSplitSet<','>(m_channels, std::string(fields[7].GetString()), Desperion::SplitInt);
+		Desperion::FastSplitSet<','>(m_disallowed, std::string(fields[8].GetString()), Desperion::SplitInt);
 	}
 	else
 	{
@@ -127,14 +104,14 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	if(QR)
 	{
 		Field* fields = QR->Fetch();
-		Desperion::FastSplit<','>(m_friends, std::string(fields[0].GetString()), Desperion::SplitInt, true);
-		Desperion::FastSplit<','>(m_ennemies, std::string(fields[1].GetString()), Desperion::SplitInt, true);
+		Desperion::FastSplitStringSet<','>(m_friends, std::string(fields[0].GetString()));
+		Desperion::FastSplitStringSet<','>(m_ennemies, std::string(fields[1].GetString()));
 	}
 	else
 		Desperion::eDatabase->Execute("INSERT INTO account_social VALUES(%u, '', '');", m_data[FLAG_GUID].intValue);
 	
 
-	uint16 servID = Desperion::Config::Instance().GetUInt(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT);
+	uint16 servID = Desperion::Config::Instance().GetParam(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT);
 	Desperion::eDatabase->Execute("UPDATE accounts SET ticket='', logged=%u, lastServer=%u WHERE guid=%u LIMIT 1;", servID, 
 		servID, m_data[FLAG_GUID].intValue);
 
@@ -154,13 +131,13 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 void Session::Save()
 {
 	std::ostringstream channels, disallowed;
-	for(std::vector<int8>::iterator it = m_channels.begin(); it != m_channels.end(); ++it)
+	for(std::set<int8>::iterator it = m_channels.begin(); it != m_channels.end(); ++it)
 	{
 		if(it != m_channels.begin())
 			channels<<",";
 		channels<<int16(*it);
 	}
-	for(std::vector<int8>::iterator it = m_disallowed.begin(); it != m_disallowed.end(); ++it)
+	for(std::set<int8>::iterator it = m_disallowed.begin(); it != m_disallowed.end(); ++it)
 	{
 		if(it != m_disallowed.begin())
 			disallowed<<",";

@@ -86,11 +86,11 @@ namespace Desperion
 		{
 			barGoLink bar(1);
 			sDatabase = new Database(3);
-			if(!sDatabase->Init(Config::Instance().GetString(LOCAL_DATABASE_HOST_STRING, LOCAL_DATABASE_HOST_DEFAULT), 
-				Config::Instance().GetUInt(LOCAL_DATABASE_PORT_STRING, LOCAL_DATABASE_PORT_DEFAULT), 
-				Config::Instance().GetString(LOCAL_DATABASE_USER_STRING, LOCAL_DATABASE_USER_DEFAULT), 
-				Config::Instance().GetString(LOCAL_DATABASE_PASSWORD_STRING, LOCAL_DATABASE_PASSWORD_DEFAULT), 
-				Config::Instance().GetString(LOCAL_DATABASE_NAME_STRING, LOCAL_DATABASE_NAME_DEFAULT)))
+			if(!sDatabase->Init(Config::Instance().GetParam<std::string>(LOCAL_DATABASE_HOST_STRING, LOCAL_DATABASE_HOST_DEFAULT), 
+				Config::Instance().GetParam(LOCAL_DATABASE_PORT_STRING, LOCAL_DATABASE_PORT_DEFAULT), 
+				Config::Instance().GetParam<std::string>(LOCAL_DATABASE_USER_STRING, LOCAL_DATABASE_USER_DEFAULT), 
+				Config::Instance().GetParam<std::string>(LOCAL_DATABASE_PASSWORD_STRING, LOCAL_DATABASE_PASSWORD_DEFAULT), 
+				Config::Instance().GetParam<std::string>(LOCAL_DATABASE_NAME_STRING, LOCAL_DATABASE_NAME_DEFAULT)))
 				return false;
 			bar.step();
 		}
@@ -100,11 +100,11 @@ namespace Desperion
 		{
 			barGoLink bar(1);
 			eDatabase = new Database(1);
-			if(!eDatabase->Init(Config::Instance().GetString(DISTANT_DATABASE_HOST_STRING, DISTANT_DATABASE_HOST_DEFAULT), 
-				Config::Instance().GetUInt(DISTANT_DATABASE_PORT_STRING, DISTANT_DATABASE_PORT_DEFAULT), 
-				Config::Instance().GetString(DISTANT_DATABASE_USER_STRING, DISTANT_DATABASE_USER_DEFAULT), 
-				Config::Instance().GetString(DISTANT_DATABASE_PASSWORD_STRING, DISTANT_DATABASE_PASSWORD_DEFAULT), 
-				Config::Instance().GetString(DISTANT_DATABASE_NAME_STRING, DISTANT_DATABASE_NAME_DEFAULT)))
+			if(!eDatabase->Init(Config::Instance().GetParam<std::string>(DISTANT_DATABASE_HOST_STRING, DISTANT_DATABASE_HOST_DEFAULT), 
+				Config::Instance().GetParam(DISTANT_DATABASE_PORT_STRING, DISTANT_DATABASE_PORT_DEFAULT), 
+				Config::Instance().GetParam<std::string>(DISTANT_DATABASE_USER_STRING, DISTANT_DATABASE_USER_DEFAULT), 
+				Config::Instance().GetParam<std::string>(DISTANT_DATABASE_PASSWORD_STRING, DISTANT_DATABASE_PASSWORD_DEFAULT), 
+				Config::Instance().GetParam<std::string>(DISTANT_DATABASE_NAME_STRING, DISTANT_DATABASE_NAME_DEFAULT)))
 				return false;
 			bar.step();
 		}
@@ -140,7 +140,10 @@ namespace Desperion
 		Log::Instance().outColor(TWHITE, "Shared v%u.%u.%u\n\n", SHARED_VERSION_MAJOR, SHARED_VERSION_MINOR, SHARED_VERSION_REVISION);
 	
 		new Config;
-		Config::Instance().Init(configPath, TARGET_GAME);
+		std::vector<std::string> files;
+		files.push_back("character.properties"), files.push_back("server.properties"),
+			files.push_back("misc.properties");
+		Config::Instance().Init(configPath, files);
 
 		if(!StartUpDatabase())
 			return false;
@@ -149,7 +152,7 @@ namespace Desperion
 		World::Instance().Init();
 
 		sListener = new SocketListener<Session>(m_service);
-		sListener->Init(Config::Instance().GetUInt(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
+		sListener->Init(Config::Instance().GetParam(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
 		if(sListener->IsOpen())
 			Log::Instance().outNotice("Network", "Local socket running!\n");
 		else

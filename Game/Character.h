@@ -97,6 +97,7 @@ private:
 
 	void InitItems();
 public:
+	Character();
 	void Init(Field*, CharacterMinimals*, Session*);
 	~Character();
 
@@ -118,6 +119,9 @@ public:
 
 	int8 GetSmileyId() const
 	{ return m_smileyId; }
+
+	void SetSmileyId(int8 smileyId)
+	{ m_smileyId = smileyId; }
 
 	const std::vector<int8>& GetEmotes()
 	{ return m_emotes; }

@@ -25,7 +25,7 @@ public:
 	int16 id;
 	int8 status, completion, charactersCount;
 	bool isSelectable;
-	uint64 date;
+	time_t date;
 
 	virtual uint16 GetProtocol() const
 	{ return GAME_SERVER_INFORMATIONS; }
@@ -34,7 +34,7 @@ public:
 	{
 	}
 
-	GameServerInformations(int16 id, int8 status, int8 completion, bool isSelectable, int8 charactersCount, uint64 date) : id(id),
+	GameServerInformations(int16 id, int8 status, int8 completion, bool isSelectable, int8 charactersCount, time_t date) : id(id),
 		status(status), completion(completion), isSelectable(isSelectable), charactersCount(charactersCount), date(date)
 	{
 	}

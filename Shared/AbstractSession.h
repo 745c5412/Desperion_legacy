@@ -40,7 +40,6 @@ protected:
 		}catch(...){ }
 	}
 private:
-	std::tr1::unordered_map<std::string, uint32> m_times;
 	uint8 m_header[2];
 	uint16 m_opcode;
 	std::vector<uint8> m_length;
@@ -94,7 +93,6 @@ public:
 
 		boost::asio::async_read(*m_socket, boost::asio::buffer(m_buffer), boost::bind(&AbstractSession::HandleReadData, shared_from_this(), 
 			boost::asio::placeholders::error));
-		m_times["length"] = getMSTime();
 	}
 
 	void HandleReadHeader(const boost::system::error_code& error)
@@ -114,7 +112,6 @@ public:
 
 		boost::asio::async_read(*m_socket, boost::asio::buffer(m_length), boost::bind(&AbstractSession::HandleReadLength, shared_from_this(), 
 			boost::asio::placeholders::error));
-		m_times["header"] = getMSTime();
 	}
 
 	void HandleReadData(const boost::system::error_code& error)
@@ -154,7 +151,6 @@ public:
 		
 		m_opcode = 0;
 		m_buffer.clear();
-		m_times["data"] = getMSTime();
 
 		Run();
 	}

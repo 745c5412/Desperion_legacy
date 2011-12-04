@@ -4,7 +4,7 @@
 class EnabledChannelsMessage : public DofusMessage
 {
 public:
-	std::vector<int8> channels, disallowed;
+	std::set<int8> channels, disallowed;
 
 	virtual uint16 GetOpcode() const
 	{ return SMSG_ENABLED_CHANNELS; }
@@ -13,7 +13,7 @@ public:
 	{
 	}
 
-	EnabledChannelsMessage(std::vector<int8>& channels, std::vector<int8>& disallowed) : channels(channels),
+	EnabledChannelsMessage(std::set<int8>& channels, std::set<int8>& disallowed) : channels(channels),
 		disallowed(disallowed)
 	{
 	}
@@ -22,12 +22,12 @@ public:
 	{
 		uint16 size = channels.size();
 		data<<size;
-		for(uint16 a = 0; a < size; ++a)
-			data<<channels[a];
+		for(std::set<int8>::iterator it = channels.begin(); it != channels.end(); ++it)
+			data<<*it;
 		size = disallowed.size();
 		data<<size;
-		for(uint16 a = 0; a < size; ++a)
-			data<<disallowed[a];
+		for(std::set<int8>::iterator it = disallowed.begin(); it != disallowed.end(); ++it)
+			data<<*it;
 	}
 
 	void Deserialize(ByteBuffer& data)
@@ -38,14 +38,14 @@ public:
 		{
 			int8 chann;
 			data>>chann;
-			channels.push_back(chann);
+			channels.insert(chann);
 		}
 		data>>size;
 		for(uint16 a = 0; a < size; ++a)
 		{
 			int8 dis;
 			data>>dis;
-			disallowed.push_back(dis);
+			disallowed.insert(dis);
 		}
 	}
 };

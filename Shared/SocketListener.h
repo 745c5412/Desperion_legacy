@@ -43,7 +43,7 @@ public:
 	void Init(uint16 port)
 	{
 		m_acceptor = new boost::asio::ip::tcp::acceptor(m_service, 
-			boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), port));
+			boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v6(), port));
 		m_socket = new Socket(m_service);
 	}
 

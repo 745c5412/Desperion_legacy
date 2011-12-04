@@ -180,6 +180,12 @@
     <ClCompile Include="ProtocolTypeManager.cpp">
       <Filter>Desperion\CPP</Filter>
     </ClCompile>
+    <ClCompile Include="SocialHandler.cpp">
+      <Filter>Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Subarea.cpp">
+      <Filter>Objects\CPP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StdAfx.h">
@@ -598,6 +604,48 @@
     </ClInclude>
     <ClInclude Include="MoodSmileyResultMessage.h">
       <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="MoodSmileyRequestMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="LocalizedChatSmileyMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatSmileyMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatSmileyRequestMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicWhoAmIRequestMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicWhoIsMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicWhoIsNoMatchMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicWhoIsRequestMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="NumericWhoIsMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="NumericWhoIsRequestMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractContactInformations.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="FriendInformations.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="FriendOnlineInformations.h">
+      <Filter>Models\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Subarea.h">
+      <Filter>Objects\H</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -92,6 +92,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Master.cpp" />
+    <ClCompile Include="SocialHandler.cpp" />
     <ClCompile Include="Mount.cpp" />
     <ClCompile Include="ObjectEffect.cpp" />
     <ClCompile Include="ObjectEffectCreature.cpp" />
@@ -110,11 +111,13 @@
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Subarea.cpp" />
     <ClCompile Include="SubEntity.cpp" />
     <ClCompile Include="Weapon.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AbstractContactInformations.h" />
     <ClInclude Include="AccountCapabilitiesMessage.h" />
     <ClInclude Include="ActorAlignmentInformations.h" />
     <ClInclude Include="ActorExtendedAlignmentInformations.h" />
@@ -129,6 +132,10 @@
     <ClInclude Include="BasicPingMessage.h" />
     <ClInclude Include="BasicPongMessage.h" />
     <ClInclude Include="BasicTimeMessage.h" />
+    <ClInclude Include="BasicWhoAmIRequestMessage.h" />
+    <ClInclude Include="BasicWhoIsMessage.h" />
+    <ClInclude Include="BasicWhoIsNoMatchMessage.h" />
+    <ClInclude Include="BasicWhoIsRequestMessage.h" />
     <ClInclude Include="ChangeMapMessage.h" />
     <ClInclude Include="ChannelEnablingChangeMessage.h" />
     <ClInclude Include="ChannelEnablingMessage.h" />
@@ -164,6 +171,8 @@
     <ClInclude Include="ChatServerCopyWithObjectMessage.h" />
     <ClInclude Include="ChatServerMessage.h" />
     <ClInclude Include="ChatServerWithObjectMessage.h" />
+    <ClInclude Include="ChatSmileyMessage.h" />
+    <ClInclude Include="ChatSmileyRequestMessage.h" />
     <ClInclude Include="ConditionsParser.h" />
     <ClInclude Include="ConfigDefaults.h" />
     <ClInclude Include="ConsoleCommandsListMessage.h" />
@@ -174,6 +183,8 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityDispositionInformations.h" />
     <ClInclude Include="EntityLook.h" />
+    <ClInclude Include="FriendInformations.h" />
+    <ClInclude Include="FriendOnlineInformations.h" />
     <ClInclude Include="GameClient.h" />
     <ClInclude Include="CharacterCreationRequestMessage.h" />
     <ClInclude Include="GameContextActorInformations.h" />
@@ -203,12 +214,16 @@
     <ClInclude Include="LivingObjectDissociateMessage.h" />
     <ClInclude Include="LivingObjectMessageMessage.h" />
     <ClInclude Include="LivingObjectMessageRequestMessage.h" />
+    <ClInclude Include="LocalizedChatSmileyMessage.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="MapComplementaryInformationsDataMessage.h" />
     <ClInclude Include="MapInformationsRequestMessage.h" />
     <ClInclude Include="Master.h" />
+    <ClInclude Include="MoodSmileyRequestMessage.h" />
     <ClInclude Include="MoodSmileyResultMessage.h" />
     <ClInclude Include="Mount.h" />
+    <ClInclude Include="NumericWhoIsMessage.h" />
+    <ClInclude Include="NumericWhoIsRequestMessage.h" />
     <ClInclude Include="ObjectAddedMessage.h" />
     <ClInclude Include="ObjectDeletedMessage.h" />
     <ClInclude Include="ObjectDeleteMessage.h" />
@@ -249,6 +264,7 @@
     <ClInclude Include="Session.h" />
     <ClInclude Include="SetUpdateMessage.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="Subarea.h" />
     <ClInclude Include="SubEntity.h" />
     <ClInclude Include="TextInformationMessage.h" />
     <ClInclude Include="TrustStatusMessage.h" />

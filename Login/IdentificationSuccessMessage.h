@@ -26,7 +26,7 @@ public:
 	int guid;
 	bool alreadyConnected;
 	std::string pseudo, question;
-	uint64 subscriptionEnd;
+	time_t subscriptionEnd;
 	uint8 communityId;
 
 	virtual uint16 GetOpcode() const
@@ -37,7 +37,7 @@ public:
 	}
 
 	IdentificationSuccessMessage(bool hasRights, bool alreadyConnected, std::string pseudo, int guid, uint8 communityId, std::string question, 
-		uint64 subscriptionEnd) : hasRights(hasRights), alreadyConnected(alreadyConnected), pseudo(pseudo), guid(guid), question(question), 
+		time_t subscriptionEnd) : hasRights(hasRights), alreadyConnected(alreadyConnected), pseudo(pseudo), guid(guid), question(question), 
 		subscriptionEnd(subscriptionEnd), communityId(communityId)
 	{
 	}

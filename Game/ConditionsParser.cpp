@@ -250,7 +250,7 @@ bool ConditionsParser::Eval()
 				return false;
 		}
 
-	}catch(std::exception& e)
+	}catch(const std::exception&)
 	{
 		return false;
 	}

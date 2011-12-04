@@ -145,6 +145,11 @@ namespace Desperion
 			vector.push_back(temp);
 	}
 
+	inline double SplitDouble(std::string& str)
+	{
+		return atof(str.c_str());
+	}
+
 	inline int SplitInt(std::string& str)
 	{ 
 		return atoi(str.c_str());
@@ -173,6 +178,48 @@ namespace Desperion
 		}
 		if(reserved && !temp.empty())
 			vector.push_back(callback(temp));
+	}
+
+	template<char S, class T, class V>
+	inline void FastSplitSet(std::set<T>& set, std::string& str, V callback)
+	{
+		std::string temp = "";
+		for(uint16 a = 0; a < str.size(); ++a)
+		{
+			char b = str[a];
+			switch(b)
+			{
+			case S:
+				set.insert(callback(temp));
+				temp.clear();
+				break;
+			default:
+				temp += b;
+			}
+		}
+		if(!temp.empty())
+			set.insert(callback(temp));
+	}
+
+	template<char S>
+	inline void FastSplitStringSet(std::set<std::string>& set, std::string& str)
+	{
+		std::string temp = "";
+		for(uint16 a = 0; a < str.size(); ++a)
+		{
+			char b = str[a];
+			switch(b)
+			{
+			case S:
+				set.insert(temp);
+				temp.clear();
+				break;
+			default:
+				temp += b;
+			}
+		}
+		if(!temp.empty())
+			set.insert(temp);
 	}
 
 	std::string ToUpperCase(std::string str);

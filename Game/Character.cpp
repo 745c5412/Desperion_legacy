@@ -268,9 +268,13 @@ Character::~Character()
 	m_items.clear();
 }
 
+Character::Character() : m_smileyId(0), m_nextCell(-1), m_nextDirection(-1),
+	m_context(ROLE_PLAY)
+{
+}
+
 void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 {
-	m_smileyId = 0;
 	int mapId = fields[2].GetInt32();
 	Map* map = World::Instance().GetMap(mapId);
 	if(map == NULL)
@@ -300,9 +304,6 @@ void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 	m_sex = ch->sex;
 	m_account = ch->account;
 	m_session = session;
-	m_context = ROLE_PLAY;
-	m_nextCell = -1;
-	m_nextDirection = -1;
 	ch->onlineCharacter = this;
 	InitItems();
 	m_stats.Init(fields, m_level);

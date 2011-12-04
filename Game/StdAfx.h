@@ -21,7 +21,7 @@
 
 #define GAME_VERSION_MAJOR 0
 #define GAME_VERSION_MINOR 8
-#define GAME_VERSION_REVISION 0
+#define GAME_VERSION_REVISION 1
 
 #define REQUIRED_SHARED_VERSION_MAJOR 0
 #define REQUIRED_SHARED_VERSION_MINOR 0
@@ -168,7 +168,21 @@
 #include "ChannelEnablingChangeMessage.h"
 #include "ChannelEnablingMessage.h"
 #include "MoodSmileyResultMessage.h"
+#include "MoodSmileyRequestMessage.h"
+#include "ChatSmileyMessage.h"
+#include "LocalizedChatSmileyMessage.h"
+#include "ChatSmileyRequestMessage.h"
+#include "BasicWhoAmIRequestMessage.h"
+#include "BasicWhoIsMessage.h"
+#include "BasicWhoIsNoMatchMessage.h"
+#include "BasicWhoIsRequestMessage.h"
+#include "NumericWhoIsMessage.h"
+#include "NumericWhoIsRequestMessage.h"
+#include "AbstractContactInformations.h"
+#include "FriendInformations.h"
+#include "FriendOnlineInformations.h"
 
+#include "Subarea.h"
 #include "Mount.h"
 #include "ItemSet.h"
 #include "Entity.h"

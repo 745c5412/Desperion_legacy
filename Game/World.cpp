@@ -22,10 +22,9 @@ template<> World * Singleton<World>::m_singleton = NULL;
 
 void World::Send(DofusMessage& data)
 {
-	SessionsMutex.lock();
+	boost::mutex::scoped_lock lock(SessionsMutex);
 	for(SessionMap::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
 		it->second->Send(data);
-	SessionsMutex.unlock();
 }
 
 World::World()
@@ -36,6 +35,7 @@ World::World()
 
 void World::SaveAll()
 {
+	boost::mutex::scoped_lock lock(SessionsMutex);
 	for(SessionMap::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
 	{
 		if(it->second->GetData(FLAG_GUID).intValue != 0)
@@ -141,32 +141,10 @@ void CreateSchema()
 
 void World::Init()
 {
-	uint32 threadcount;
-#ifndef WIN32
-#if UNIX_FLAVOUR == UNIX_FLAVOUR_LINUX
-#ifdef X64
-	threadcount = 2;
-#else
-	long affmask;
-	sched_getaffinity(0, 4, (cpu_set_t*)&affmask);
-	threadcount = (BitCount8(affmask)) * 2;
-	if(threadcount > 8) threadcount = 8;
-	else if(threadcount <= 0) threadcount = 1;
-#endif
-#else
-	threadcount = 2;
-#endif
-#else
-	SYSTEM_INFO s;
-	GetSystemInfo(&s);
-	threadcount = s.dwNumberOfProcessors * 2;
-	if(threadcount > 8)
-		threadcount = 8;
-#endif
-
-	boost::threadpool::pool tp(threadcount);
-	uint32 count = 0;
+	boost::threadpool::pool tp(boost::thread::hardware_concurrency() + 1);
 	Log::Instance().outNotice("World", "Loading world...");
+	tp.schedule(boost::bind(&World::LoadSubareas, this));
+	tp.wait();
 	tp.schedule(boost::bind(&World::LoadCharacterMinimals, this));
 	tp.schedule(boost::bind(&World::LoadItemSets, this));
 	tp.schedule(boost::bind(&World::LoadItems, this));
@@ -176,6 +154,26 @@ void World::Init()
 
 	Session::InitHandlersTable();
 	Session::InitCommandsTable();
+}
+
+void World::LoadSubareas()
+{
+	uint32 time = getMSTime();
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT d2o_sub_area.id, areaId, mapIds, sub_area_spawns.spawns FROM d2o_sub_area JOIN sub_area_spawns ON \
+											   d2o_sub_area.id=sub_area_spawns.id;");
+	if(!QR)
+		return;
+	do
+	{
+		Field* fields = QR->Fetch();
+		Subarea* s = new Subarea;
+		s->Init(fields);
+		std::vector<int> maps;
+		Desperion::FastSplit<','>(maps, std::string(fields[2].GetString()), Desperion::SplitInt);
+		Subareas[s->GetId()] = s;
+	}while(QR->NextRow());
+
+	Log::Instance().outNotice("World", "%u subareas loaded in %ums!", Subareas.size(), getMSTime() - time);
 }
 
 void World::LoadItems()
@@ -204,7 +202,6 @@ void World::LoadItems()
 		Items[w->GetId()] = w;
 	}while(QR->NextRow());
 	
-
 	Log::Instance().outNotice("World", "%u items loaded in %ums!", Items.size(), getMSTime() - time);
 }
 
@@ -237,6 +234,8 @@ void World::LoadMaps()
 		Map* map = new Map;
 		map->Init(fields);
 		Maps[map->GetId()] = map;
+		if(map->GetSubareaId() > 0)
+			Subareas[map->GetSubareaId()]->AddMap(map);
 	}while(QR->NextRow());
 	
 	Log::Instance().outNotice("World", "%u maps loaded in %ums!", Maps.size(), getMSTime() - time);
@@ -264,7 +263,7 @@ void World::LoadCharacterMinimals()
 Map* World::GetMap(int id)
 {
 	Map* map = NULL;
-	MapsMutex.lock();
+	boost::mutex::scoped_lock lock(MapsMutex);
 	MapMap::iterator it = Maps.find(id);
 	if(it != Maps.end())
 	{
@@ -272,14 +271,13 @@ Map* World::GetMap(int id)
 		if(!map->IsBuilt())
 			map->Build();
 	}
-	MapsMutex.unlock();
 	return map;
 }
 
 Map* World::GetMap(int16 x, int16 y)
 {
 	Map* map = NULL;
-	MapsMutex.lock();
+	boost::mutex::scoped_lock lock(MapsMutex);
 	for(MapMap::iterator it = Maps.begin(); it != Maps.end(); ++it)
 	{
 		if(it->second->GetPosX() == x && it->second->GetPosY() == y)
@@ -290,7 +288,6 @@ Map* World::GetMap(int16 x, int16 y)
 			break;
 		}
 	}
-	MapsMutex.unlock();
 	return map;
 }
 
@@ -298,7 +295,7 @@ CharacterMinimals* World::GetCharacterMinimals(std::string name)
 {
 	CharacterMinimals* ch = NULL;
 	name = Desperion::ToLowerCase(name);
-	CharactersMutex.lock();
+	boost::mutex::scoped_lock lock(CharactersMutex);
 	for(CharacterMinimalsMap::iterator it = Characters.begin(); it != Characters.end(); ++it)
 	{
 		if(Desperion::ToLowerCase(it->second->name) == name)
@@ -307,95 +304,101 @@ CharacterMinimals* World::GetCharacterMinimals(std::string name)
 			break;
 		}
 	}
-	CharactersMutex.unlock();
 	return ch;
 }
 
 void World::AddCharacterMinimals(CharacterMinimals* ch)
 {
-	CharactersMutex.lock();
+	boost::mutex::scoped_lock lock(CharactersMutex);
 	Characters[ch->id] = ch;
-	CharactersMutex.unlock();
 }
 
 CharacterMinimals* World::GetCharacterMinimals(int guid)
 {
 	CharacterMinimals* ch = NULL;
-	CharactersMutex.lock();
+	boost::mutex::scoped_lock lock(CharactersMutex);
 	CharacterMinimalsMap::iterator it = Characters.find(guid);
 	if(it != Characters.end())
 		ch = it->second;
-	CharactersMutex.unlock();
 	return ch;
 }
 
 void World::DeleteCharacterMinimals(int guid)
 {
-	CharactersMutex.lock();
+	boost::mutex::scoped_lock lock(CharactersMutex);
 	CharacterMinimalsMap::iterator it = Characters.find(guid);
 	if(it != Characters.end())
 		Characters.erase(it);
-	CharactersMutex.unlock();
 }
 
 std::list<CharacterMinimals*> World::GetCharactersByAccount(int guid)
 {
 	std::list<CharacterMinimals*> result;
-	CharactersMutex.lock();
+	boost::mutex::scoped_lock lock(CharactersMutex);
 	for(CharacterMinimalsMap::iterator it = Characters.begin(); it != Characters.end(); ++it)
 		if(it->second->account == guid)
 			result.push_back(it->second);
-	CharactersMutex.unlock();
 	return result;
 }
 
 Item* World::GetItem(int id)
 {
 	Item* i = NULL;
-	ItemsMutex.lock();
+	boost::mutex::scoped_lock lock(ItemsMutex);
 	ItemMap::iterator it = Items.find(id);
 	if(it != Items.end())
 		i = it->second;
-	ItemsMutex.unlock();
 	return i;
 }
 
 ItemSet* World::GetItemSet(int16 id)
 {
 	ItemSet* i = NULL;
-	ItemSetsMutex.lock();
+	boost::mutex::scoped_lock lock(ItemSetsMutex);
 	ItemSetMap::iterator it = ItemSets.find(id);
 	if(it != ItemSets.end())
 		i = it->second;
-	ItemSetsMutex.unlock();
 	return i;
 }
 
 void World::AddSession(Session* s)
 {
-	SessionsMutex.lock();
+	boost::mutex::scoped_lock lock(SessionsMutex);
 	Sessions[s->GetData(FLAG_GUID).intValue] = s;
 	if(Sessions.size() > m_maxPlayers)
 		m_maxPlayers = Sessions.size();
-	SessionsMutex.unlock();
 }
 
 Session* World::GetSession(int guid)
 {
 	Session* s = NULL;
-	SessionsMutex.lock();
+	boost::mutex::scoped_lock lock(SessionsMutex);
 	SessionMap::iterator it = Sessions.find(guid);
 	if(it != Sessions.end())
 		s = it->second;
-	SessionsMutex.unlock();
+	return s;
+}
+
+Session* World::GetSession(std::string pseudo)
+{
+	pseudo = Desperion::ToLowerCase(pseudo);
+	Session* s= NULL;
+	boost::mutex::scoped_lock lock(SessionsMutex);
+	for(SessionMap::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
+	{
+		if(Desperion::ToLowerCase(it->second->GetData(FLAG_PSEUDO).stringValue) == pseudo)
+		{
+			s = it->second;
+			break;
+		}
+	}
 	return s;
 }
 
 void World::DeleteSession(int guid)
 {
-	SessionsMutex.lock();
+	boost::mutex::scoped_lock lock(SessionsMutex);
 	SessionMap::iterator it = Sessions.find(guid);
 	if(it != Sessions.end())
 		Sessions.erase(it);
-	SessionsMutex.unlock();
 }

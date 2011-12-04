@@ -32,8 +32,9 @@ void GameClient::Launch()
 	else
 		m_timer->cancel();
 	m_socket->close();
-	boost::asio::ip::tcp::endpoint host(boost::asio::ip::address::from_string("127.0.0.1"),
-		Desperion::Config::Instance().GetUInt(DISTANT_SERVER_PORT_STRING, DISTANT_SERVER_PORT_DEFAULT));
+	boost::asio::ip::tcp::endpoint host(boost::asio::ip::address::from_string(
+		Desperion::Config::Instance().GetParam<std::string>(DISTANT_SERVER_HOST_STRING, DISTANT_SERVER_HOST_DEFAULT)),
+		Desperion::Config::Instance().GetParam(DISTANT_SERVER_PORT_STRING, DISTANT_SERVER_PORT_DEFAULT));
 	m_socket->async_connect(host, boost::bind(&GameClient::HandleConnect, this, boost::asio::placeholders::error));
 }
 
@@ -53,8 +54,8 @@ void GameClient::Start()
 {
 	ByteBuffer dest, src;
 
-	src<<uint16(Desperion::Config::Instance().GetUInt(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT));
-	src<<Desperion::Config::Instance().GetString(LOCAL_SERVER_AUTH_KEY_STRING, LOCAL_SERVER_AUTH_KEY_DEFAULT);
+	src<<uint16(Desperion::Config::Instance().GetParam(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT));
+	src<<Desperion::Config::Instance().GetParam<std::string>(LOCAL_SERVER_AUTH_KEY_STRING, LOCAL_SERVER_AUTH_KEY_DEFAULT);
 	Packet::Pack(CMSG_CONNECT, dest, src);
 	_Send(dest);
 	

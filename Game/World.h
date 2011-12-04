@@ -24,6 +24,7 @@ class Item;
 struct CharacterMinimals;
 class Map;
 class ItemSet;
+class Subarea;
 
 typedef boost::mutex Mutex;
 
@@ -35,6 +36,7 @@ public:
 	typedef std::tr1::unordered_map<int, Item*> ItemMap;
 	typedef std::tr1::unordered_map<int, Map*> MapMap;
 	typedef std::tr1::unordered_map<int16, ItemSet*> ItemSetMap;
+	typedef std::tr1::unordered_map<int16, Subarea*> SubareaMap;
 
 	World();
 	~World();
@@ -45,14 +47,17 @@ public:
 	void LoadItems();
 	void LoadMaps();
 	void LoadItemSets();
+	void LoadSubareas();
 
 	void AddSession(Session*);
 	void DeleteSession(int);
 	Session* GetSession(int);
+	Session* GetSession(std::string);
 	void Send(DofusMessage&);
 
 	Map* GetMap(int);
 	Map* GetMap(int16, int16);
+	Subarea* GetSubarea(int16);
 
 	void AddCharacterMinimals(CharacterMinimals*);
 	CharacterMinimals* GetCharacterMinimals(int);
@@ -86,6 +91,7 @@ private:
 	ItemMap Items;
 	MapMap Maps;
 	ItemSetMap ItemSets;
+	SubareaMap Subareas;
 
 	uint16 m_maxPlayers;
 
@@ -97,6 +103,7 @@ private:
 	Mutex SessionsMutex;
 	Mutex CharactersMutex;
 	Mutex ItemsMutex;
+	Mutex SubareasMutex;
 };
 
 #endif
