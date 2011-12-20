@@ -81,20 +81,21 @@ class Session : public AbstractSession<LoginPacketHandler>
 {
 private:
 	AccountData m_data[FLAGS_NUMBER];
-	std::string m_key;
+	std::string m_salt;
 	time_t m_subscriptionEnd;
+	std::ofstream m_logs;
 
 	void HandleIdentification(IdentificationMessage*);
 	bool HandleServerSelection(GameServer*, bool);
 	void SendServersList();
 
 	void HandleIdentificationMessage(ByteBuffer&);
-	void HandleIdentificationWithServerIdMessage(ByteBuffer&);
 	void HandleServerSelectionMessage(ByteBuffer&);
 	void HandleAcquaintanceSearchMessage(ByteBuffer&);
 public:
 	static void InitHandlersTable();
 	void Start();
+	void LOG(const char*, ...);
 
 	void OnData(LoginPacketHandler* hdl, ByteBuffer& packet)
 	{ (this->*hdl->Handler)(packet); }

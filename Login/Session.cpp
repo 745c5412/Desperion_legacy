@@ -22,15 +22,13 @@ template <> Session::HandlerStorageMap AbstractSession<LoginPacketHandler>::m_ha
 
 bool IsIpBanned(std::string address)
 {
-	ResultPtr QR = Desperion::sDatabase->Query("SELECT banTime, banDate FROM ip_bans WHERE IP='%s' LIMIT 1;", address.c_str());
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT banEnd FROM ip_bans WHERE IP='%s' LIMIT 1;", address.c_str());
 	if(!QR)
 		return false;
 	Field* fields = QR->Fetch();
-	time_t banTime = fields[0].GetUInt64();
-	time_t banDate = fields[1].GetUInt64();
-	
+	time_t banEnd = fields[0].GetInt64();
 
-	if(banDate + banTime < time(NULL))
+	if(banEnd < time(NULL))
 	{
 		Desperion::sDatabase->Execute("DELETE FROM ip_bans WHERE IP='%s' LIMIT 1;", address.c_str());
 		return false;
@@ -39,23 +37,25 @@ bool IsIpBanned(std::string address)
 		return true;
 }
 
-bool IsAccountBanned(uint32 guid)
+void Session::LOG(const char* str, ...)
 {
-	ResultPtr QR = Desperion::sDatabase->Query("SELECT banTime, banDate FROM account_bans WHERE guid=%u LIMIT 1;", guid);
-	if(!QR)
-		return false;
-	Field* fields = QR->Fetch();
-	time_t banTime = fields[0].GetUInt64();
-	time_t banDate = fields[0].GetUInt64();
-	
+	if(m_data[FLAG_GUID].intValue == 0 || !str)
+		return;
 
-	if(banDate + banTime < time(NULL))
+	if(!m_logs)
 	{
-		Desperion::sDatabase->Execute("DELETE FROM account_bans WHERE guid=%u LIMIT 1;", guid);
-		return false;
+		std::ostringstream fileName;
+		fileName<<"sessions/"<<m_data[FLAG_GUID].intValue<<".log";
+		m_logs.open(fileName.str().c_str(), std::ios::app);
 	}
-	else
-		return true;
+
+	va_list ap;
+	char buf[32768];
+	va_start(ap, str);
+	vsnprintf_s(buf, 32768, str, ap);
+	va_end(ap);
+
+	Log::Instance().outFile(m_logs, std::string(buf));
 }
 
 void Session::HandleAcquaintanceSearchMessage(ByteBuffer& packet)
@@ -169,51 +169,82 @@ void Session::SendServersList()
 	Send(ServersListMessage(infos));
 }
 
-void Session::HandleIdentification(IdentificationMessage* data)
+void Session::HandleIdentificationMessage(ByteBuffer& packet)
 {
-	if(IsIpBanned(m_socket->remote_endpoint().address().to_string()))
+	IdentificationMessage data;
+	data.Deserialize(packet);
+
+	if(Desperion::Config::Instance().GetParam(SERVER_MAINTENANCE_STRING, SERVER_MAINTENANCE_DEFAULT))
+	{
+		Send(IdentificationFailedMessage(IN_MAINTENANCE));
+		m_socket->close();
+		return;
+	}
+	else if(IsIpBanned(m_socket->remote_endpoint().address().to_string()))
 	{
 		Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
-		throw ServerError("Wrong crendentials");
+		m_socket->close();
+		return;
 	}
-	else if(!VerifyVersion(*(data->version)))
+	else if(!VerifyVersion(*(data.version)))
 	{
-		Send(IdentificationFailedMessage(BAD_VERSION));
-		throw ServerError("Bad Version");
+		Send(IdentificationFailedForBadVersionMessage(BAD_VERSION, new Version(DOFUS_VERSION_MAJOR, DOFUS_VERSION_MINOR, DOFUS_VERSION_RELEASE,
+			DOFUS_VERSION_REVISION, DOFUS_VERSION_PATCH, DOFUS_VERSION_BUILD_TYPE)));
+		m_socket->close();
+		return;
 	}
 
-	const char* query = "SELECT password, guid, question, pseudo, logged, level, lastServer, subscriptionEnd FROM accounts WHERE account='%s' LIMIT 1;";
-	ResultPtr QR = Desperion::sDatabase->Query(query, data->userName.c_str());
+	const char* query = "SELECT password, guid, question, pseudo, logged, level, lastServer, subscriptionEnd, banEnd FROM accounts WHERE account='%s'\
+						LIMIT 1;";
+	ResultPtr QR = Desperion::sDatabase->Query(query, Desperion::sDatabase->EscapeString(data.login).c_str());
 	
 	if(!QR)
 	{
 		Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
-		throw ServerError("Wrong credentials");
+		m_socket->close();
+		return;
+	}
+
+	std::string result;
+	try
+	{
+		CryptoPP::ByteQueue queue;
+		CryptoPP::FileSource file(Desperion::Config::Instance().GetParam<std::string>(PRIV_FILE_PATH_STRING, PRIV_FILE_PATH_DEFAULT).c_str(),
+			true);
+		file.TransferTo(queue);
+		queue.MessageEnd();
+		CryptoPP::RSA::PrivateKey privateKey;
+		privateKey.Load(queue);
+		CryptoPP::RSAES_PKCS1v15_Decryptor d(privateKey);
+		CryptoPP::AutoSeededRandomPool rng;
+		CryptoPP::StringSource((uint8*)&data.credentials[0], data.credentials.size(), true,
+			new CryptoPP::PK_DecryptorFilter(rng, d, new CryptoPP::StringSink(result)));
+		result = result.substr(32 + 2 + 66);
+	}
+	catch(...)
+	{
+		Send(IdentificationFailedMessage(UNKNOWN_AUTH_ERROR));
+		m_socket->close();
+		return;
 	}
 
 	Field* fields = QR->Fetch();
-	std::string pass = data->password;
-	const char* charPass = pass.c_str();
-	md5_state_t state;
-	md5_byte_t digest[16];
-	char hex_output[16*2 + 1];
-	md5_init(&state);
-	md5_append(&state, (const md5_byte_t *)charPass, strlen(charPass));
-	md5_finish(&state, digest);
-	for (int i = 0; i < 16; i++)
-		sprintf(hex_output + i * 2, "%02x", digest[i]);
-
-	if(std::string(fields[0].GetString()) != std::string(hex_output))
+	if(Desperion::ToLowerCase(std::string(fields[0].GetString())) != Desperion::ComputeMD5Digest(result))
 	{
 		Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
-		throw ServerError("Wrong crendentials");
+		m_socket->close();
+		return;
 	}
 	
-	uint32 guid = fields[1].GetUInt32();
-	if(IsAccountBanned(guid))
+	int guid = fields[1].GetUInt32();
+	time_t banEnd = fields[8].GetUInt64();
+	if(banEnd < time(NULL))
+		Desperion::sDatabase->Execute("UPDATE accounts SET banEnd=0 WHERE guid=%u LIMIT 1;", guid);
+	else
 	{
-		Send(IdentificationFailedMessage(BANNED));
-		throw ServerError("Banned");
+		Send(IdentificationFailedBannedMessage(BANNED, banEnd));
+		m_socket->close();
+		return;
 	}
 
 	Session* S = World::Instance().GetSession(guid);
@@ -230,37 +261,28 @@ void Session::HandleIdentification(IdentificationMessage* data)
 	m_data[FLAG_GUID].intValue = guid;
 	m_data[FLAG_LEVEL].intValue = fields[5].GetUInt8();
 	m_data[FLAG_QUESTION].stringValue = fields[2].GetString();
-	m_data[FLAG_ACCOUNT].stringValue = data->userName;
+	m_data[FLAG_ACCOUNT].stringValue = data.login;
 	
 
 	World::Instance().AddSession(this);
+	LOG("***** Connection with IP address %s {%s} *****", m_socket->remote_endpoint().address().to_string().c_str(),
+		Desperion::FormatTime("%x").c_str());
 
-	Send(IdentificationSuccessMessage(m_data[FLAG_LEVEL].intValue > 0, alreadyConnected, m_data[FLAG_PSEUDO].stringValue,
+	Send(IdentificationSuccessMessage(m_data[FLAG_LEVEL].intValue > 0, alreadyConnected, data.login, m_data[FLAG_PSEUDO].stringValue,
 		m_data[FLAG_GUID].intValue, 0, m_data[FLAG_QUESTION].stringValue, m_subscriptionEnd));
-}
-
-void Session::HandleIdentificationWithServerIdMessage(ByteBuffer& packet)
-{
-	IdentificationWithServerIdMessage data;
-	data.Deserialize(packet);
-	HandleIdentification(&data);
-
-	if(!HandleServerSelection(World::Instance().GetGameServer(data.serverId), true))
-			SendServersList();
-}
-
-void Session::HandleIdentificationMessage(ByteBuffer& packet)
-{
-	IdentificationMessage data;
-	data.Deserialize(packet);
-	HandleIdentification(&data);
-
+	
 	if(data.autoConnect)
 	{
 		if(HandleServerSelection(World::Instance().GetGameServer(m_data[FLAG_LAST_SERVER].intValue), true))
 			return;
 	}
+	else if(data.serverId > 0)
+	{
+		if(HandleServerSelection(World::Instance().GetGameServer(data.serverId), true))
+			return;
+	}
 	SendServersList();
+
 }
 
 void Session::InitHandlersTable()
@@ -275,9 +297,6 @@ void Session::InitHandlersTable()
 
 	m_handlers[CMSG_ACQUAINTANCE_SEARCH].Handler = &Session::HandleAcquaintanceSearchMessage;
 	m_handlers[CMSG_ACQUAINTANCE_SEARCH].Flag = FLAG_OUT_OF_QUEUE;
-
-	m_handlers[CMSG_IDENTIFICATION_WITH_SERVER_ID].Handler = &Session::HandleIdentificationWithServerIdMessage;
-	m_handlers[CMSG_IDENTIFICATION_WITH_SERVER_ID].Flag = FLAG_NOT_CONNECTED;
 }
 
 Session::~Session()
@@ -285,15 +304,26 @@ Session::~Session()
 	if(m_data[FLAG_GUID].intValue != 0)
 	{
 		World::Instance().DeleteSession(m_data[FLAG_GUID].intValue);
-		Log::Instance().outDebug("Client %u disconnected", m_data[FLAG_GUID].intValue);
+		LOG("***** Disconnection *****");
 	}
 }
 
 void Session::Start()
 {
 	Send(ProtocolRequired(PROTOCOL_BUILD, PROTOCOL_REQUIRED_BUILD));
-	m_key = GenerateRandomKey();
-	Send(HelloConnectMessage(2, m_key));
 
+	std::ifstream file(Desperion::Config::Instance().GetParam<std::string>(PUB_FILE_PATH_STRING, PUB_FILE_PATH_DEFAULT).c_str(),
+		std::ios::binary);
+
+	if(!file)
+		throw std::runtime_error("*** ERROR: PUBLIC KEY FILE DOESN'T EXIST! ***");
+	
+	std::vector<int8> bytes;
+	char c;
+	while(file.get(c))
+		bytes.push_back(c);
+	m_salt = GenerateRandomKey();
+	Send(HelloConnectMessage(m_salt, bytes));
+	
 	Run();
 }

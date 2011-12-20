@@ -22,8 +22,8 @@
 class HelloConnectMessage : public DofusMessage
 {
 public:
-	int8 connectionType;
-	std::string key;
+	std::string salt;
+	std::vector<int8> keys;
 
 	virtual uint16 GetOpcode() const
 	{ return SMSG_HELLO_CONNECT; }
@@ -32,18 +32,31 @@ public:
 	{
 	}
 
-	HelloConnectMessage(int8 connectionType, std::string key) : connectionType(connectionType), key(key)
+	HelloConnectMessage(std::string salt, std::vector<int8>& keys) : salt(salt), keys(keys)
 	{
 	}
 
 	void Serialize(ByteBuffer& data)
 	{
-		data<<connectionType<<key;
+		data<<salt;
+		uint16 size = keys.size();
+		data<<size;
+		for(uint16 a = 0; a < size; ++a)
+			data<<keys[a];
 	}
 
 	void Deserialize(ByteBuffer& data)
 	{
-		data>>connectionType>>key;
+		keys.clear();
+		data>>salt;
+		uint16 size;
+		data>>size;
+		for(uint16 a = 0; a < size; ++a)
+		{
+			int8 key;
+			data>>key;
+			keys.push_back(key);
+		}
 	}
 };
 

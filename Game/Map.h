@@ -54,7 +54,7 @@ public:
 	int16 GetPosY() const
 	{ return m_posY; }
 
-	int16 GetSubareaId() const
+	int16 GetSubAreaId() const
 	{ return m_subareaId; }
 
 	int GetCapabilities() const

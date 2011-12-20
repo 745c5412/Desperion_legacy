@@ -133,20 +133,20 @@ Item::~Item()
 void Item::Init(Field* fields)
 {
 	m_id = fields[0].GetInt16();
-	m_typeId = fields[2].GetInt32();
-	m_level = fields[5].GetInt32();
-	m_weight = fields[6].GetInt32();
-	m_cursed = fields[7].GetBool();
-	m_useAnimationId = fields[8].GetInt32();
-	m_usable = fields[9].GetBool();
-	m_targetable = fields[10].GetBool();
-	m_price = fields[11].GetInt32();
-	m_twoHanded = fields[12].GetBool();
-	m_etheral = fields[13].GetBool();
-	m_itemSetId = fields[14].GetInt32();
-	m_criteria = fields[15].GetString();
-	m_appearanceId = fields[17].GetInt32();
-	Desperion::FastSplit<';'>(m_possibleEffects, std::string(fields[20].GetString()), F);
-	Desperion::FastSplit<','>(m_favoriteSubAreas, std::string(fields[21].GetString()), Desperion::SplitInt);
-	m_favoriteSubAreaBonus = fields[22].GetInt32();
+	m_typeId = fields[1].GetInt32();
+	m_level = fields[2].GetInt32();
+	m_weight = fields[3].GetInt32();
+	m_cursed = fields[4].GetBool();
+	m_useAnimationId = fields[5].GetInt32();
+	m_usable = fields[6].GetBool();
+	m_targetable = fields[7].GetBool();
+	m_price = fields[8].GetInt64();
+	m_twoHanded = fields[9].GetBool();
+	m_etheral = fields[10].GetBool();
+	m_itemSetId = fields[11].GetInt32();
+	m_criteria = fields[12].GetString();
+	m_appearanceId = fields[13].GetInt32();
+	Desperion::FastSplit<';'>(m_possibleEffects, std::string(fields[14].GetString()), F);
+	Desperion::FastSplit<','>(m_favoriteSubAreas, std::string(fields[15].GetString()), Desperion::SplitInt);
+	m_favoriteSubAreaBonus = fields[16].GetInt32();
 }

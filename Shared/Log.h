@@ -43,15 +43,17 @@
 
 enum LogLevel
 {
-	OUT_DEBUG = 1,
-	LOG_DEBUG = 2,
+	PRINT_DEBUG = 0,
+	OUT_DEBUG = 3,
+	PRINT_ERROR = 1,
 	OUT_ERROR = 4,
-	LOG_ERROR = 8,
-	OUT_STRING = 16,
-	LOG_STRING = 32,
+	PRINT_STRING = 2,
+	OUT_STRING = 5,
 };
 
-#define OUTLOG_ALL OUT_DEBUG | LOG_DEBUG | OUT_ERROR | LOG_ERROR | OUT_STRING | LOG_STRING
+#define SET(flag, bit) (((flag) |= (1 << (bit))) != 0)
+#define CLEAR(flag, bit) (((flag) &= ~(1 << (bit))) != 0)
+#define GET(flag, bit) (((flag) & (1 << (bit))) != 0)
 
 class Log : public Singleton<Log>
 {
@@ -62,17 +64,21 @@ public:
 	void outError(const char *, ...);
 	void outNotice(const char *, const char *, ...);
 	void outDebug(const char *, ...);
-	void outTime(std::ofstream&);
 	void outColor(uint32, const char *, ...);
-	void Init(std::string, uint32 flags = 0);
+	void outFile(std::ofstream&, std::string);
+	void Init(std::string, uint8 flags = 0xff);
+
 private:
+	void outTime(std::ofstream&);
+	void printTime();
+
 #ifdef _WIN32
 	HANDLE stderr_handle;
 	HANDLE stdout_handle;
 #endif
 	uint8 m_fileLogLevel;
 	uint8 m_screenLogLevel;
-	uint32 m_flags;
+	uint8 m_flags;
 
 	std::string m_path;
 	std::ofstream m_file;

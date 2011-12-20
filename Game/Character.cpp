@@ -53,7 +53,19 @@ EntityLook* Character::GetLook() const
 			{
 				EntityLook* ent = new EntityLook;
 				ent->bonesId = (*it)->GetItem()->GetAppearanceId();
-				l->subentities.push_back(SubEntityPtr(new SubEntity(1, 0, ent)));
+
+				int8 category, index;
+				if((*it)->GetItem()->GetTypeId() == 121)
+				{
+					category = 2;
+					index = 1;
+				}
+				else
+				{
+					category = 1;
+					index = 0;
+				}
+				l->subentities.push_back(SubEntityPtr(new SubEntity(category, index, ent)));
 			}
 			break;
 		}
@@ -280,8 +292,8 @@ void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 	if(map == NULL)
 	{
 		std::ostringstream str;
-		str<<"Map "<<mapId<<" doesn't exist!";
-		throw ServerError(str.str().c_str());
+		session->LOG("MapId %u doesn't exist: %s", mapId, __FUNCTION__);
+		throw std::exception();
 	}
 	DisplayableEntity::Init(fields[0].GetInt32(), ch->look, fields[3].GetInt16(), World::Instance().GetMap(fields[2].GetInt32()), 
 		DIRECTION_SOUTH_WEST);
@@ -305,7 +317,6 @@ void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 	m_account = ch->account;
 	m_session = session;
 	ch->onlineCharacter = this;
-	InitItems();
 	m_stats.Init(fields, m_level);
 	ApplyEffect(&StatsRow::base, 125, fields[25].GetInt16(), true);
 	ApplyEffect(&StatsRow::base, 124, fields[26].GetInt16(), true);
@@ -313,6 +324,7 @@ void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 	ApplyEffect(&StatsRow::base, 126, fields[28].GetInt16(), true);
 	ApplyEffect(&StatsRow::base, 123, fields[29].GetInt16(), true);
 	ApplyEffect(&StatsRow::base, 119, fields[30].GetInt16(), true);
+	InitItems();
 	
 	// TODO: timer de regen
 }
@@ -341,7 +353,7 @@ void Character::InitItems()
 			tm->tm_min = obviTime->minute;
 			if(t - mktime(tm) > 36 * 60 * 60)
 			{
-				uint8 state = ((PlayerItemEffectInteger*)it->GetEffect(971))->value;
+				int16 state = ((PlayerItemEffectInteger*)it->GetEffect(971))->value;
 				switch(state)
 				{
 				case 1:

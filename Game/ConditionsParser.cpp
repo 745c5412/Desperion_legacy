@@ -38,7 +38,7 @@ void ConditionsParser::SetFormula(std::string formu)
 bool ConditionsParser::Eval()
 {
 	bool isInPar = false;
-	for(int a = 0; a < m_formula.size(); ++a)
+	for(size_t a = 0; a < m_formula.size(); ++a)
 	{
 		switch(m_formula[a])
 		{
@@ -60,24 +60,24 @@ bool ConditionsParser::Eval()
 	}
 
 	std::vector<std::string> table; // table "ET"
-	Desperion::Split(table, m_formula, '&');
+	Desperion::FastSplitString<'&'>(table, m_formula, true);
 	try
 	{ // début du try
 		std::list<bool> ands; // liste contenant tous les résultats du table "ET"
-		for(int a = 0; a < table.size(); ++a) // boucle tableau "ET"
+		for(size_t a = 0; a < table.size(); ++a) // boucle tableau "ET"
 		{
 			std::string cond_and = table.at(a); // "ET" actuel
 			std::vector<std::string> table2; // tableau "OU"
-			Desperion::Split(table2, cond_and, '|');
+			Desperion::FastSplitString<'|'>(table2, cond_and, true);
 			std::list<bool> ors; // liste contenant tous les résultats du tableau "OU"
-			for(int b = 0; b < table2.size(); b++) // boucle tableau "OU"
+			for(size_t b = 0; b < table2.size(); b++) // boucle tableau "OU"
 			{
 				std::string cond_or = table2.at(b); // "OU" actuel
 
 				if(cond_or.at(0) == '(')
 				{
 					std::string par = "";
-					for(int c = 1; c < cond_or.size() - 1; ++c)
+					for(size_t c = 1; c < cond_or.size() - 1; ++c)
 						par += cond_or[c];
 					ConditionsParser P(m_emotes, m_playerItems, m_playerName);
 					for(std::tr1::unordered_map<std::string, int64>::iterator it = m_variables.begin(); it != m_variables.end(); ++it)

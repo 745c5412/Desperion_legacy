@@ -150,7 +150,7 @@ public:
 	CharacterStats& GetStats()
 	{ return m_stats; }
 
-	int GetLevel() const
+	uint8 GetLevel() const
 	{ return m_level; }
 
 	int8 GetBreed() const

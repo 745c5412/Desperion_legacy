@@ -33,54 +33,47 @@ static const char* colorstrings[TBLUE+1] = {
 };
 #endif
 
-void Log::outColor(uint32 colorcode, const char * str, ...)
+void Log::outColor(uint32 colorcode, const char * str, ...) // s'affiche obligatoirement à l'écran
 {
 	if(!str) 
 		return;
 
+	boost::mutex::scoped_lock lock(m_lock);
 	va_list ap;
 	char buf[32768];
 	va_start(ap, str);
-	vsnprintf(buf, 32768, str, ap);
+	vsnprintf_s(buf, 32768, str, ap);
 	va_end(ap);
 
-	if(m_flags & OUT_STRING)
-	{
-		m_lock.lock();
 #ifdef WIN32
-		SetConsoleTextAttribute(stdout_handle, colorcode);
+	SetConsoleTextAttribute(stdout_handle, colorcode);
 #else
-		printf(colorstrings[colorcode]);
+	printf(colorstrings[colorcode]);
 #endif
-		std::cout<<buf<<std::endl;
+	std::cout<<buf<<std::endl;
 #ifdef WIN32
-		SetConsoleTextAttribute(stderr_handle, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
+	SetConsoleTextAttribute(stderr_handle, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
 #else
-		printf(colorstrings[TNORMAL]);
+	printf(colorstrings[TNORMAL]);
 #endif
-		m_lock.unlock();
-	}
 
-	if(m_flags & LOG_STRING && m_file)
-	{
-		outTime(m_file);
+	if(m_file)
 		m_file<<buf<<std::endl;
-	}
-	
 }
 
-void Log::outNotice(const char* source, const char* str, ...)
+void Log::outNotice(const char* source, const char* str, ...) // idem
 {
 	if(!source || !str)
 		return;
 
+	boost::mutex::scoped_lock lock(m_lock);
 	va_list ap;
 	char buf[32768];
 	va_start(ap, str);
-	vsnprintf(buf, 32768, str, ap);
+	vsnprintf_s(buf, 32768, str, ap);
 	va_end(ap);
 
-	m_lock.lock();
+	printTime();
 #ifdef WIN32
 	SetConsoleTextAttribute(stdout_handle, TWHITE);
 #else
@@ -93,73 +86,77 @@ void Log::outNotice(const char* source, const char* str, ...)
 	printf(colorstrings[TNORMAL]);
 #endif
 	std::cout<<buf<<std::endl;
-	m_lock.unlock();
+
+	if(m_file)
+	{
+		outTime(m_file);
+		m_file<<"["<<source<<"] "<<buf<<std::endl;
+	}
 }
 
 void Log::outTime(std::ofstream& file)
 {
-	time_t T = time(NULL);
-	//char buffer[256];
-	struct tm *tm = localtime(&T);
-	std::string day = Desperion::ToString(tm->tm_mday);
-	std::string month = Desperion::ToString(tm->tm_mon);
-	std::string year = Desperion::ToString(tm->tm_year);
-	std::string hour = Desperion::ToString(tm->tm_hour);
-	std::string minute = Desperion::ToString(tm->tm_min);
-	std::string second = Desperion::ToString(tm->tm_sec);
-	while(day.size() < 2)
-		day = "0" + day;
-	while(month.size() < 2)
-		month = "0" + month;
-	while(hour.size() < 2)
-		hour = "0" + hour;
-	while(minute.size() < 2)
-		minute = "0" + minute;
-	while(second.size() < 2)
-		second = "0" + second;
-	std::string t = day + "/" + month + "/" + year + "~" + hour + ":" + minute + ":" + second + "\t";
-	//strftime(buffer, 256, "[%Y-%m-%d %T] ", tm);
-	file<<t;
+	file<<Desperion::FormatTime("[%H:%M:%S] ");
+}
+
+void Log::printTime()
+{
+	std::cout<<Desperion::FormatTime("[%H:%M] ");
 }
 
 void Log::outString( const char * str, ... )
 {
 	if(!str)
 		return;
+	bool print = GET(m_flags, PRINT_STRING), out = GET(m_flags, OUT_STRING);
+	if(!print && !out)
+		return;
 
+	boost::mutex::scoped_lock lock(m_lock);
 	va_list ap;
 	char buf[32768];
 	va_start(ap, str);
-	vsnprintf(buf, 32768, str, ap);
+	vsnprintf_s(buf, 32768, str, ap);
 	va_end(ap);
 
-	if(m_flags & OUT_STRING)
+	if(print)
 	{
-		m_lock.lock();
+		printTime();
 		std::cout<<buf<<std::endl;
-		m_lock.unlock();
 	}
-	if(m_flags & LOG_STRING && m_file)
+	if(m_file && out)
 	{
 		outTime(m_file);
 		m_file<<buf<<std::endl;
 	}
 }
 
-void Log::outError( const char * err, ... )
+void Log::outFile(std::ofstream& file, std::string str)
+{
+	if(!file)
+		return;
+	outTime(file);
+	file<<str<<std::endl;
+}
+
+void Log::outError(const char * err, ... )
 {
 	if(!err)
 		return;
+	bool print = GET(m_flags, PRINT_ERROR), out = GET(m_flags, OUT_ERROR);
+	if(!print && !out)
+		return;
 
+	boost::mutex::scoped_lock lock(m_lock);
 	va_list ap;
 	char buf[32768];
 	va_start(ap, err);
-	vsnprintf(buf, 32768, err, ap);
+	vsnprintf_s(buf, 32768, err, ap);
 	va_end(ap);
 
-	if(m_flags & OUT_ERROR)
+	if(print)
 	{
-		m_lock.lock();
+		printTime();
 #ifdef WIN32
 		SetConsoleTextAttribute(stderr_handle, FOREGROUND_RED | FOREGROUND_INTENSITY);
 #else
@@ -171,9 +168,8 @@ void Log::outError( const char * err, ... )
 #else
 		puts(colorstrings[TNORMAL]);
 #endif
-		m_lock.unlock();
 	}
-	if(m_flags & LOG_ERROR && m_errorFile)
+	if(m_errorFile && out)
 	{
 		outTime(m_errorFile);
 		m_errorFile<<buf<<std::endl;
@@ -184,16 +180,20 @@ void Log::outDebug( const char * str, ... )
 {
 	if(!str)
 		return;
+	bool print = GET(m_flags, PRINT_DEBUG), out = GET(m_flags, OUT_DEBUG);
+	if(!print && !out)
+		return;
 
+	boost::mutex::scoped_lock lock(m_lock);
 	va_list ap;
 	char buf[32768];
 	va_start(ap, str);
-	vsnprintf(buf, 32768, str, ap);
+	vsnprintf_s(buf, 32768, str, ap);
 	va_end(ap);
 
-	if(m_flags & OUT_DEBUG)
+	if(print)
 	{
-		m_lock.lock();
+		printTime();
 #ifdef WIN32
 		SetConsoleTextAttribute(stderr_handle, TYELLOW);
 #else
@@ -205,9 +205,8 @@ void Log::outDebug( const char * str, ... )
 #else
 		puts(colorstrings[TNORMAL]);
 #endif
-		m_lock.unlock();
 	}
-	if(m_flags & LOG_DEBUG && m_debugFile)
+	if(m_debugFile && out)
 	{
 		outTime(m_debugFile);
 		m_debugFile<<buf<<std::endl;
@@ -216,40 +215,39 @@ void Log::outDebug( const char * str, ... )
 
 Log::~Log()
 {
-	m_file.close();
-	m_errorFile.close();
-	m_debugFile.close();
 }
 
-void Log::Init(std::string path, uint32 flags)
+void Log::Init(std::string path, uint8 flags)
 {
 	m_path = path;
 	m_flags = flags;
 
-	if (m_flags & LOG_STRING)
+	std::string time = Desperion::FormatTime("%d-%m-%y_%H-%M-%S");
+	if (GET(m_flags, OUT_STRING))
 	{
-		std::string filename = m_path + "/file.log";
+		
+		std::string filename = m_path + "/file_" + time + ".log";
 		m_file.open(filename.c_str());
 		if (m_file.fail())
-			std::cerr<<__FUNCTION__<<": Error opening '"<<filename<<"': "<<strerror(errno)<<std::endl;
+			std::cerr<<__FUNCTION__<<": Error opening '"<<filename<<"'"<<std::endl;
 		m_file.clear();
 	}
 
-	if(m_flags & LOG_ERROR)
+	if(GET(m_flags, OUT_ERROR))
 	{
-		std::string filename = m_path + "/errors.log";
+		std::string filename = m_path + "/errors_" + time + ".log";
 		m_errorFile.open(filename.c_str());
 		if (m_errorFile.fail())
-			std::cerr<<__FUNCTION__<<": Error opening '"<<filename<<"': "<<strerror(errno)<<std::endl;
+			std::cerr<<__FUNCTION__<<": Error opening '"<<filename<<"'"<<std::endl;
 		m_errorFile.clear();
 	}
 
-	if(m_flags & LOG_DEBUG)
+	if(GET(m_flags, OUT_DEBUG))
 	{
-		std::string filename = m_path + "/debug.log";
+		std::string filename = m_path + "/debug_" + time + ".log";
 		m_debugFile.open(filename.c_str());
 		if (m_debugFile.fail())
-			std::cerr<<__FUNCTION__<<": Error opening '"<<filename<<"': "<<strerror(errno)<<std::endl;
+			std::cerr<<__FUNCTION__<<": Error opening '"<<filename<<"'"<<std::endl;
 		m_debugFile.clear();
 	}
 

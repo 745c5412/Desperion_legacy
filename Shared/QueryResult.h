@@ -40,9 +40,9 @@ public:
 		{
 			uint64 value;
 #if !defined(WIN32) && defined(X64)
-			sscanf(m_value,I64FMTD,(long long unsigned int*)&value);
+			sscanf_s(m_value,I64FMTD,(long long unsigned int*)&value);
 #else
-			sscanf(m_value,I64FMTD,&value);
+			sscanf_s(m_value,I64FMTD,&value);
 #endif
 			return value;
 		}
@@ -56,9 +56,9 @@ public:
 		{
 			int64 value;
 #if !defined(WIN32) && defined(X64)
-			sscanf(m_value,I64FMTD,(long long int*)&value);
+			sscanf_s(m_value,I64FMTD,(long long int*)&value);
 #else
-			sscanf(m_value,SI64FMTD,&value);
+			sscanf_s(m_value,SI64FMTD,&value);
 #endif
 			return value;
 		}

@@ -79,6 +79,7 @@ struct CharacterMinimals
 	bool sex;
 	int account;
 	Character* onlineCharacter;
+	time_t lastConnectionDate;
 
 	EntityLook* GetLook() const;
 
@@ -91,6 +92,7 @@ struct CharacterMinimals
 		breed = fields[4].GetInt8();
 		sex = fields[5].GetBool();
 		account = fields[6].GetInt32();
+		lastConnectionDate = fields[7].GetInt64();
 		onlineCharacter = NULL;
 	}
 };

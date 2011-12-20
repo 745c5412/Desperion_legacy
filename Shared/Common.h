@@ -19,6 +19,8 @@
 #ifndef __COMMON__
 #define __COMMON__
 
+#define _WIN32_WINNT NTDDI_WIN7 
+
 #include <csignal>
 #include <cstdio>
 #include <boost/tr1/unordered_map.hpp>
@@ -48,6 +50,17 @@
 #include <mysql/mysql.h>
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <crypto/rng.h>
+#include <crypto/hex.h>
+#include <crypto/rsa.h>
+#include <crypto/files.h>
+#include <crypto/aes.h>
+#include <crypto/modes.h>
+#include <crypto/randpool.h>
+#include <crypto/seed.h>
+#include <crypto/osrng.h>
+#include <crypto/md5.h>
+#include <boost/bimap.hpp>
 
 #ifdef _MSC_VER
 
@@ -57,23 +70,16 @@
 #define snprintf _snprintf
 #define atoll __atoi64
 
-#define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
+//#define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #include <CrashHandler.h>
 
 inline bool CheckForDebugger()
 {
-    __try 
-    {
-        DebugBreak();
-    }
-    __except(GetExceptionCode() == EXCEPTION_BREAKPOINT ? 
-             EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) 
-    {
-        // No debugger is attached, so return FALSE 
-        // and continue.
-        return false;
-    }
-    return true;
+	__try 
+	{ DebugBreak(); }
+	__except(GetExceptionCode() == EXCEPTION_BREAKPOINT ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) 
+	{ return false; }
+	return true;
 }
 
 #else
@@ -86,26 +92,14 @@ inline bool CheckForDebugger()
 
 #endif
 
-#if COMPILER != COMPILER_GNU
-typedef signed __int64 uint64;
-typedef signed __int32 uint32;
-typedef signed __int16 int16;
-typedef signed __int8 int8;
-
-typedef unsigned __int64 uint64;
-typedef unsigned __int32 uint32;
-typedef unsigned __int16 uint16;
-typedef unsigned __int8 uint8;
-#else
-typedef uint64_t uint64;
-typedef uint32_t uint32;
-typedef int16_t int16;
-typedef int8_t int8;
-typedef int64_t int64;
-typedef int32_t int32;
-typedef uint16_t uint16;
-typedef uint8_t uint8;
-#endif
+typedef unsigned long long int uint64;
+typedef unsigned int uint32;
+typedef signed short int16;
+typedef signed char int8;
+typedef signed long long int int64;
+typedef signed int int32;
+typedef unsigned short uint16;
+typedef unsigned char uint8;
 
 #define ASSERT( assertion ) { if( !(assertion) ) { fprintf( stderr, "\n%s:%i ASSERTION FAILED:\n  %s\n", __FILE__, __LINE__, #assertion ); assert(assertion); } }
 

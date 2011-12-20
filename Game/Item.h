@@ -119,7 +119,7 @@ protected:
 	int m_useAnimationId;
 	bool m_usable;
 	bool m_targetable;
-	int m_price;
+	int64 m_price;
 	bool m_twoHanded;
 	bool m_etheral;
 	int m_itemSetId;

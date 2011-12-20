@@ -25,7 +25,7 @@ void Session::HandleMapInformationsRequestMessage(ByteBuffer& packet)
 
 	Map* map = m_char->GetMap();
 
-	Send(MapComplementaryInformationsDataMessage(map->GetSubareaId(), map->GetId(), 0, map->GetActors()));
+	Send(MapComplementaryInformationsDataMessage(map->GetSubAreaId(), map->GetId(), 0, map->GetActors()));
 	const std::tr1::unordered_map<int16, PlayerItem*>& items = map->GetItems();
 	if(items.empty())
 		return;

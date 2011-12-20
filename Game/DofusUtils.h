@@ -29,6 +29,8 @@ namespace DofusUtils
 	void FillParser(ConditionsParser&, Session*, bool full = true);
 	void LoopItemConditions(ConditionsParser&, Session*);
 	bool IsValidPlaceForItem(const Item*, uint8);
+	int64 CalculateXpMonsters(double groupXp, double groupLevel, double highestMonsterLevel, double ageBonus, Character* ch,
+		std::vector<Character*>& team, double mountRatio, double guildRatio);
 }
 
 #endif

@@ -28,8 +28,14 @@ struct Connection
 {
 	MYSQL* conn;
 	boost::mutex lock;
-	Connection() {}
-	Connection(const Connection& that){}
+
+	Connection()
+	{
+	}
+
+	/*Connection(const Connection& that)
+	{
+	}*/
 };
 
 class Database
@@ -52,14 +58,11 @@ private:
 public:
 	Database(uint8);
 	~Database();
+
 	std::string EscapeString(std::string);
-
 	bool Init(std::string, uint16, std::string, std::string, std::string);
-
 	ResultPtr Query(const char*, ...);
 	bool Execute(const char*, ...);
-	void AsyncExecute(const char*, ...);
-	bool _AsyncExecute(const char*);
 };
 
 #endif

@@ -47,7 +47,7 @@ void Session::HandleLivingObjectDissociateMessage(ByteBuffer& packet)
 	data.Deserialize(packet);
 
 	PlayerItem* item = m_char->GetItem(data.livingUID);
-	if(item == NULL || item->GetPos() == INVENTORY_POSITION_NOT_EQUIPED)
+	if(item == NULL)
 		return;
 
 	PlayerItemEffectInteger* obviXp = (PlayerItemEffectInteger*)item->GetEffect(974),
@@ -94,7 +94,8 @@ void Session::HandleLivingObjectDissociateMessage(ByteBuffer& packet)
 		item->DeleteEffect(970);
 
 		Send(ObjectModifiedMessage(ObjectItemPtr(new ObjectItem(item))));
-		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
+		if(item->GetPos() != INVENTORY_POSITION_NOT_EQUIPED)
+			Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
 }
 
 void Session::HandleLivingObjectMessageRequestMessage(ByteBuffer& packet)
@@ -106,7 +107,7 @@ void Session::HandleLivingObjectMessageRequestMessage(ByteBuffer& packet)
 	if(item == NULL)
 		return;
 
-	Send(LivingObjectMessageMessage(data.msgId, time(NULL), m_char->GetName(), item->GetItem()->GetId()));
+	Send(LivingObjectMessageMessage(data.msgId, static_cast<int>(time(NULL)), m_char->GetName(), item->GetItem()->GetId()));
 }
  
 void Session::HandleObjectFeedMessage(ByteBuffer& packet)
@@ -169,6 +170,7 @@ void Session::HandleObjectFeedMessage(ByteBuffer& packet)
 	obvi->DeleteEffect(808);
 	obvi->AddEffect(new PlayerItemEffectDate(808, tm->tm_year, tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min));
 	Send(ObjectModifiedMessage(ObjectItemPtr(new ObjectItem(obvi))));
+	Send(BasicNoOperationMessage());
 }
 
 void Session::HandleObjectDeleteMessage(ByteBuffer& packet)
@@ -183,6 +185,7 @@ void Session::HandleObjectDeleteMessage(ByteBuffer& packet)
 		return;
 	}
 
+	bool mustCheck = item->GetPos() != INVENTORY_POSITION_NOT_EQUIPED;
 	int newqua = item->GetQuantity() - data.quantity;
 	if(!newqua)
 	{
@@ -196,11 +199,13 @@ void Session::HandleObjectDeleteMessage(ByteBuffer& packet)
 		Send(ObjectQuantityMessage(data.objectUID, newqua));
 	}
 
-	ConditionsParser P(m_char->GetEmotes(), m_char->GetItems(), m_char->GetName());
-	DofusUtils::LoopItemConditions(P, this);
-
-	Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
-	Send(CharacterStatsListMessage(m_char));
+	if(mustCheck)
+	{
+		ConditionsParser P(m_char->GetEmotes(), m_char->GetItems(), m_char->GetName());
+		DofusUtils::LoopItemConditions(P, this);
+		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
+		Send(CharacterStatsListMessage(m_char));
+	}
 	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
 }
 
@@ -215,8 +220,13 @@ void Session::HandleObjectDropMessage(ByteBuffer& packet)
 		Send(ObjectErrorMessage(CANNOT_DROP));
 		return;
 	}
-	// TODO: echangeable ou non
+	else if(item->GetEffect(983) != NULL)
+	{
+		Send(ObjectErrorMessage(NOT_TRADABLE));
+		return;
+	}
 
+	bool mustCheck = item->GetPos() != INVENTORY_POSITION_NOT_EQUIPED;
 	int newqua = item->GetQuantity() - data.quantity;
 
 	int16 cellID;
@@ -251,7 +261,7 @@ void Session::HandleObjectDropMessage(ByteBuffer& packet)
 		Send(ObjectErrorMessage(CANNOT_DROP_NO_PLACE));
 		return;
 	}
-	if(!newqua)
+	else if(newqua == 0)
 	{
 		m_char->UpdateItemSet(item->GetItem()->GetItemSetId(), 
 			boost::bind(&Character::DeleteItem, m_char, data.objectUID, false, false));
@@ -273,11 +283,13 @@ void Session::HandleObjectDropMessage(ByteBuffer& packet)
 	m_char->GetMap()->AddItem(item, cellID);
 	m_char->GetMap()->Send(ObjectGroundAddedMessage(cellID, item->GetItem()->GetId()));
 
-	ConditionsParser P(m_char->GetEmotes(), m_char->GetItems(), m_char->GetName());
-	DofusUtils::LoopItemConditions(P, this);
-
-	Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
-	Send(CharacterStatsListMessage(m_char));
+	if(mustCheck)
+	{
+		ConditionsParser P(m_char->GetEmotes(), m_char->GetItems(), m_char->GetName());
+		DofusUtils::LoopItemConditions(P, this);
+		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
+		Send(CharacterStatsListMessage(m_char));
+	}
 	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
 }
 
@@ -352,8 +364,8 @@ void Session::HandleObjectSetPositionMessage(ByteBuffer& packet)
 		return;
 	}
 
-	if(data.position != INVENTORY_POSITION_NOT_EQUIPED && (item->GetItem()->GetItemSetId() != -1 || item->GetItem()->GetTypeId()
-		== 0) && m_char->HasEquiped(item->GetItem()->GetId()))
+	if(data.position != INVENTORY_POSITION_NOT_EQUIPED && (item->GetItem()->GetItemSetId() != -1 || item->GetItem()->GetTypeId() == 0)
+		&& m_char->HasEquiped(item->GetItem()->GetId()))
 	{
 		Send(ObjectErrorMessage(CANNOT_EQUIP_TWICE));
 		return;

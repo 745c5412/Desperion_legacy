@@ -31,8 +31,7 @@ public:
 	{
 	}
 
-	CharacterSelectedSuccessMessage(CharacterMinimals* ch)
-		: infos(new CharacterBaseInformations(ch->id, ch->level, ch->name, EntityLookPtr(ch->GetLook()), ch->breed, ch->sex))
+	CharacterSelectedSuccessMessage(CharacterBaseInformations* ch) : infos(ch)
 	{
 	}
 

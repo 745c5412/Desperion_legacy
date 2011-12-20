@@ -25,7 +25,7 @@ public:
 	bool hasRights;
 	int guid;
 	bool alreadyConnected;
-	std::string pseudo, question;
+	std::string pseudo, question, login;
 	time_t subscriptionEnd;
 	uint8 communityId;
 
@@ -36,9 +36,9 @@ public:
 	{
 	}
 
-	IdentificationSuccessMessage(bool hasRights, bool alreadyConnected, std::string pseudo, int guid, uint8 communityId, std::string question, 
-		time_t subscriptionEnd) : hasRights(hasRights), alreadyConnected(alreadyConnected), pseudo(pseudo), guid(guid), question(question), 
-		subscriptionEnd(subscriptionEnd), communityId(communityId)
+	IdentificationSuccessMessage(bool hasRights, bool alreadyConnected, std::string login, std::string pseudo, int guid, uint8 communityId,
+		std::string question, time_t subscriptionEnd) : hasRights(hasRights), alreadyConnected(alreadyConnected), login(login), pseudo(pseudo), guid(guid),
+		question(question), subscriptionEnd(subscriptionEnd), communityId(communityId)
 	{
 	}
 
@@ -47,7 +47,7 @@ public:
 		uint8 flag = 0;
 		Desperion::BooleanByteWrapper::SetFlag(flag, 0, hasRights);
 		Desperion::BooleanByteWrapper::SetFlag(flag, 1, alreadyConnected);
-		data<<flag<<pseudo<<guid<<communityId<<question<<subscriptionEnd;
+		data<<flag<<login<<pseudo<<guid<<communityId<<question<<subscriptionEnd;
 	}
 
 	void Deserialize(ByteBuffer& data)
@@ -56,7 +56,7 @@ public:
 		data>>flag;
 		hasRights = Desperion::BooleanByteWrapper::GetFlag(flag, 0);
 		alreadyConnected = Desperion::BooleanByteWrapper::GetFlag(flag, 1);
-		data>>pseudo>>guid>>communityId>>question>>subscriptionEnd;
+		data>>login>>pseudo>>guid>>communityId>>question>>subscriptionEnd;
 	}
 };
 

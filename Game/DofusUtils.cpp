@@ -20,6 +20,72 @@
 
 namespace DofusUtils
 {
+	int Truncate(double n)
+	{
+		double loc2 = std::pow(double(10), double(0));
+		double loc3 = n * loc2;
+		return static_cast<int>(static_cast<int>(loc3) / loc2);
+	}
+
+	int64 CalculateXpMonsters(double groupXp, double groupLevel, double highestMonsterLevel, double ageBonus, Character* ch,
+		std::vector<Character*>& team, double mountRatio, double guildRatio)
+	{
+		// Calcul du niveau de la team, ainsi que du niveau du personnage le plus fort
+		double totalTeamLevel = 0;
+		double highestTeamLevel = 0;
+		for(size_t a = 0; a < team.size(); ++a)
+		{
+			totalTeamLevel += team[a]->GetLevel();
+			if(team[a]->GetLevel() > highestTeamLevel)
+				highestTeamLevel = team[a]->GetLevel();
+		}
+
+		// Calcul du coefficient dû au niveau de la team par rapport au niveau du groupe de monstres
+		double levelCoeff = 1;
+		if(totalTeamLevel - 5 > groupLevel)
+			levelCoeff = groupLevel / totalTeamLevel;
+		else if(totalTeamLevel + 10 < groupLevel)
+			levelCoeff = (totalTeamLevel + 10) / groupLevel;
+
+		// pondération avec le niveau de ch
+		double min = std::min(int(ch->GetLevel()), Truncate(2.5 * highestMonsterLevel));
+		double loc16 = min / totalTeamLevel * 100;
+
+		/*
+			détermination d'un facteur de multiplication en fonction du nombre de personnes
+			dans la team: chaque personnage de la team doit avoir un niveau supérieur à 
+			(highestTeamLevel / 3) pour être considéré
+		*/
+		double teamFactors[8] = {1, 3, 4, 5, 6, 7, 8, 9};
+		uint8 index = 0;
+		for(size_t a = 0; a < team.size(); ++a)
+		{
+			if(team[a]->GetLevel() >= highestTeamLevel / 3)
+				++index;
+		}
+		if(index == 0)
+			index = 1;
+
+		double loc20 = Truncate(groupXp * teamFactors[index - 1] * levelCoeff);
+		double loc22 = Truncate(loc16 / 100 * loc20);
+
+		double totalWisdom = ch->GetStats().wisdom.align + ch->GetStats().wisdom.base + ch->GetStats().wisdom.context + ch->GetStats().wisdom.objects;
+		if(totalWisdom < 0)
+			totalWisdom = 0;
+
+		double ageCoeff = ageBonus <= 0 ? 1 : (1 + ageBonus / 100);
+		double xp = Truncate(Truncate(loc22 * (100 + totalWisdom) / 100) * ageCoeff); // xp totale gagnée par ch
+
+		// on retranche l'xp perdue à cause de la drago
+		if(mountRatio > 0)
+			xp -= Truncate(xp * mountRatio / 100);
+		if(guildRatio > 0) // idem (la guilde passe après la drago)
+			xp -= Truncate(xp * guildRatio / 100);
+
+		// on oublie pas de multiplier par le facteur d'xp de la config :)
+		return static_cast<int64>(Desperion::Config::Instance().GetParam(EXPERIENCE_FACTOR_STRING, EXPERIENCE_FACTOR_DEFAULT) * xp);
+	}
+
 	bool CheckName(std::string name)
 	{
 		std::string authorized = "abcdefghijklmnopqrstuvwxyz-";
@@ -69,7 +135,7 @@ namespace DofusUtils
 				return false;
 		}
 
-		const char* vowels = "aeiouy";
+		std::string vowels = "aeiouy";
 		int count = 0;
 		for(uint16 a = 0; a < name.size(); a++)
 		{
@@ -287,25 +353,25 @@ namespace DofusUtils
 		P.AddVar("CW", m_char->GetStats().wisdom.Total());
 		P.AddVar("CC", m_char->GetStats().chance.Total());
 		P.AddVar("CS", m_char->GetStats().strength.Total());
-		P.AddVar("CT", m_char->GetStats().tackleBlock.base);
-		P.AddVar("Ct", m_char->GetStats().tackleEvade.base);
 
 		if(full)
 		{
-			P.AddVar("Ci", m_char->GetStats().intelligence.base);
-			P.AddVar("Cv", m_char->GetStats().vitality.base);
-			P.AddVar("Ca", m_char->GetStats().agility.base);
-			P.AddVar("Cw", m_char->GetStats().wisdom.base);
-			P.AddVar("Cc", m_char->GetStats().chance.base);
-			P.AddVar("Cs", m_char->GetStats().strength.base);
-			P.AddVar("Ps", m_char->GetStats().GetAlignmentSide());
-			P.AddVar("Pa", m_char->GetStats().GetAlignmentValue());
-			P.AddVar("PP", m_char->GetStats().GetAlignmentGrade());
-			P.AddVar("PL", m_char->GetLevel());
-			P.AddVar("PK", m_char->GetStats().GetKamas());
-			P.AddVar("PG", m_char->GetBreed());
-			P.AddVar("PS", m_char->GetSex());
+			P.AddVar("Ci", static_cast<int64>(m_char->GetStats().intelligence.base));
+			P.AddVar("Cv", static_cast<int64>(m_char->GetStats().vitality.base));
+			P.AddVar("Ca", static_cast<int64>(m_char->GetStats().agility.base));
+			P.AddVar("Cw", static_cast<int64>(m_char->GetStats().wisdom.base));
+			P.AddVar("Cc", static_cast<int64>(m_char->GetStats().chance.base));
+			P.AddVar("Cs", static_cast<int64>(m_char->GetStats().strength.base));
+			P.AddVar("Ps", static_cast<int64>(m_char->GetStats().GetAlignmentSide()));
+			P.AddVar("Pa", static_cast<int64>(m_char->GetStats().GetAlignmentValue()));
+			P.AddVar("PP", static_cast<int64>(m_char->GetStats().GetAlignmentGrade()));
+			P.AddVar("PL", static_cast<int64>(m_char->GetLevel()));
+			P.AddVar("PK", static_cast<int64>(m_char->GetStats().GetKamas()));
+			P.AddVar("PG", static_cast<int64>(m_char->GetBreed()));
+			P.AddVar("PS", static_cast<int64>(m_char->GetSex()));
 			P.AddVar("PZ", S->GetSubscriptionEnd() > 0 ? 1 : 0);
+			P.AddVar("CT", static_cast<int64>(m_char->GetStats().tackleBlock.base));
+			P.AddVar("Ct", static_cast<int64>(m_char->GetStats().tackleEvade.base));
 		}
 	}
 }

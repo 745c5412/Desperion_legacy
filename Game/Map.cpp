@@ -26,10 +26,10 @@ void Map::Init(Field* fields)
 	m_bottomMap = fields[3].GetInt32();
 	m_rightMap = fields[4].GetInt32();
 	m_leftMap = fields[5].GetInt32();
-	m_posX = fields[8].GetInt16();
-	m_posY = fields[9].GetInt16();
-	m_capabilities = fields[11].GetInt32();
-	m_subareaId = fields[14].GetInt16();
+	m_posX = fields[6].GetInt16();
+	m_posY = fields[7].GetInt16();
+	m_capabilities = fields[8].GetInt32();
+	m_subareaId = fields[9].GetInt16();
 	m_isBuilt = false;
 }
 
@@ -104,8 +104,7 @@ Cell Map::GetCell(uint16 index) const
 	if(ByteBuffer::ENDIANNESS == BIG_ENDIAN)
 		SwapBytes(bytes, sizeof(int));
 	c.losmov = bytes[0];
-	c.mapChangeData = bytes[1];
-	c.speed = bytes[2];
+	c.speed = bytes[1];
 	return c;
 }
 

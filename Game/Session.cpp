@@ -27,6 +27,27 @@ void Session::RemoveChannel(int8 chann)
 		m_channels.erase(it);
 }
 
+void Session::LOG(const char* str, ...)
+{
+	if(m_data[FLAG_GUID].intValue == 0 || !str)
+		return;
+
+	if(!m_logs)
+	{
+		std::ostringstream fileName;
+		fileName<<"sessions/"<<m_data[FLAG_GUID].intValue<<".log";
+		m_logs.open(fileName.str().c_str(), std::ios::app);
+	}
+
+	va_list ap;
+	char buf[32768];
+	va_start(ap, str);
+	vsnprintf_s(buf, 32768, str, ap);
+	va_end(ap);
+
+	Log::Instance().outFile(m_logs, std::string(buf));
+}
+
 void Session::InitHandlersTable()
 {
 	m_handlers[CMSG_AUTHENTICATION_TICKET].Handler = &Session::HandleAuthenticationTicketMessage;
@@ -97,25 +118,44 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	else
 	{
 		Send(AuthenticationTicketRefusedMessage());
-		throw ServerError("Failed ticket authentification!");
+		m_socket->close();
+		return;
 	}
 
-	QR = Desperion::eDatabase->Query("SELECT friends, ennemies FROM account_social WHERE guid=%u LIMIT 1;", m_data[FLAG_GUID].intValue);
+	QR = Desperion::eDatabase->Query("SELECT * FROM account_social WHERE guid=%u LIMIT 1;", m_data[FLAG_GUID].intValue);
 	if(QR)
 	{
 		Field* fields = QR->Fetch();
-		Desperion::FastSplitStringSet<','>(m_friends, std::string(fields[0].GetString()));
-		Desperion::FastSplitStringSet<','>(m_ennemies, std::string(fields[1].GetString()));
+		std::vector<std::string> friends, ennemies;
+		Desperion::FastSplitString<';'>(friends, std::string(fields[1].GetString()));
+		Desperion::FastSplitString<';'>(ennemies, std::string(fields[2].GetString()));
+		for(size_t a = 0; a < friends.size(); ++a)
+		{
+			std::vector<std::string> intern;
+			Desperion::FastSplitString<','>(intern, friends[a]);
+			m_friends.insert(boost::bimap<int, std::string>::relation(atoi(intern.at(0).c_str()), intern.at(1)));
+		}
+		for(size_t a = 0; a < ennemies.size(); ++a)
+		{
+			std::vector<std::string> intern;
+			Desperion::FastSplitString<','>(intern, ennemies[a]);
+			m_ennemies.insert(boost::bimap<int, std::string>::relation(atoi(intern.at(0).c_str()), intern.at(1)));
+		}
+		m_booleanValues[BOOL_FRIEND_WARN_ON_CONNECTION] = fields[3].GetBool();
+		m_booleanValues[BOOL_FRIEND_WARN_ON_LEVEL_GAIN] = fields[4].GetBool();
+		m_booleanValues[BOOL_GUILD_MEMBER_WARN_ON_CONNECTION] = fields[5].GetBool();
 	}
 	else
-		Desperion::eDatabase->Execute("INSERT INTO account_social VALUES(%u, '', '');", m_data[FLAG_GUID].intValue);
+		Desperion::eDatabase->Execute("INSERT INTO account_social VALUES(%u, '', '', 0, 0, 0);", m_data[FLAG_GUID].intValue);
 	
 
 	uint16 servID = Desperion::Config::Instance().GetParam(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT);
-	Desperion::eDatabase->Execute("UPDATE accounts SET ticket='', logged=%u, lastServer=%u WHERE guid=%u LIMIT 1;", servID, 
-		servID, m_data[FLAG_GUID].intValue);
+	Desperion::eDatabase->Execute("UPDATE accounts SET ticket='', logged=%u, lastServer=%u, lastConnectionDate=%llu WHERE guid=%u LIMIT 1;", servID, 
+		servID, time(NULL), m_data[FLAG_GUID].intValue);
 
 	World::Instance().AddSession(this);
+	LOG("***** Connection with IP address %s {%s} *****", m_socket->remote_endpoint().address().to_string().c_str(),
+		Desperion::FormatTime("%x").c_str());
 
 	Send(AuthenticationTicketAcceptedMessage());
 	Send(AccountCapabilitiesMessage(m_data[FLAG_GUID].intValue, false, 0x1fff, 0x1fff));
@@ -123,44 +163,54 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	features.push_back(1); // ankabox
 	features.push_back(2); // kolizéum
 	Send(ServerOptionalFeaturesMessage(features));
-	Send(BasicTimeMessage(time(NULL), 0));
+	Send(BasicTimeMessage(static_cast<int>(time(NULL)), 0));
 	Send(BasicNoOperationMessage());
 	Send(TrustStatusMessage(true));
 }
 
 void Session::Save()
 {
-	std::ostringstream channels, disallowed;
-	for(std::set<int8>::iterator it = m_channels.begin(); it != m_channels.end(); ++it)
+	if(m_data[FLAG_GUID].intValue != 0)
 	{
-		if(it != m_channels.begin())
-			channels<<",";
-		channels<<int16(*it);
-	}
-	for(std::set<int8>::iterator it = m_disallowed.begin(); it != m_disallowed.end(); ++it)
-	{
-		if(it != m_disallowed.begin())
-			disallowed<<",";
-		disallowed<<int16(*it);
-	}
-	Desperion::eDatabase->Execute("UPDATE accounts SET logged=0, channels='%s', disallowed='%s' WHERE guid=%u LIMIT 1;",
-		channels.str().c_str(), disallowed.str().c_str(), m_data[FLAG_GUID].intValue);
+		std::ostringstream channels, disallowed;
+		for(std::set<int8>::iterator it = m_channels.begin(); it != m_channels.end(); ++it)
+		{
+			if(it != m_channels.begin())
+				channels<<",";
+			channels<<int16(*it);
+		}
+		for(std::set<int8>::iterator it = m_disallowed.begin(); it != m_disallowed.end(); ++it)
+		{
+			if(it != m_disallowed.begin())
+				disallowed<<",";
+			disallowed<<int16(*it);
+		}
+		Desperion::eDatabase->Execute("UPDATE accounts SET logged=0, channels='%s', disallowed='%s' WHERE guid=%u LIMIT 1;",
+			channels.str().c_str(), disallowed.str().c_str(), m_data[FLAG_GUID].intValue);
 
+		if(m_char != NULL)
+		{
+			m_char->Save();
+			CharacterMinimals* cm = World::Instance().GetCharacterMinimals(m_char->GetGuid());
+			Desperion::sDatabase->Execute("UPDATE character_minimals SET lastConnectionDate=%llu WHERE id=%u LIMIT 1;",
+				cm->lastConnectionDate, cm->id);
+		}
+	}
 }
 
 Session::~Session()
 {
-	if(m_char != NULL)
-	{
-		m_char->GetMap()->RemoveActor(m_char->GetGuid());
-		m_char->Save();
-		delete m_char;
-	}
+	Save();
 	if(m_data[FLAG_GUID].intValue != 0)
 	{
-		Save();
 		World::Instance().DeleteSession(m_data[FLAG_GUID].intValue);
-		Log::Instance().outDebug("Client %u disconnected", m_data[FLAG_GUID].intValue);
+		LOG("***** Disconnection *****");
+		
+		if(m_char != NULL)
+		{
+			m_char->GetMap()->RemoveActor(m_char->GetGuid());
+			delete m_char;
+		}
 	}
 }
 

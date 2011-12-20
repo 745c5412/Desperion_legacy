@@ -68,6 +68,10 @@ World::~World()
 		delete it->second;
 	ItemSets.clear();
 
+	for(SubAreaMap::iterator it = SubAreas.begin(); it != SubAreas.end(); ++it)
+		delete it->second;
+	SubAreas.clear();
+
 	Desperion::sDatabase->Execute("DELETE FROM character_items WHERE owner=-1;");
 }
 
@@ -93,6 +97,7 @@ World::~World()
 	Result result = file->ReadAllData();
 
 	try{
+		Log::Instance().outDebug("Loading file '%s'", name.c_str());
 		for(Result::iterator it = result.begin(); it != result.end(); ++it)
 		{
 			std::string insert = it->first.GetSQLInsert(D2oClassDefinition::FormatName(it->first.GetName()), it->second);
@@ -108,6 +113,7 @@ World::~World()
 
 void CreateSchema()
 {
+	new D2oFileAccessor;
 	sFileAccessor.Init("d2o");
 	boost::filesystem::path p("d2o/");
 	boost::filesystem::directory_iterator end;
@@ -137,13 +143,14 @@ void CreateSchema()
 	for(FileMap::iterator it = files.begin(); it != files.end(); ++it)
 		tp.schedule(boost::bind(&ReadData, it->second, it->first));
 	tp.wait();
+	delete D2oFileAccessor::InstancePtr();
 }*/
 
 void World::Init()
 {
 	boost::threadpool::pool tp(boost::thread::hardware_concurrency() + 1);
 	Log::Instance().outNotice("World", "Loading world...");
-	tp.schedule(boost::bind(&World::LoadSubareas, this));
+	tp.schedule(boost::bind(&World::LoadSubAreas, this));
 	tp.wait();
 	tp.schedule(boost::bind(&World::LoadCharacterMinimals, this));
 	tp.schedule(boost::bind(&World::LoadItemSets, this));
@@ -156,7 +163,7 @@ void World::Init()
 	Session::InitCommandsTable();
 }
 
-void World::LoadSubareas()
+void World::LoadSubAreas()
 {
 	uint32 time = getMSTime();
 	ResultPtr QR = Desperion::sDatabase->Query("SELECT d2o_sub_area.id, areaId, mapIds, sub_area_spawns.spawns FROM d2o_sub_area JOIN sub_area_spawns ON \
@@ -166,20 +173,20 @@ void World::LoadSubareas()
 	do
 	{
 		Field* fields = QR->Fetch();
-		Subarea* s = new Subarea;
+		SubArea* s = new SubArea;
 		s->Init(fields);
 		std::vector<int> maps;
 		Desperion::FastSplit<','>(maps, std::string(fields[2].GetString()), Desperion::SplitInt);
-		Subareas[s->GetId()] = s;
+		SubAreas[s->GetId()] = s;
 	}while(QR->NextRow());
 
-	Log::Instance().outNotice("World", "%u subareas loaded in %ums!", Subareas.size(), getMSTime() - time);
+	Log::Instance().outNotice("World", "%u subareas loaded in %ums!", SubAreas.size(), getMSTime() - time);
 }
 
 void World::LoadItems()
 {
 	uint32 time = getMSTime();
-	ResultPtr QR = Desperion::sDatabase->Query("SELECT * FROM d2o_item;");
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT id, typeId, level, realWeight, cursed, useAnimationId, usable, targetable, price, twoHanded, etheral, itemSetId, criteria, appearanceId, possibleEffects, favoriteSubAreas, favoriteSubAreasBonus FROM d2o_item;");
 	if(!QR)
 		return;
 	do
@@ -190,8 +197,7 @@ void World::LoadItems()
 		Items[i->GetId()] = i;
 	}while(QR->NextRow());
 	
-
-	QR = Desperion::sDatabase->Query("SELECT * FROM d2o_weapon;");
+	QR = Desperion::sDatabase->Query("SELECT id, typeId, level, realWeight, cursed, useAnimationId, usable, targetable, price, twoHanded, etheral, itemSetId, criteria, appearanceId, possibleEffects, favoriteSubAreas, favoriteSubAreasBonus, `range`, criticalHitBonus, minRange, castTestLos, criticalFailureProbability, criticalHitProbability, apCost, castInLine FROM d2o_weapon;");
 	if(!QR)
 		return;
 	do
@@ -225,7 +231,8 @@ void World::LoadItemSets()
 void World::LoadMaps()
 {
 	uint32 time = getMSTime();
-	ResultPtr QR = Desperion::sDatabase->Query("SELECT * FROM maps JOIN d2o_map_position ON maps.id = d2o_map_position.id;");
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT maps.*, posX, posY, capabilities, subAreaId FROM maps JOIN d2o_map_position \
+		ON maps.id = d2o_map_position.id;");
 	if(!QR)
 		return;
 	do
@@ -234,8 +241,8 @@ void World::LoadMaps()
 		Map* map = new Map;
 		map->Init(fields);
 		Maps[map->GetId()] = map;
-		if(map->GetSubareaId() > 0)
-			Subareas[map->GetSubareaId()]->AddMap(map);
+		if(map->GetSubAreaId() > 0)
+			SubAreas[map->GetSubAreaId()]->AddMap(map);
 	}while(QR->NextRow());
 	
 	Log::Instance().outNotice("World", "%u maps loaded in %ums!", Maps.size(), getMSTime() - time);

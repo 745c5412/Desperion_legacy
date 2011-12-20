@@ -53,17 +53,7 @@ void Session::HandleCharacterDeletionRequestMessage(ByteBuffer& packet)
 	{
 		std::ostringstream stream;
 		stream<<toDelete->id<<"~"<<m_data[FLAG_ANSWER].stringValue;
-		std::string result = stream.str();
-		const char* charResult = result.c_str();
-		md5_state_t state;
-		md5_byte_t digest[16];
-		char hex_output[16*2 + 1];
-		md5_init(&state);
-		md5_append(&state, (const md5_byte_t *)charResult, strlen(charResult));
-		md5_finish(&state, digest);
-		for (int i = 0; i < 16; i++)
-			sprintf(hex_output + i * 2, "%02x", digest[i]);
-		if(std::string(hex_output) != data.secretAnswerHash)
+		if(Desperion::ComputeMD5Digest(stream.str()) != Desperion::ToLowerCase(data.secretAnswerHash))
 		{
 			Send(CharacterDeletionErrorMessage(DEL_ERR_BAD_SECRET_ANSWER));
 			return;
@@ -99,7 +89,7 @@ void Session::HandleCharacterNameSuggestionRequestMessage(ByteBuffer& packet)
 	}
 
 	m_lastNameSuggestionRequest = time;
-	
+
 	struct RandomName
 	{
 	private:
@@ -118,7 +108,7 @@ void Session::HandleCharacterNameSuggestionRequestMessage(ByteBuffer& packet)
 				nameSize = RandomUInt(6, 10);
 			else
 				nameSize = RandomUInt(3, 7);
-			return RandomUInt(1, ceil(double(nameSize) / 2));
+			return RandomUInt(1, static_cast<int>(ceil(double(nameSize) / 2)));
 		}
 		
 		bool IsVowel(uint8 index)
@@ -210,7 +200,7 @@ void Session::HandleCharacterSelectionMessage(ByteBuffer& packet)
 									   characters.guid=%u LIMIT 1;", toSelect->breed, toSelect->id);
 	if(!QR)
 	{
-		Log::Instance().outError("Character ID %u hasn't got stats or breed! :O", toSelect->id);
+		LOG("ERROR: Character id %u hasn't got stats, breed or implementation.", toSelect->id);
 		Send(CharacterSelectedErrorMessage());
 		return;
 	}
@@ -218,24 +208,18 @@ void Session::HandleCharacterSelectionMessage(ByteBuffer& packet)
 	m_char = new Character;
 
 	try{
-		m_char->Init(fields, toSelect, this);
-		
-	}catch(const ServerError& err)
-	{ 
-		delete m_char;
-		
-		m_char = NULL;
-		Log::Instance().outError(err.what());
-		Send(CharacterSelectedErrorMessage());
-		return;
-	}
+	m_char->Init(fields, toSelect, this);
+	}catch(...)
+	{ delete m_char; m_char = NULL; Send(CharacterSelectedErrorMessage()); return; }
 
+	toSelect->lastConnectionDate = time(NULL);
 	SendCharacterSelectedSuccess(toSelect);
 }
 
 void Session::SendCharacterSelectedSuccess(CharacterMinimals* ch)
 {
-	Send(CharacterSelectedSuccessMessage(ch));
+	Send(CharacterSelectedSuccessMessage(new CharacterBaseInformations(ch->id, ch->level, ch->name, EntityLookPtr(m_char->GetLook()),
+		ch->breed, ch->sex)));
 	m_char->GetMap()->AddActor(m_char);
 	
 	Send(InventoryContentMessage(m_char->GetItems(), m_char->GetStats().GetKamas()));
@@ -272,7 +256,7 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 	ResultPtr QR = Desperion::eDatabase->Query("SELECT * FROM character_counts WHERE accountGuid=%u;", m_data[FLAG_GUID].intValue);
 	if(QR)
 	{
-		if(QR->GetRowCount() > Desperion::Config::Instance().GetParam(MAX_CHARACTERS_COUNT_STRING, MAX_CHARACTERS_COUNT_DEFAULT))
+		if(QR->GetRowCount() > Desperion::Config::Instance().GetParam<uint8>(MAX_CHARACTERS_COUNT_STRING, MAX_CHARACTERS_COUNT_DEFAULT))
 		{
 			Send(CharacterCreationResultMessage(ERR_TOO_MANY_CHARACTERS));
 			return;

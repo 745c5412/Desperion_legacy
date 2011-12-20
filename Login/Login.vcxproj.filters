@@ -86,11 +86,14 @@
     <ClInclude Include="AcquaintanceServerListMessage.h">
       <Filter>Messages</Filter>
     </ClInclude>
-    <ClInclude Include="IdentificationWithServerIdMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
     <ClInclude Include="TrustCertificate.h">
       <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="IdentificationFailedForBadVersionMessage.h">
+      <Filter>Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="IdentificationFailedBannedMessage.h">
+      <Filter>Messages</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

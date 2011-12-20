@@ -53,12 +53,11 @@ void GameSession::HandleConnectMessage(ByteBuffer& packet)
 	packet>>id>>key;
 
 	GameServer* G = World::Instance().GetGameServer(id);
-	if(G == NULL)
-		throw ServerError("Undefined server");
-	if(G->GetKey() != key)
-		throw ServerError("Wrong key");
-	if(World::Instance().GetGameSession(id) != NULL)
-		throw ServerError("Already connected");
+	if(G == NULL || G->GetKey() != key || World::Instance().GetGameSession(id) != NULL)
+	{
+		m_socket->close();
+		return;
+	}
 
 	m_server = G;
 	World::Instance().AddGameSession(this);
@@ -71,6 +70,5 @@ GameSession::~GameSession()
 		m_server->SetState(OFFLINE);
 		World::Instance().RefreshGameServer(m_server);
 		World::Instance().DeleteGameSession(m_server->GetID());
-		Log::Instance().outDebug("Client %u disconnected", m_server->GetID());
 	}
 }

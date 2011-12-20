@@ -82,7 +82,7 @@ void Session::HandleNameAnnounceCommand(std::vector<std::string>& args, bool qui
 	}
 
 	// actuellement, deconnecte le client :x
-	World::Instance().Send(ChatAdminServerMessage(0, message, time(NULL), ""));
+	World::Instance().Send(ChatAdminServerMessage(0, message, static_cast<int>(time(NULL)), ""));
 
 	if(!quiet)
 		Send(ConsoleMessage(CONSOLE_INFO_MESSAGE, "Message sent."));
@@ -241,7 +241,7 @@ void Session::HandleAddItemCommand(std::vector<std::string>& args, bool quiet)
 void Session::HandleAdminCommand(std::string& content, bool quiet)
 {
 	std::vector<std::string> table;
-	Desperion::Split(table, content, ' ');
+	Desperion::FastSplitString<' '>(table, content, true);
 	if(table.empty())
 		return;
 
@@ -266,13 +266,18 @@ void Session::HandleAdminCommand(std::string& content, bool quiet)
 			Send(ConsoleMessage(CONSOLE_ERR_MESSAGE, "Too few arguments in command call."));
 		return;
 	}
+	LOG("Used command %s, quiet: %s", it->first.c_str(), quiet ? "true" : "false");
 	(this->*hdl->handler)(table, quiet);
 }
 
 void Session::HandleAdminCommandMessage(ByteBuffer& packet)
 {
 	if(m_data[FLAG_LEVEL].intValue < 1)
-		throw ServerError("Unauthorized access");
+	{
+		LOG("Unauthorized access %s", __FUNCTION__);
+		m_socket->close();
+		return;
+	}
 	AdminCommandMessage data;
 	data.Deserialize(packet);
 	HandleAdminCommand(data.content, false);
@@ -281,7 +286,11 @@ void Session::HandleAdminCommandMessage(ByteBuffer& packet)
 void Session::HandleAdminQuietCommandMessage(ByteBuffer& packet)
 {
 	if(m_data[FLAG_LEVEL].intValue < 1)
-		throw ServerError("Unauthorized access");
+	{
+		LOG("Unauthorized access %s", __FUNCTION__);
+		m_socket->close();
+		return;
+	}
 	AdminQuietCommandMessage data;
 	data.Deserialize(packet);
 	HandleAdminCommand(data.content, true);

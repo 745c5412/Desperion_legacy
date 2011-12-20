@@ -13,16 +13,10 @@
     <ClCompile Include="Database.cpp">
       <Filter>Network\CPP</Filter>
     </ClCompile>
-    <ClCompile Include="md5.c">
-      <Filter>Utils\CPP</Filter>
-    </ClCompile>
     <ClCompile Include="MersenneTwister.cpp">
       <Filter>Utils\CPP</Filter>
     </ClCompile>
     <ClCompile Include="ProgressBar.cpp">
-      <Filter>Utils\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils.cpp">
       <Filter>Utils\CPP</Filter>
     </ClCompile>
     <ClCompile Include="QueryResult.cpp">
@@ -60,9 +54,6 @@
     <ClInclude Include="Database.h">
       <Filter>Network\H</Filter>
     </ClInclude>
-    <ClInclude Include="md5.h">
-      <Filter>Utils\H</Filter>
-    </ClInclude>
     <ClInclude Include="MersenneTwister.h">
       <Filter>Utils\H</Filter>
     </ClInclude>
@@ -70,9 +61,6 @@
       <Filter>Utils\H</Filter>
     </ClInclude>
     <ClInclude Include="Timer.h">
-      <Filter>Utils\H</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils.h">
       <Filter>Utils\H</Filter>
     </ClInclude>
     <ClInclude Include="BooleanByteWrapper.h">
@@ -95,6 +83,9 @@
     </ClInclude>
     <ClInclude Include="AbstractSession.h">
       <Filter>Network\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.inl">
+      <Filter>Utils\H</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

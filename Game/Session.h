@@ -29,15 +29,26 @@ enum ReqFlag
 
 enum AccountFlag
 {
-	FLAG_PSEUDO = 0,
-	FLAG_GUID = 1,
-	FLAG_LEVEL = 2,
-	FLAG_ANSWER = 3,
-	FLAG_ACCOUNT = 4,
-	FLAG_LANG = 5,
-	FLAG_LAST_CONN = 6,
-	FLAG_LAST_IP = 7,
-	FLAGS_NUMBER = 8,
+	FLAG_PSEUDO,
+	FLAG_GUID,
+	FLAG_LEVEL,
+	FLAG_ANSWER,
+	FLAG_ACCOUNT,
+	FLAG_LANG,
+	FLAG_LAST_CONN,
+	FLAG_LAST_IP,
+	FLAGS_NUMBER,
+};
+
+enum BooleanValue
+{
+	BOOL_FRIEND_WARN_ON_CONNECTION,
+	BOOL_FRIEND_WARN_ON_LEVEL_GAIN,
+	BOOL_GUILD_MEMBER_WARN_ON_CONNECTION,
+	BOOL_INVISIBLE,
+	BOOL_AWAY,
+	BOOL_OCCUPED,
+	BOOLS_NUMBER,
 };
 
 struct AccountData
@@ -75,16 +86,16 @@ private:
 	typedef std::tr1::unordered_map<std::string, CommandHandler> CommandStorageMap;
 	static CommandStorageMap m_commands;
 	AccountData m_data[FLAGS_NUMBER];
+	bool m_booleanValues[BOOLS_NUMBER];
 	time_t m_subscriptionEnd;
 	Character* m_char;
 	std::set<int8> m_channels;
 	std::set<int8> m_disallowed;
-	std::set<std::string> m_friends;
-	std::set<std::string> m_ennemies;
-	std::set<std::string> m_ignored;
+	boost::bimap<int, std::string> m_friends;
+	boost::bimap<int, std::string> m_ennemies;
+	boost::bimap<int, std::string> m_ignored;
 	uint32 m_lastNameSuggestionRequest;
-	bool m_away;
-	bool m_invisible;
+	std::ofstream m_logs;
 
 	// AdminHandler.cpp
 	void HandleAdminCommand(std::string&, bool);
@@ -150,6 +161,7 @@ public:
 	static void InitHandlersTable();
 	static void InitCommandsTable();
 	void Start();
+	void LOG(const char*, ...);
 
 	void OnData(GamePacketHandler* hdl, ByteBuffer& packet)
 	{ (this->*hdl->Handler)(packet); }
@@ -173,16 +185,18 @@ public:
 		return true;
 	}
 
-	Session() : m_char(NULL), m_away(false), m_invisible(false)
+	Session() : m_char(NULL)
 	{
 		m_data[FLAG_GUID].intValue = 0;
 		m_lastNameSuggestionRequest = 0;
+		m_booleanValues[BOOL_INVISIBLE] = false;
+		m_booleanValues[BOOL_AWAY] = false;
 	}
 
 	~Session();
 	void Save();
 
-	AccountData GetData(uint32 index) const
+	AccountData GetData(AccountFlag index) const
 	{ return m_data[index]; }
 
 	AccountData* GetAccount()
@@ -194,33 +208,34 @@ public:
 	Character* GetCharacter() const
 	{ return m_char; }
 
-	bool IsAway() const
-	{ return m_away; }
+	bool GetBoolValue(BooleanValue index)
+	{ return m_booleanValues[index]; }
 
-	bool IsInvisible() const
-	{ return m_invisible; }
+	void SetBoolValue(BooleanValue index, bool value)
+	{ m_booleanValues[index] = value; }
 
 	void RemoveChannel(int8);
 
+	bool IsFriendWith(int id)
+	{ return m_friends.left.find(id) != m_friends.left.end(); }
+
 	bool IsFriendWith(std::string name)
-	{
-		return m_friends.find(Desperion::ToLowerCase(name)) != m_friends.end();
-	}
+	{ return m_friends.right.find(Desperion::ToLowerCase(name)) != m_friends.right.end(); }
+
+	bool IsEnnemyWith(int id)
+	{ return m_ennemies.left.find(id) != m_ennemies.left.end(); }
 
 	bool IsEnnemyWith(std::string name)
-	{
-		return m_ennemies.find(Desperion::ToLowerCase(name)) != m_ennemies.end();
-	}
+	{ return m_ennemies.right.find(Desperion::ToLowerCase(name)) != m_ennemies.right.end(); }
+
+	bool IsIgnoredWith(int id)
+	{ return m_ignored.left.find(id) != m_ignored.left.end(); }
 
 	bool IsIgnoredWith(std::string name)
-	{
-		return m_ignored.find(Desperion::ToLowerCase(name)) != m_ignored.end();
-	}
+	{ return m_ignored.right.find(Desperion::ToLowerCase(name)) != m_ignored.right.end(); }
 
 	bool HasChannel(int8 chann)
-	{
-		return m_channels.find(chann) != m_channels.end();
-	}
+	{ return m_channels.find(chann) != m_channels.end(); }
 };
 
 #endif

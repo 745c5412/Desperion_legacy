@@ -27,9 +27,8 @@ namespace Desperion
 	class Master : public Singleton<Master>
 	{
 	public:
-		Master()
+		Master() : m_stopEvent(false), sListener(NULL)
 		{
-			sListener = NULL;
 		}
 
 		bool Run(int, char **);
@@ -40,7 +39,10 @@ namespace Desperion
 		{ return getMSTime() - m_startTime; }
 
 		void Stop()
-		{ m_service.stop(); }
+		{
+			m_service.stop();
+			m_stopEvent = true;
+		}
 
 		boost::asio::io_service& GetService()
 		{ return m_service; }
@@ -49,6 +51,7 @@ namespace Desperion
 
 		boost::asio::io_service m_service;
 		uint32 m_startTime;
+		bool m_stopEvent;
 	};
 }
 

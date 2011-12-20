@@ -19,6 +19,10 @@
 #ifndef __CONFIG_DEFAULTS__
 #define __CONFIG_DEFAULTS__
 
+//------------------------------------
+// SERVER.PROPERTIES
+//------------------------------------
+
 #define LOCAL_DATABASE_HOST_STRING "LocalDatabaseHost"
 #define LOCAL_DATABASE_HOST_DEFAULT "127.0.0.1"
 
@@ -40,7 +44,23 @@
 #define DISTANT_SERVER_PORT_STRING "DistantServerPort"
 #define DISTANT_SERVER_PORT_DEFAULT 444
 
+//------------------------------------
+// MISC.PROPERTIES
+//------------------------------------
+
 #define SERVER_MAINTENANCE_STRING "ServerMaintenance"
 #define SERVER_MAINTENANCE_DEFAULT false
+
+#define LOGS_PATH_STRING "LogsPath"
+#define LOGS_PATH_DEFAULT "logs"
+
+#define LOGS_LEVEL_STRING "LogsLevel"
+#define LOGS_LEVEL_DEFAULT 0xff
+
+#define PRIV_FILE_PATH_STRING "PrivFilePath"
+#define PRIV_FILE_PATH_DEFAULT "priv.der"
+
+#define PUB_FILE_PATH_STRING "PubFilePath"
+#define PUB_FILE_PATH_DEFAULT "pub.der"
 
 #endif

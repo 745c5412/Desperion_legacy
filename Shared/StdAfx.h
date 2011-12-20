@@ -19,18 +19,18 @@
 #ifndef __SHARED_STDAFX__
 #define __SHARED_STDAFX__
 
-#define PROTOCOL_BUILD 1413
-#define PROTOCOL_REQUIRED_BUILD 1413
+#define PROTOCOL_BUILD 1428
+#define PROTOCOL_REQUIRED_BUILD 1428
 
 #define SHARED_VERSION_MAJOR 0
 #define SHARED_VERSION_MINOR 0
-#define SHARED_VERSION_REVISION 2
+#define SHARED_VERSION_REVISION 3
 
 #define DOFUS_VERSION_MAJOR 2
-#define DOFUS_VERSION_MINOR 4
-#define DOFUS_VERSION_RELEASE 6
-#define DOFUS_VERSION_REVISION 51895
-#define DOFUS_VERSION_PATCH 2
+#define DOFUS_VERSION_MINOR 5
+#define DOFUS_VERSION_RELEASE 2
+#define DOFUS_VERSION_REVISION 53800
+#define DOFUS_VERSION_PATCH 1
 #define DOFUS_VERSION_BUILD_TYPE 0
 
 #include "Common.h"
@@ -41,14 +41,13 @@
 #include "Opcodes.h"
 #include "ByteBuffer.h"
 #include "BooleanByteWrapper.h"
-#include "Utils.h"
+#include "Utils.inl"
 #include "Singleton.h"
 #include "Packet.h"
 #include "SocketListener.h"
 #include "Log.h"
 #include "QueryResult.h"
 #include "Database.h"
-#include "md5.h"
 #include "Config.h"
 #include "Timer.h"
 #include "MersenneTwister.h"

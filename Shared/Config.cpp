@@ -57,7 +57,7 @@ namespace Desperion
 
 			std::vector<std::string> table;
 
-			Split(table, line, '=');
+			FastSplitString<'='>(table, line, true);
 			if(table.size() == 0 || table[0].empty())
 				continue;
 

@@ -68,6 +68,12 @@
 #define LOCAL_SERVER_ID_STRING "LocalServerID"
 #define LOCAL_SERVER_ID_DEFAULT 1
 
+#define LOGS_PATH_STRING "LogsPath"
+#define LOGS_PATH_DEFAULT "logs"
+
+#define LOGS_LEVEL_STRING "LogsLevel"
+#define LOGS_LEVEL_DEFAULT 0xff
+
 
 //------------------------------------
 // CHARACTER.PROPERTIES
@@ -106,14 +112,11 @@
 #define FULL_SCROLLED_STRING "FullScrolled"
 #define FULL_SCROLLED_DEFAULT false
 
-#define USE_WEIGHT_LIMIT_STRING "UseWeightLimit"
-#define USE_WEIGHT_LIMIT_DEFAULT true
-
 #define CUSTOM_START_MAP_STRING "CustomStartMap"
-#define CUSTOM_START_MAP_DEFAULT 12552
+#define CUSTOM_START_MAP_DEFAULT 81269763
 
 #define CUSTOM_START_CELL_STRING "CustomStartCell"
-#define CUSTOM_START_CELL_DEFAULT 311
+#define CUSTOM_START_CELL_DEFAULT 314
 
 #define MAX_CHARACTERS_COUNT_STRING "MaxCharactersCount"
 #define MAX_CHARACTERS_COUNT_DEFAULT 5
@@ -140,5 +143,11 @@
 
 #define NAME_SUGGESTION_RETRY_TIME_STRING "NameSuggestionRetryTime"
 #define NAME_SUGGESTION_RETRY_TIME_DEFAULT 500
+
+#define EXPERIENCE_FACTOR_STRING "ExperienceFactor"
+#define EXPERIENCE_FACTOR_DEFAULT 1
+
+#define USE_WEIGHT_LIMIT_STRING "UseWeightLimit"
+#define USE_WEIGHT_LIMIT_DEFAULT true
 
 #endif

@@ -137,38 +137,13 @@ Connection* Database::GetFreeConnection()
 	return NULL;
 }
 
-/* 
-	je suis obligé d'écrire une fonction spéciale car boost::bind
-	ne gère pas les listes d'arguments '...'
-*/
-void Database::AsyncExecute(const char* QueryString, ...)
-{
-	char query[32768];
-
-	va_list vlist;
-	va_start(vlist, QueryString);
-	vsnprintf(query, 32768, QueryString, vlist);
-	va_end(vlist);
-
-	boost::thread(boost::bind(&Database::_AsyncExecute, this, query));
-}
-
-bool Database::_AsyncExecute(const char* query)
-{
-	Connection* con = GetFreeConnection();
-	bool result = SendQuery(con, query, false);
-	con->lock.unlock();
-
-	return result;
-}
-
 bool Database::Execute(const char* QueryString, ...)
 {
 	char query[32768];
 
 	va_list vlist;
 	va_start(vlist, QueryString);
-	vsnprintf(query, 32768, QueryString, vlist);
+	vsnprintf_s(query, 32768, QueryString, vlist);
 	va_end(vlist);
 
 	Connection* con = GetFreeConnection();
@@ -203,7 +178,7 @@ ResultPtr Database::Query(const char* QueryString, ...)
 	char sql[32768];
 	va_list vlist;
 	va_start(vlist, QueryString);
-	vsnprintf(sql, 32768, QueryString, vlist);
+	vsnprintf_s(sql, 32768, QueryString, vlist);
 	va_end(vlist);
 
 	// Send the query

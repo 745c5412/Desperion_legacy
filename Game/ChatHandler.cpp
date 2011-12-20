@@ -56,12 +56,12 @@ void Session::HandleMultiMessage(ChatClientMultiMessage* data)
 	ChatServerMessage* toSend = NULL;
 	if(data->GetOpcode() == CMSG_CHAT_CLIENT_MULTI)
 	{
-		toSend = new ChatServerMessage(data->channel, data->content, time(NULL), "", m_char->GetGuid(), m_char->GetName(),
+		toSend = new ChatServerMessage(data->channel, data->content, static_cast<int>(time(NULL)), "", m_char->GetGuid(), m_char->GetName(),
 			m_data[FLAG_GUID].intValue);
 	}
 	else if(data->GetOpcode() == CMSG_CHAT_CLIENT_MULTI_WITH_OBJECT)
 	{
-		toSend = new ChatServerWithObjectMessage(data->channel, data->content, time(NULL), "", m_char->GetGuid(), m_char->GetName(),
+		toSend = new ChatServerWithObjectMessage(data->channel, data->content, static_cast<int>(time(NULL)), "", m_char->GetGuid(), m_char->GetName(),
 			m_data[FLAG_GUID].intValue, ((ChatClientMultiWithObjectMessage*)data)->objects);
 	}
 	else
@@ -107,11 +107,11 @@ void Session::HandlePrivateMessage(ChatClientPrivateMessage* data)
 		Send(ChatErrorMessage(CHAT_ERROR_INTERIOR_MONOLOGUE));
 		return;
 	}
-	else if(cm->onlineCharacter->GetSession()->IsAway()
-		|| cm->onlineCharacter->GetSession()->IsEnnemyWith(m_data[FLAG_PSEUDO].stringValue)
-		|| cm->onlineCharacter->GetSession()->IsIgnoredWith(m_data[FLAG_PSEUDO].stringValue)
-		|| (cm->onlineCharacter->GetSession()->IsInvisible() &&
-		!cm->onlineCharacter->GetSession()->IsFriendWith(m_data[FLAG_PSEUDO].stringValue)))
+	else if(cm->onlineCharacter->GetSession()->GetBoolValue(BOOL_AWAY)
+		|| cm->onlineCharacter->GetSession()->IsEnnemyWith(m_data[FLAG_GUID].intValue)
+		|| cm->onlineCharacter->GetSession()->IsIgnoredWith(m_data[FLAG_GUID].intValue)
+		|| (cm->onlineCharacter->GetSession()->GetBoolValue(BOOL_INVISIBLE) &&
+		!cm->onlineCharacter->GetSession()->IsFriendWith(m_data[FLAG_GUID].intValue)))
 	{
 		// todo: message
 		return;
@@ -121,18 +121,17 @@ void Session::HandlePrivateMessage(ChatClientPrivateMessage* data)
 	ChatServerCopyMessage* local = NULL;
 
 	time_t t = time(NULL);
-
 	if(data->GetOpcode() == CMSG_CHAT_CLIENT_PRIVATE)
 	{
-		distant = new ChatServerMessage(PSEUDO_CHANNEL_PRIVATE, data->content, t, "", m_char->GetGuid(), m_char->GetName(),
+		distant = new ChatServerMessage(PSEUDO_CHANNEL_PRIVATE, data->content, static_cast<int>(t), "", m_char->GetGuid(), m_char->GetName(),
 			m_data[FLAG_GUID].intValue);
-		local = new ChatServerCopyMessage(PSEUDO_CHANNEL_PRIVATE, data->content, t, "", cm->id, cm->name);
+		local = new ChatServerCopyMessage(PSEUDO_CHANNEL_PRIVATE, data->content, static_cast<int>(t), "", cm->id, cm->name);
 	}
 	else if(data->GetOpcode() == CMSG_CHAT_CLIENT_PRIVATE_WITH_OBJECT)
 	{
-		distant = new ChatServerWithObjectMessage(PSEUDO_CHANNEL_PRIVATE, data->content, t, "", m_char->GetGuid(), m_char->GetName(),
+		distant = new ChatServerWithObjectMessage(PSEUDO_CHANNEL_PRIVATE, data->content, static_cast<int>(t), "", m_char->GetGuid(), m_char->GetName(),
 			m_data[FLAG_GUID].intValue, ((ChatClientPrivateWithObjectMessage*)data)->objects);
-		local = new ChatServerCopyWithObjectMessage(PSEUDO_CHANNEL_PRIVATE, data->content, t, "", cm->id, cm->name,
+		local = new ChatServerCopyWithObjectMessage(PSEUDO_CHANNEL_PRIVATE, data->content, static_cast<int>(t), "", cm->id, cm->name,
 			((ChatClientPrivateWithObjectMessage*)data)->objects);
 	}
 	else

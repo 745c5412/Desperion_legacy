@@ -25,7 +25,7 @@
 
 #define REQUIRED_SHARED_VERSION_MAJOR 0
 #define REQUIRED_SHARED_VERSION_MINOR 0
-#define REQUIRED_SHARED_VERSION_REVISION 2
+#define REQUIRED_SHARED_VERSION_REVISION 3
 
 #include "../Shared/StdAfx.h"
 
@@ -182,7 +182,7 @@
 #include "FriendInformations.h"
 #include "FriendOnlineInformations.h"
 
-#include "Subarea.h"
+#include "SubArea.h"
 #include "Mount.h"
 #include "ItemSet.h"
 #include "Entity.h"

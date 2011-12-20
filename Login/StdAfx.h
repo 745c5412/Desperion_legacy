@@ -21,11 +21,11 @@
 
 #define LOGIN_VERSION_MAJOR 0
 #define LOGIN_VERSION_MINOR 5
-#define LOGIN_VERSION_REVISION 1
+#define LOGIN_VERSION_REVISION 2
 
 #define REQUIRED_SHARED_VERSION_MAJOR 0
 #define REQUIRED_SHARED_VERSION_MINOR 0
-#define REQUIRED_SHARED_VERSION_REVISION 2
+#define REQUIRED_SHARED_VERSION_REVISION 3
 
 #include "../Shared/StdAfx.h"
 
@@ -55,7 +55,8 @@
 #include "AcquaintanceSearchErrorMessage.h"
 #include "AcquaintanceSearchMessage.h"
 #include "AcquaintanceServerListMessage.h"
-#include "IdentificationWithServerIdMessage.h"
+#include "IdentificationFailedForBadVersionMessage.h"
+#include "IdentificationFailedBannedMessage.h"
 
 #include "Session.h"
 #include "GameSession.h"

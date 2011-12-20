@@ -100,14 +100,17 @@ namespace Desperion
 
 	bool Master::Run(int argc, char **argv)
 	{
-		std::string logPath = "logs";
-		std::string configPath = "config";
-		std::string logFlags = "0";
-
 		m_startTime = getMSTime();
 
+		new Config;
+		std::vector<std::string> files;
+		files.push_back("server.properties"), files.push_back("misc.properties");
+		std::string configPath = "config";
+		Config::Instance().Init(configPath, files);
+
 		new Log;
-		Log::Instance().Init(logPath, OUTLOG_ALL);
+		Log::Instance().Init(Config::Instance().GetParam<std::string>(LOGS_PATH_STRING, LOGS_PATH_DEFAULT),
+			Config::Instance().GetParam<uint8>(LOGS_LEVEL_STRING, LOGS_LEVEL_DEFAULT));
 
 		InitRandomNumberGenerators();
 
@@ -124,11 +127,6 @@ namespace Desperion
 		Log::Instance().outColor(TWHITE, "LoginServer v%u.%u.%u", LOGIN_VERSION_MAJOR, LOGIN_VERSION_MINOR, LOGIN_VERSION_REVISION);
 		Log::Instance().outColor(TWHITE, "Shared v%u.%u.%u\n\n", SHARED_VERSION_MAJOR, SHARED_VERSION_MINOR, SHARED_VERSION_REVISION);
 	
-		new Config;
-		std::vector<std::string> files;
-		files.push_back("server.properties"), files.push_back("misc.properties");
-		Config::Instance().Init(configPath, files);
-
 		if(!StartUpDatabase())
 			return false;
 
@@ -138,7 +136,10 @@ namespace Desperion
 		sListener = new SocketListener<Session>(m_service);
 		sListener->Init(Config::Instance().GetParam(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
 		if(sListener->IsOpen())
-			Log::Instance().outNotice("Network", "Local socket running!");
+		{
+			Log::Instance().outNotice("Network", "Local socket listening on port %u",
+				Config::Instance().GetParam(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
+		}
 		else
 		{
 			Log::Instance().outError("Error: Local socket");
@@ -148,26 +149,30 @@ namespace Desperion
 		eListener = new SocketListener<GameSession>(m_service);
 		eListener->Init(Config::Instance().GetParam(DISTANT_SERVER_PORT_STRING, DISTANT_SERVER_PORT_DEFAULT));
 		if(eListener->IsOpen())
-			Log::Instance().outNotice("Network", "Distant socket running!\n");
+		{
+			Log::Instance().outNotice("Network", "Distant socket listening on port %u",
+				Config::Instance().GetParam(DISTANT_SERVER_PORT_STRING, DISTANT_SERVER_PORT_DEFAULT));
+		}
 		else
 		{
 			Log::Instance().outError("Error: Distant socket");
 			return false;
 		}
 	
-		Log::Instance().outColor(TBLUE, "Uptime: %ums", getMSTime() - m_startTime);
+		std::cout<<std::endl;
+		Log::Instance().outString("Uptime: %ums", getMSTime() - m_startTime);
 		Log::Instance().outColor(TBLUE, "Type Ctrl+C to safely shutdown the server.\n");
 
 		sListener->Run();
 		eListener->Run();
 
 		HookSignals();
-		try
+		while(!m_stopEvent)
 		{
+			try{
 			m_service.run();
-		}catch(const std::exception& err)
-		{
-			Log::Instance().outError("Unhandled exception: %s", err.what());
+			}catch(const std::exception& err)
+			{ Log::Instance().outError("Unhandled exception: %s", err.what()); }
 		}
 		UnHookSignals();
 		return true;

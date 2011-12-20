@@ -52,9 +52,24 @@ EntityLook* CharacterMinimals::GetLook() const
 			}
 			else
 			{
-				EntityLook* ent = new EntityLook;
-				ent->bonesId = item.GetItem()->GetAppearanceId();
-				l->subentities.push_back(SubEntityPtr(new SubEntity(1, 0, ent)));
+				if(item.GetItem()->GetAppearanceId() != 0)
+				{
+					EntityLook* ent = new EntityLook;
+					ent->bonesId = item.GetItem()->GetAppearanceId();
+
+					int8 category, index;
+					if(item.GetItem()->GetTypeId() == 121)
+					{
+						category = 2;
+						index = 1;
+					}
+					else
+					{
+						category = 1;
+						index = 0;
+					}
+					l->subentities.push_back(SubEntityPtr(new SubEntity(category, index, ent)));
+				}
 			}
 		}while(QR->NextRow());
 	}

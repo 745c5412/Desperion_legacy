@@ -33,7 +33,6 @@ protected:
 	
 	void _Send(ByteBuffer& buffer)
 	{
-		buffer.HexLike();
 		const uint8* contents = buffer.Contents();
 		try{
 		boost::asio::write(*m_socket, boost::asio::buffer(contents, buffer.Size()));
@@ -138,16 +137,11 @@ public:
 				if(IsAllowed(hdl->Flag))
 					OnData(hdl, received);
 			}
-		}catch(const boost::exception&)
-		{
-		}catch(const ServerError& error)
-		{
-			Log::Instance().outError(error.what());
-			return;
-		}catch(const std::exception& except)
-		{
-			Log::Instance().outError(except.what());
 		}
+		catch(const boost::exception&)
+		{ }
+		catch(const std::exception& except)
+		{ Log::Instance().outError(except.what()); }
 		
 		m_opcode = 0;
 		m_buffer.clear();

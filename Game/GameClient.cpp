@@ -23,6 +23,7 @@ template<> GameClient::HandlerStorageMap AbstractSession<ComPacketHandler>::m_ha
 
 GameClient::~GameClient()
 {
+	delete m_timer;
 }
 
 void GameClient::Launch()

@@ -23,10 +23,11 @@ class IdentificationMessage : public DofusMessage
 {
 public:
 	VersionPtr version;
-	std::vector<TrustCertificatePtr> certificates;
-	std::string userName;
-	std::string password;
-	bool autoConnect;
+	std::string login;
+	std::vector<int8> credentials;
+	std::string lang;
+	bool autoConnect, useCertificate, useLoginToken;
+	int16 serverId;
 
 	virtual uint16 GetOpcode() const
 	{ return CMSG_IDENTIFICATION; }
@@ -35,37 +36,49 @@ public:
 	{
 	}
 
-	IdentificationMessage(Version* version, std::vector<TrustCertificatePtr>& certificates, std::string userName,
-		std::string password, bool autoConnect) : version(version), certificates(certificates), userName(userName), 
-		password(password), autoConnect(autoConnect)
+	IdentificationMessage(bool autoConnect, bool useLoginToken, bool useCertificate, Version* version, 
+		std::string lang, std::string login, std::vector<int8>& credentials, int16 serverId) : autoConnect(autoConnect),
+		useLoginToken(useLoginToken), useCertificate(useCertificate), version(version), lang(lang),
+		login(login), credentials(credentials), serverId(serverId)
 	{
 	}
 
 	void Serialize(ByteBuffer& data)
 	{
+		uint8 byte;
+		Desperion::BooleanByteWrapper::SetFlag(byte, 0, autoConnect);
+		Desperion::BooleanByteWrapper::SetFlag(byte, 1, useLoginToken);
+		Desperion::BooleanByteWrapper::SetFlag(byte, 2, useCertificate);
+		data<<byte;
 		version->Serialize(data);
-		uint16 size = certificates.size();
-		data<<userName<<password<<size;
+		data<<lang<<login;
+		uint16 size = credentials.size();
+		data<<size;
 		for(uint16 a = 0; a < size; ++a)
-			certificates[a]->Serialize(data);
-		data<<autoConnect;
+			data<<credentials[a];
+		data<<serverId;
 	}
 
 	void Deserialize(ByteBuffer& data)
 	{
-		certificates.clear();
+		credentials.clear();
+		uint8 byte;
+		data>>byte;
+		autoConnect = Desperion::BooleanByteWrapper::GetFlag(byte, 0);
+		useLoginToken = Desperion::BooleanByteWrapper::GetFlag(byte, 1);
+		useCertificate = Desperion::BooleanByteWrapper::GetFlag(byte, 2);
 		version.reset(new Version);
 		version->Deserialize(data);
-
+		data>>lang>>login;
 		uint16 size;
-		data>>userName>>password>>size;
+		data>>size;
 		for(uint16 a = 0; a < size; ++a)
 		{
-			TrustCertificatePtr certif(new TrustCertificate);
-			certif->Deserialize(data);
-			certificates.push_back(certif);
+			int8 cred;
+			data>>cred;
+			credentials.push_back(cred);
 		}
-		data>>autoConnect;
+		data>>serverId;
 	}
 };
 
