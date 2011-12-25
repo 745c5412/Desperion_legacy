@@ -24,17 +24,13 @@ typedef boost::shared_ptr<PlayerItemEffect> PlayerItemEffectPtr;
 struct EffectInstance
 {
 	EffectInstance()
-	{}
-
-	EffectInstance(int effect, int target, int dur, int rand, bool hid, int zSize, int zShape)
 	{
-		effectId = effect;
-		targetId = target;
-		duration = dur;
-		random = rand;
-		hidden = hid;
-		zoneSize = zSize;
-		zoneShape = zShape;
+	}
+
+	EffectInstance(int effectId, int targetId, int duration, int random, bool hidden, int zoneSize, int zoneShape)
+		: effectId(effectId), targetId(targetId), duration(duration), random(random), hidden(hidden), zoneSize(zoneSize),
+		zoneShape(zoneShape)
+	{
 	}
 
 	virtual PlayerItemEffectPtr ToPlayerItemEffect() const
@@ -57,13 +53,15 @@ struct EffectInstance
 
 struct EffectInstanceInteger : public EffectInstance
 {
-	EffectInstanceInteger()
-	{}
+	int value;
 
-	EffectInstanceInteger(int effect, int target, int dur, int rand, bool hid, int zSize, int zShape, int val)
-		: EffectInstance(effect, target, dur, rand, hid, zSize, zShape)
+	EffectInstanceInteger()
 	{
-		value = val;
+	}
+
+	EffectInstanceInteger(int effectId, int targetId, int duration, int random, bool hidden, int zoneSize, int zoneShape, int value)
+		: EffectInstance(effectId, targetId, duration, random, hidden, zoneSize, zoneShape), value(value)
+	{
 	}
 
 	virtual PlayerItemEffectPtr ToPlayerItemEffect() const
@@ -71,20 +69,21 @@ struct EffectInstanceInteger : public EffectInstance
 
 	bool IsInteger() const
 	{ return true; }
-
-	int value;
 };
 
 struct EffectInstanceDice : public EffectInstanceInteger
 {
-	EffectInstanceDice()
-	{}
+	int diceNum;
+	int diceSide;
 
-	EffectInstanceDice(int effect, int target, int dur, int rand, bool hid, int zSize, int zShape, int val, int dNum, int dSide)
-		: EffectInstanceInteger(effect, target, dur, rand, hid, zSize, zShape, val)
+	EffectInstanceDice()
 	{
-		diceNum = dNum;
-		diceSide = dSide;
+	}
+
+	EffectInstanceDice(int effectId, int targetId, int duration, int random, bool hidden, int zoneSize, int zoneShape, int value,
+		int diceNum, int diceSide) : EffectInstanceInteger(effectId, targetId, duration, random, hidden, zoneSize, zoneShape,
+		value), diceNum(diceNum), diceSide(diceSide)
+	{
 	}
 
 	virtual PlayerItemEffectPtr ToPlayerItemEffect() const
@@ -92,9 +91,6 @@ struct EffectInstanceDice : public EffectInstanceInteger
 
 	bool IsDice() const
 	{ return true; }
-
-	int diceNum;
-	int diceSide;
 };
 
 inline EffectInstance* F(std::string& str)

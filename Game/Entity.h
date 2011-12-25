@@ -50,8 +50,10 @@ public:
 	void SetDirection(int8 dir)
 	{ m_direction = dir; }
 
-	virtual GameRolePlayActorInformationsPtr ToActor()
-	{ return GameRolePlayActorInformationsPtr(new GameRolePlayActorInformations(this)); }
+	virtual GameRolePlayActorInformations* ToActor()
+	{
+		return new GameRolePlayActorInformations(m_guid, GetLook(), new EntityDispositionInformations(m_cell, m_direction));
+	}
 
 	virtual bool IsCharacter() const
 	{ return false; }
@@ -71,8 +73,11 @@ public:
 	std::string GetName() const
 	{ return m_name; }
 
-	virtual GameRolePlayActorInformationsPtr ToActor()
-	{ return GameRolePlayActorInformationsPtr(new GameRolePlayNamedActorInformations(this)); }
+	virtual GameRolePlayActorInformations* ToActor()
+	{
+		return new GameRolePlayNamedActorInformations(m_guid, GetLook(), new EntityDispositionInformations(m_cell, m_direction),
+			m_name);
+	}
 protected:
 	std::string m_name;
 };
@@ -114,10 +119,10 @@ public:
 	void SetCurrentEmote(int8 e)
 	{ m_emoteId = e; }
 
-	uint64 GetEmoteStartTime() const
+	int64 GetEmoteStartTime() const
 	{ return m_emoteStartTime; }
 
-	void SetEmoteStartTime(uint64 t)
+	void SetEmoteStartTime(int64 t)
 	{ m_emoteStartTime = t; }
 
 	bool GetRestriction(uint8 r) const
@@ -135,12 +140,28 @@ public:
 	const std::vector<EntityLookPtr>& GetFollowingCharacters() const
 	{ return m_followingCharacters; }
 
-	virtual GameRolePlayActorInformationsPtr ToActor()
-	{ return GameRolePlayActorInformationsPtr(new GameRolePlayHumanoidInformations(this)); }
+	HumanInformations* GetHumanInfos()
+	{
+		return new HumanInformations(m_followingCharacters, m_emoteId, m_emoteStartTime, 
+			new ActorRestrictionsInformations(m_restrictions[cantBeAggressed], m_restrictions[cantBeChallenged], 
+			m_restrictions[cantTrade], m_restrictions[cantBeAttackedByMutant], m_restrictions[cantRun], 
+			m_restrictions[forceSlowWalk], m_restrictions[cantMinimize], m_restrictions[cantMove],
+			m_restrictions[cantAggress], m_restrictions[cantChallenge], m_restrictions[cantExchange],
+			m_restrictions[cantAttack], m_restrictions[cantChat], m_restrictions[cantBeMerchant], m_restrictions[cantUseObject],
+			m_restrictions[cantUseTaxCollector], m_restrictions[cantUseInteractive], m_restrictions[cantSpeakToNPC],
+			m_restrictions[cantChangeZone], m_restrictions[cantAttackMonster], m_restrictions[cantWalk8Directions]),
+			m_title, "");
+	}
+
+	virtual GameRolePlayActorInformations* ToActor()
+	{ 
+		return new GameRolePlayHumanoidInformations(m_guid, GetLook(), new EntityDispositionInformations(m_cell, m_direction),
+			m_name, GetHumanInfos()); 
+	}
 protected:
 	std::vector<EntityLookPtr> m_followingCharacters;
 	int8 m_emoteId;
-	uint64 m_emoteStartTime;
+	int64 m_emoteStartTime;
 	bool m_restrictions[RESTRICTIONS_NUMBER];
 	int16 m_title;
 	std::string m_titleParams;

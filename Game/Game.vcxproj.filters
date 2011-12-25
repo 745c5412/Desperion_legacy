@@ -22,9 +22,6 @@
     <Filter Include="Handlers">
       <UniqueIdentifier>{8d82f863-044d-4e8c-b355-e3ccf940bdd8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Models">
-      <UniqueIdentifier>{24aaf37d-9164-41cd-9833-f7d639c039a5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Desperion">
       <UniqueIdentifier>{d9856c9b-b3ae-4a41-8c48-814c409b3e59}</UniqueIdentifier>
     </Filter>
@@ -36,12 +33,6 @@
     </Filter>
     <Filter Include="Messages">
       <UniqueIdentifier>{fa1f2ea0-6856-4f7a-b405-c471d58c028e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Models\CPP">
-      <UniqueIdentifier>{bc30548d-cdcc-4f9a-97f0-71dd0db6e58c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Models\H">
-      <UniqueIdentifier>{883d13b7-526a-4eb3-8e28-81914d6f29dd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -90,44 +81,8 @@
     <ClCompile Include="Entity.cpp">
       <Filter>Objects\CPP</Filter>
     </ClCompile>
-    <ClCompile Include="GameContextActorInformations.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="GameRolePlayCharacterInformations.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="GameRolePlayNamedActorInformations.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="GameRolePlayHumanoidInformations.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="ActorRestrictionsInformations.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="CharacterBaseInformations.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="CharacterMinimalPlusLookInformations.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="HumanInformations.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="CharacterCharacteristicsInformations.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
     <ClCompile Include="Path.cpp">
       <Filter>Desperion\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectEffect.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectEffectDice.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectEffectInteger.cpp">
-      <Filter>Models\CPP</Filter>
     </ClCompile>
     <ClCompile Include="AdminHandler.cpp">
       <Filter>Handlers</Filter>
@@ -147,35 +102,11 @@
     <ClCompile Include="ItemSet.cpp">
       <Filter>Objects\CPP</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectEffectCreature.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectEffectDate.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectEffectDuration.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectEffectLadder.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectEffectMinMax.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectEffectMount.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectEffectString.cpp">
-      <Filter>Models\CPP</Filter>
-    </ClCompile>
     <ClCompile Include="Mount.cpp">
       <Filter>Objects\CPP</Filter>
     </ClCompile>
     <ClCompile Include="BasicHandler.cpp">
       <Filter>Handlers</Filter>
-    </ClCompile>
-    <ClCompile Include="SubEntity.cpp">
-      <Filter>Models\CPP</Filter>
     </ClCompile>
     <ClCompile Include="ProtocolTypeManager.cpp">
       <Filter>Desperion\CPP</Filter>
@@ -186,6 +117,7 @@
     <ClCompile Include="Subarea.cpp">
       <Filter>Objects\CPP</Filter>
     </ClCompile>
+    <ClCompile Include="SubEntity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StdAfx.h">
@@ -221,227 +153,17 @@
     <ClInclude Include="Master.h">
       <Filter>Desperion\H</Filter>
     </ClInclude>
-    <ClInclude Include="AuthenticationTicketMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="AuthenticationTicketRefusedMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="AuthenticationTicketAcceptedMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="AccountCapabilitiesMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="CharactersListRequestMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="CharactersListMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterDeletionRequestMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterDeletionErrorMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterNameSuggestionRequestMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ServerOptionalFeaturesMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterNameSuggestionFailureMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterNameSuggestionSuccessMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterSelectionMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterSelectedErrorMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterSelectedSuccessMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterCreationRequestMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
     <ClInclude Include="Map.h">
       <Filter>Objects\H</Filter>
     </ClInclude>
     <ClInclude Include="Entity.h">
       <Filter>Objects\H</Filter>
     </ClInclude>
-    <ClInclude Include="GameContextDestroyMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="GameContextCreateRequestMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="GameContextCreateMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="InventoryContentMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="InventoryWeightMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="CurrentMapMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="TextInformationMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="MapInformationsRequestMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="MapComplementaryInformationsDataMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="GameContextActorInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="GameRolePlayActorInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="GameRolePlayCharacterInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="GameRolePlayNamedActorInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="GameRolePlayHumanoidInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="ActorAlignmentInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="ActorRestrictionsInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterBaseInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterMinimalInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterMinimalPlusLookInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="EntityLook.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="HumanInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="EntityDispositionInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterStatsListMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterCharacteristicsInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="ActorExtendedAlignmentInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterBaseCharacteristic.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="GameMapMovementRequestMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="GameMapMovementMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="GameMapMovementConfirmMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChangeMapMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="BasicNoOperationMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="AdminCommandMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="AdminQuietCommandMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="GameRolePlayShowActorMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="GameContextRemoveElementMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
     <ClInclude Include="Path.h">
       <Filter>Desperion\H</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectEffectDice.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectEffectInteger.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectEffect.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="ConsoleCommandsListMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ConsoleMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChatAbstractClientMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChatAbstractServerMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChatAdminServerMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChatClientMultiMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectItem.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
     <ClInclude Include="Item.h">
       <Filter>Objects\H</Filter>
-    </ClInclude>
-    <ClInclude Include="DItem.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="ChatClientMultiWithObjectMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChatClientPrivateMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChatClientPrivateWithObjectMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChatErrorMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChatServerCopyMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChatServerCopyWithObjectMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChatServerMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChatServerWithObjectMessage.h">
-      <Filter>Messages</Filter>
     </ClInclude>
     <ClInclude Include="ConditionsParser.h">
       <Filter>Desperion\H</Filter>
@@ -449,200 +171,14 @@
     <ClInclude Include="DofusUtils.h">
       <Filter>Desperion\H</Filter>
     </ClInclude>
-    <ClInclude Include="GoldAddedMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="GoldItem.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="LivingObjectChangeSkinRequestMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="LivingObjectDissociateMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="LivingObjectMessageMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="LivingObjectMessageRequestMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectAddedMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectDeletedMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectDeleteMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectDropMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectErrorMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectFeedMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectModifiedMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectMovementMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectQuantityMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectsAddedMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectsDeletedMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectSetPositionMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectsQuantityMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectItemQuantity.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectUseMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectUseMultipleMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectUseOnCellMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectUseOnCharacterMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="SetUpdateMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="GameContextRefreshEntityLookMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectGroundAddedMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectGroundListAddedMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectGroundRemovedMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectGroundRemovedMultipleMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterCreationResultMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
     <ClInclude Include="ItemSet.h">
       <Filter>Objects\H</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectEffectCreature.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectEffectString.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectEffectLadder.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectEffectDate.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectEffectDuration.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectEffectMinMax.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectEffectMount.h">
-      <Filter>Models\H</Filter>
     </ClInclude>
     <ClInclude Include="Mount.h">
       <Filter>Objects\H</Filter>
     </ClInclude>
-    <ClInclude Include="BasicPingMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="BasicPongMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="BasicTimeMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="BasicDateMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="TrustStatusMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="SubEntity.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
     <ClInclude Include="ProtocolTypeManager.h">
       <Filter>Desperion\H</Filter>
-    </ClInclude>
-    <ClInclude Include="HelloGameMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="EnabledChannelsMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChannelEnablingMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChannelEnablingChangeMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="MoodSmileyResultMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="MoodSmileyRequestMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="LocalizedChatSmileyMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChatSmileyMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ChatSmileyRequestMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="BasicWhoAmIRequestMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="BasicWhoIsMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="BasicWhoIsNoMatchMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="BasicWhoIsRequestMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="NumericWhoIsMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="NumericWhoIsRequestMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="AbstractContactInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="FriendInformations.h">
-      <Filter>Models\H</Filter>
-    </ClInclude>
-    <ClInclude Include="FriendOnlineInformations.h">
-      <Filter>Models\H</Filter>
     </ClInclude>
     <ClInclude Include="Subarea.h">
       <Filter>Objects\H</Filter>

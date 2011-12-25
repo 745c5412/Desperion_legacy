@@ -36,9 +36,9 @@ void Session::HandleLivingObjectChangeSkinRequestMessage(ByteBuffer& packet)
 	item->DeleteEffect(972);
 	item->AddEffect(new PlayerItemEffectInteger(972, data.skinId));
 
-	Send(ObjectModifiedMessage(ObjectItemPtr(new ObjectItem(item))));
+	Send(ObjectModifiedMessage(item->ToObjectItem()));
 	if(item->GetPos() != INVENTORY_POSITION_NOT_EQUIPED)
-		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
+		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), m_char->GetLook()));
 }
 
 void Session::HandleLivingObjectDissociateMessage(ByteBuffer& packet)
@@ -93,9 +93,9 @@ void Session::HandleLivingObjectDissociateMessage(ByteBuffer& packet)
 		item->DeleteEffect(983);
 		item->DeleteEffect(970);
 
-		Send(ObjectModifiedMessage(ObjectItemPtr(new ObjectItem(item))));
+		Send(ObjectModifiedMessage(item->ToObjectItem()));
 		if(item->GetPos() != INVENTORY_POSITION_NOT_EQUIPED)
-			Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
+			Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), m_char->GetLook()));
 }
 
 void Session::HandleLivingObjectMessageRequestMessage(ByteBuffer& packet)
@@ -169,7 +169,7 @@ void Session::HandleObjectFeedMessage(ByteBuffer& packet)
 	struct tm* tm = localtime(&t);
 	obvi->DeleteEffect(808);
 	obvi->AddEffect(new PlayerItemEffectDate(808, tm->tm_year, tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min));
-	Send(ObjectModifiedMessage(ObjectItemPtr(new ObjectItem(obvi))));
+	Send(ObjectModifiedMessage(obvi->ToObjectItem()));
 	Send(BasicNoOperationMessage());
 }
 
@@ -203,8 +203,8 @@ void Session::HandleObjectDeleteMessage(ByteBuffer& packet)
 	{
 		ConditionsParser P(m_char->GetEmotes(), m_char->GetItems(), m_char->GetName());
 		DofusUtils::LoopItemConditions(P, this);
-		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
-		Send(CharacterStatsListMessage(m_char));
+		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), m_char->GetLook()));
+		Send(GetCharacterStatsListMessage());
 	}
 	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
 }
@@ -287,8 +287,8 @@ void Session::HandleObjectDropMessage(ByteBuffer& packet)
 	{
 		ConditionsParser P(m_char->GetEmotes(), m_char->GetItems(), m_char->GetName());
 		DofusUtils::LoopItemConditions(P, this);
-		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
-		Send(CharacterStatsListMessage(m_char));
+		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), m_char->GetLook()));
+		Send(GetCharacterStatsListMessage());
 	}
 	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
 }
@@ -350,8 +350,8 @@ void Session::HandleObjectSetPositionMessage(ByteBuffer& packet)
 			item->SetQuantity(item->GetQuantity() - 1);
 			Send(ObjectQuantityMessage(item->GetGuid(), item->GetQuantity()));
 		}
-		Send(ObjectModifiedMessage(ObjectItemPtr(new ObjectItem(exItem))));
-		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
+		Send(ObjectModifiedMessage(exItem->ToObjectItem()));
+		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), m_char->GetLook()));
 		return;
 	}
 
@@ -388,7 +388,7 @@ void Session::HandleObjectSetPositionMessage(ByteBuffer& packet)
 			boost::bind(&Character::MoveItem, m_char, item, data.position, false));
 	DofusUtils::LoopItemConditions(P, this);
 
-	Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), EntityLookPtr(m_char->GetLook())));
-	Send(CharacterStatsListMessage(m_char));
+	Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), m_char->GetLook()));
+	Send(GetCharacterStatsListMessage());
 	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
 }

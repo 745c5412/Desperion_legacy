@@ -31,6 +31,8 @@ void SubEntity::Serialize(ByteBuffer& data)
 
 void SubEntity::Deserialize(ByteBuffer& data)
 {
+	delete look;
+	look = new EntityLook;
 	data>>bindingPointCategory>>bindingPointIndex;
 	look->Deserialize(data);
 }

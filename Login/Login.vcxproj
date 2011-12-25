@@ -88,30 +88,12 @@
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AcquaintanceSearchErrorMessage.h" />
-    <ClInclude Include="AcquaintanceSearchMessage.h" />
-    <ClInclude Include="AcquaintanceServerListMessage.h" />
     <ClInclude Include="ConfigDefaults.h" />
     <ClInclude Include="GameServer.h" />
-    <ClInclude Include="GameServerInformations.h" />
     <ClInclude Include="GameSession.h" />
-    <ClInclude Include="HelloConnectMessage.h" />
-    <ClInclude Include="IdentificationFailedBannedMessage.h" />
-    <ClInclude Include="IdentificationFailedForBadVersionMessage.h" />
-    <ClInclude Include="IdentificationFailedMessage.h" />
-    <ClInclude Include="IdentificationMessage.h" />
-    <ClInclude Include="IdentificationSuccessMessage.h" />
     <ClInclude Include="Master.h" />
-    <ClInclude Include="ProtocolRequired.h" />
-    <ClInclude Include="SelectedServerDataMessage.h" />
-    <ClInclude Include="SelectedServerRefusedMessage.h" />
-    <ClInclude Include="ServerSelectionMessage.h" />
-    <ClInclude Include="ServersListMessage.h" />
-    <ClInclude Include="ServerStatusUpdateMessage.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="StdAfx.h" />
-    <ClInclude Include="TrustCertificate.h" />
-    <ClInclude Include="Version.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

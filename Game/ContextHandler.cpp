@@ -25,7 +25,13 @@ void Session::HandleMapInformationsRequestMessage(ByteBuffer& packet)
 
 	Map* map = m_char->GetMap();
 
-	Send(MapComplementaryInformationsDataMessage(map->GetSubAreaId(), map->GetId(), 0, map->GetActors()));
+	std::list<DisplayableEntity*>& actors = map->GetActors();
+	std::vector<GameRolePlayActorInformationsPtr> clientList;
+	for(std::list<DisplayableEntity*>::iterator it = actors.begin(); it != actors.end(); ++it)
+		clientList.push_back(GameRolePlayActorInformationsPtr((*it)->ToActor()));
+	Send(MapComplementaryInformationsDataMessage(map->GetSubAreaId(), map->GetId(), 0, std::vector<HouseInformationsPtr>(),
+		clientList, std::vector<InteractiveElementPtr>(), std::vector<StatedElementPtr>(), std::vector<MapObstaclePtr>(),
+		std::vector<FightCommonInformationsPtr>()));
 	const std::tr1::unordered_map<int16, PlayerItem*>& items = map->GetItems();
 	if(items.empty())
 		return;

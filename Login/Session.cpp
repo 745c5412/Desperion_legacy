@@ -65,7 +65,7 @@ void Session::HandleAcquaintanceSearchMessage(ByteBuffer& packet)
 
 	const char* query = "SELECT serverID FROM character_counts INNER JOIN accounts ON accounts.guid = character_counts.accountGuid "\
 		"WHERE LOWER(accounts.pseudo)=LOWER('%s');";
-	ResultPtr QR = Desperion::sDatabase->Query(query, Desperion::sDatabase->EscapeString(data.nickName).c_str());
+	ResultPtr QR = Desperion::sDatabase->Query(query, Desperion::sDatabase->EscapeString(data.nickname).c_str());
 	if(!QR)
 	{
 		Send(AcquaintanceSearchErrorMessage(2));
@@ -130,7 +130,7 @@ void Session::HandleServerSelectionMessage(ByteBuffer& packet)
 	ServerSelectionMessage data;
 	data.Deserialize(packet);
 
-	HandleServerSelection(World::Instance().GetGameServer(data.id), false);
+	HandleServerSelection(World::Instance().GetGameServer(data.serverId), false);
 }
 
 GameServerInformations* Session::GetServerStatusMessage(const GameServer* G, uint8 count)
@@ -271,7 +271,7 @@ void Session::HandleIdentificationMessage(ByteBuffer& packet)
 	Send(IdentificationSuccessMessage(m_data[FLAG_LEVEL].intValue > 0, alreadyConnected, data.login, m_data[FLAG_PSEUDO].stringValue,
 		m_data[FLAG_GUID].intValue, 0, m_data[FLAG_QUESTION].stringValue, m_subscriptionEnd));
 	
-	if(data.autoConnect)
+	if(data.autoconnect)
 	{
 		if(HandleServerSelection(World::Instance().GetGameServer(m_data[FLAG_LAST_SERVER].intValue), true))
 			return;

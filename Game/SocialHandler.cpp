@@ -29,7 +29,7 @@ void Session::HandleFriendsGetListMessage(ByteBuffer& data)
 			list.push_back(FriendInformationsPtr(new FriendOnlineInformations(S->GetData(FLAG_GUID).intValue,
 				S->GetData(FLAG_PSEUDO).stringValue, S->GetCharacter()->GetContextType(), 0, S->GetCharacter()->GetName(),
 				S->GetCharacter()->GetLevel(), S->GetCharacter()->GetStats().GetAlignmentSide(), S->GetCharacter()->GetBreed(),
-				S->GetCharacter()->GetSex(), S->GetCharacter()->GetSmileyId())));
+				S->GetCharacter()->GetSex(), new BasicGuildInformations(0, ""), S->GetCharacter()->GetSmileyId())));
 		}
 		else
 		{

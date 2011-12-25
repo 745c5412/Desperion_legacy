@@ -22,12 +22,11 @@
 inline void SwapBytes(uint8 *p, size_t n)
 {
     size_t lo, hi;
-    for(lo=0, hi=n-1; hi>lo; lo++, hi--)
-    {
-        uint8 tmp=p[lo];
-        p[lo] = p[hi];
-        p[hi] = tmp;
-    }
+    for(lo = 0, hi = n - 1; hi > lo; lo++, hi--)
+		p[lo] ^= p[hi] ^= p[lo] ^= p[hi];
+    /*uint8 tmp=p[lo];
+    p[lo] = p[hi];
+    p[hi] = tmp;*/
 }
 
 enum Endianness

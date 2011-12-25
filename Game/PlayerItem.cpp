@@ -59,8 +59,16 @@ void PlayerItem::SetPos(int pos)
 		for(std::vector<PlayerItemEffect*>::iterator it = m_effects.begin(); it != m_effects.end(); ++it)
 			m_owner->ApplyEffect(&StatsRow::objects, (*it)->actionId, ((PlayerItemEffectInteger*)*it)->value, false);
 	}
-
+	
 	m_pos = pos;
+}
+
+ObjectItem* PlayerItem::ToObjectItem() const
+{ 
+	std::vector<ObjectEffectPtr> effects;
+	for(std::vector<PlayerItemEffect*>::const_iterator it = m_effects.begin(); it != m_effects.end(); ++it)
+		effects.push_back(ObjectEffectPtr((*it)->ToObjectEffect()));
+	return new ObjectItem(m_pos, m_item->GetId(), 0, false, effects, m_guid, m_quantity);
 }
 
 int PlayerItem::GetNextItemGuid()

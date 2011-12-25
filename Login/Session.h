@@ -62,7 +62,7 @@ inline static bool VerifyVersion(Version& v)
 	return v.major == DOFUS_VERSION_MAJOR
 		&& v.minor == DOFUS_VERSION_MINOR
 		&& v.release == DOFUS_VERSION_RELEASE
-		&& v.rev == DOFUS_VERSION_REVISION
+		&& v.revision == DOFUS_VERSION_REVISION
 		&& v.patch == DOFUS_VERSION_PATCH
 		&& v.buildType == DOFUS_VERSION_BUILD_TYPE;
 }

@@ -41,60 +41,6 @@
     <ClInclude Include="Master.h">
       <Filter>Desperion\H</Filter>
     </ClInclude>
-    <ClInclude Include="SelectedServerDataMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="IdentificationFailedMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="IdentificationMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="IdentificationSuccessMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ServersListMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="Version.h">
-      <Filter>Models</Filter>
-    </ClInclude>
-    <ClInclude Include="GameServerInformations.h">
-      <Filter>Models</Filter>
-    </ClInclude>
-    <ClInclude Include="ProtocolRequired.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="HelloConnectMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="SelectedServerRefusedMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ServerSelectionMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="ServerStatusUpdateMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="AcquaintanceSearchErrorMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="AcquaintanceSearchMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="AcquaintanceServerListMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="TrustCertificate.h">
-      <Filter>Models</Filter>
-    </ClInclude>
-    <ClInclude Include="IdentificationFailedForBadVersionMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
-    <ClInclude Include="IdentificationFailedBannedMessage.h">
-      <Filter>Messages</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Network">
@@ -114,12 +60,6 @@
     </Filter>
     <Filter Include="Desperion\H">
       <UniqueIdentifier>{b4426656-7ce3-406a-80a6-08e9c92737fb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Messages">
-      <UniqueIdentifier>{509a528b-500f-47f7-bedd-5658ddfb4f83}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Models">
-      <UniqueIdentifier>{9b5a65e6-0280-4053-bad2-a9923fa8b682}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

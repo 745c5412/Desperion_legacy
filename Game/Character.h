@@ -189,8 +189,12 @@ public:
 		return currentLife;
 	}
 
-	virtual GameRolePlayActorInformationsPtr ToActor()
-	{ return GameRolePlayActorInformationsPtr(new GameRolePlayCharacterInformations(this)); }
+	virtual GameRolePlayActorInformations* ToActor()
+	{ 
+		return new GameRolePlayCharacterInformations(m_guid, GetLook(), new EntityDispositionInformations(m_cell, m_direction), m_name,
+			GetHumanInfos(), new ActorAlignmentInformations(m_stats.GetAlignmentSide(), m_stats.GetAlignmentValue(),
+			m_stats.GetAlignmentGrade(), m_stats.GetDishonor(), m_level)); 
+	}
 
 	void Save();
 };

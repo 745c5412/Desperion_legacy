@@ -26,7 +26,7 @@ namespace Desperion
 	private:
 		BooleanByteWrapper();
 	public:
-		static bool GetFlag(uint8 param1, uint8 param2)
+		static bool GetFlag(int8 param1, int8 param2)
 		{
 			switch(param2)
 			{
@@ -67,7 +67,7 @@ namespace Desperion
 			}
 		}
 
-		static void SetFlag(uint8& param1, uint8 param2, bool param3)
+		static void SetFlag(int8& param1, int8 param2, bool param3)
 		{
 			switch(param2)
 			{

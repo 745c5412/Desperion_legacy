@@ -71,7 +71,7 @@ void Map::DeleteItem(int16 cell)
 void Map::AddActor(DisplayableEntity* actor)
 {
 	m_actors.push_back(actor);
-	Send(GameRolePlayShowActorMessage(actor), actor->GetGuid());
+	Send(GameRolePlayShowActorMessage(actor->ToActor()), actor->GetGuid());
 }
 
 void Map::Send(DofusMessage& data, int guid)

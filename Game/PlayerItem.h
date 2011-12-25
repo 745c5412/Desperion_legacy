@@ -60,15 +60,15 @@ struct PlayerItemEffect
 	int16 actionId;
 
 	PlayerItemEffect()
-	{}
-
-	PlayerItemEffect(int16 action)
 	{
-		actionId = action;
 	}
 
-	virtual ObjectEffectPtr ToObjectEffect()
-	{ return ObjectEffectPtr(new ObjectEffect(this)); }
+	PlayerItemEffect(int16 actionId) : actionId(actionId)
+	{
+	}
+
+	virtual ObjectEffectPtr ToObjectEffect() const
+	{ return ObjectEffectPtr(new ObjectEffect(actionId)); }
 
 	virtual PlayerItemEffect* Clone()
 	{
@@ -108,16 +108,16 @@ struct PlayerItemEffectInteger : public PlayerItemEffect
 	int16 value;
 
 	PlayerItemEffectInteger()
-	{}
-
-	PlayerItemEffectInteger(int16 action, int16 val)
-		: PlayerItemEffect(action)
 	{
-		value = val;
 	}
 
-	ObjectEffectPtr ToObjectEffect()
-	{ return ObjectEffectPtr(new ObjectEffectInteger(this)); }
+	PlayerItemEffectInteger(int16 actionId, int16 value) : PlayerItemEffect(actionId),
+		value(value)
+	{
+	}
+
+	ObjectEffectPtr ToObjectEffect() const
+	{ return ObjectEffectPtr(new ObjectEffectInteger(actionId, value)); }
 
 	PlayerItemEffect* Clone()
 	{
@@ -133,18 +133,16 @@ struct PlayerItemEffectDice : public PlayerItemEffect
 	int16 diceNum, diceSide, diceConst;
 
 	PlayerItemEffectDice()
-	{}
-
-	PlayerItemEffectDice(int16 action, int16 dNum, int16 dSide, int16 dConst)
-		: PlayerItemEffect(action)
 	{
-		diceNum = dNum;
-		diceSide = dSide;
-		diceConst = dConst;
 	}
 
-	ObjectEffectPtr ToObjectEffect()
-	{ return ObjectEffectPtr(new ObjectEffectDice(this)); }
+	PlayerItemEffectDice(int16 actionId, int16 diceNum, int16 diceSide, int16 diceConst)
+		: PlayerItemEffect(actionId), diceNum(diceNum), diceConst(diceConst)
+	{
+	}
+
+	ObjectEffectPtr ToObjectEffect() const
+	{ return ObjectEffectPtr(new ObjectEffectDice(actionId, diceNum, diceSide, diceConst)); }
 
 	PlayerItemEffect* Clone()
 	{
@@ -159,14 +157,17 @@ struct PlayerItemEffectString : public PlayerItemEffect
 {
 	std::string value;
 
-	PlayerItemEffectString(int16 action, std::string val)
+	PlayerItemEffectString()
 	{
-		actionId = action;
-		value = val;
+	}
+
+	PlayerItemEffectString(int16 actionId, std::string value) : PlayerItemEffect(actionId),
+		value(value)
+	{
 	}
 	
-	ObjectEffectPtr ToObjectEffect()
-	{ return ObjectEffectPtr(new ObjectEffectString(this)); }
+	ObjectEffectPtr ToObjectEffect() const
+	{ return ObjectEffectPtr(new ObjectEffectString(actionId, value)); }
 
 	PlayerItemEffect* Clone()
 	{
@@ -183,16 +184,17 @@ struct PlayerItemEffectMount : public PlayerItemEffect
 	time_t date;
 	int16 modelId;
 
-	PlayerItemEffectMount(int16 action, int mount, time_t date, int16 model)
+	PlayerItemEffectMount()
 	{
-		actionId = action;
-		mountId = mount;
-		this->date = date;
-		modelId = model;
+	}
+
+	PlayerItemEffectMount(int16 actionId, int mountId, time_t date, int16 modelId)
+		: PlayerItemEffect(actionId), mountId(mountId), date(date), modelId(modelId)
+	{
 	}
 	
-	ObjectEffectPtr ToObjectEffect()
-	{ return ObjectEffectPtr(new ObjectEffectMount(this)); }
+	ObjectEffectPtr ToObjectEffect() const
+	{ return ObjectEffectPtr(new ObjectEffectMount(actionId, mountId, date, modelId)); }
 
 	PlayerItemEffect* Clone()
 	{
@@ -207,15 +209,17 @@ struct PlayerItemEffectMinMax : public PlayerItemEffect
 {
 	int16 min, max;
 
-	PlayerItemEffectMinMax(int16 action, int16 min, int16 max)
+	PlayerItemEffectMinMax()
 	{
-		actionId = action;
-		this->min = min;
-		this->max = max;
+	}
+
+	PlayerItemEffectMinMax(int16 actionId, int16 min, int16 max) : PlayerItemEffect(actionId),
+		min(min), max(max)
+	{
 	}
 	
-	ObjectEffectPtr ToObjectEffect()
-	{ return ObjectEffectPtr(new ObjectEffectMinMax(this)); }
+	ObjectEffectPtr ToObjectEffect() const
+	{ return ObjectEffectPtr(new ObjectEffectMinMax(actionId, min, max)); }
 
 	PlayerItemEffect* Clone()
 	{
@@ -226,22 +230,50 @@ struct PlayerItemEffectMinMax : public PlayerItemEffect
 	{ return true; }
 };
 
-struct PlayerItemEffectLadder : public PlayerItemEffect
+struct PlayerItemEffectCreature : public PlayerItemEffect
 {
-	int monsterCount;
+	int16 monsterFamilyId;
 
-	PlayerItemEffectLadder(int16 action, int count)
+	PlayerItemEffectCreature()
 	{
-		actionId = action;
-		monsterCount = count;
+	}
+
+	PlayerItemEffectCreature(int16 actionId, int16 monsterFamilyId) : PlayerItemEffect(actionId),
+		monsterFamilyId(monsterFamilyId)
+	{
 	}
 	
-	ObjectEffectPtr ToObjectEffect()
-	{ return ObjectEffectPtr(new ObjectEffectLadder(this)); }
+	ObjectEffectPtr ToObjectEffect() const
+	{ return ObjectEffectPtr(new ObjectEffectCreature(actionId, monsterFamilyId)); }
 
 	PlayerItemEffect* Clone()
 	{
-		return new PlayerItemEffectLadder(actionId, monsterCount);
+		return new PlayerItemEffectCreature(actionId, monsterFamilyId);
+	}
+
+	bool IsCreature() const
+	{ return true; }
+};
+
+struct PlayerItemEffectLadder : public PlayerItemEffectCreature
+{
+	int monsterCount;
+
+	PlayerItemEffectLadder()
+	{
+	}
+
+	PlayerItemEffectLadder(int16 actionId, int16 monsterFamilyId, int monsterCount)
+		: PlayerItemEffectCreature(actionId, monsterFamilyId), monsterCount(monsterCount)
+	{
+	}
+	
+	ObjectEffectPtr ToObjectEffect() const
+	{ return ObjectEffectPtr(new ObjectEffectLadder(actionId, monsterFamilyId, monsterCount)); }
+
+	PlayerItemEffect* Clone()
+	{
+		return new PlayerItemEffectLadder(actionId, monsterFamilyId, monsterCount);
 	}
 	
 	bool IsLadder() const
@@ -252,16 +284,17 @@ struct PlayerItemEffectDuration : public PlayerItemEffect
 {
 	int16 days, hours, minutes;
 
-	PlayerItemEffectDuration(int16 action, int16 d, int16 h, int16 m)
+	PlayerItemEffectDuration()
 	{
-		actionId = action;
-		days = d;
-		hours = h;
-		minutes = m;
+	}
+
+	PlayerItemEffectDuration(int16 actionId, int16 days, int16 hours, int16 minutes)
+		: PlayerItemEffect(actionId), days(days), hours(hours), minutes(minutes)
+	{
 	}
 	
-	ObjectEffectPtr ToObjectEffect()
-	{ return ObjectEffectPtr(new ObjectEffectDuration(this)); }
+	ObjectEffectPtr ToObjectEffect() const
+	{ return ObjectEffectPtr(new ObjectEffectDuration(actionId, days, hours, minutes)); }
 
 	PlayerItemEffect* Clone()
 	{
@@ -276,18 +309,17 @@ struct PlayerItemEffectDate : public PlayerItemEffect
 {
 	int16 year, month, day, hour, minute;
 
-	PlayerItemEffectDate(int16 action, int16 y, int16 mo, int16 d, int16 h, int16 mi)
+	PlayerItemEffectDate()
 	{
-		actionId = action;
-		year = y;
-		month = mo;
-		day = d;
-		hour = h;
-		minute = mi;
+	}
+
+	PlayerItemEffectDate(int16 actionId, int16 year, int16 month, int16 day, int16 hour, int16 minute)
+		: PlayerItemEffect(actionId), year(year), month(month), day(day), hour(hour), minute(minute)
+	{
 	}
 	
-	ObjectEffectPtr ToObjectEffect()
-	{ return ObjectEffectPtr(new ObjectEffectDate(this)); }
+	ObjectEffectPtr ToObjectEffect() const
+	{ return ObjectEffectPtr(new ObjectEffectDate(actionId, year, month, day, hour, minute)); }
 
 	PlayerItemEffect* Clone()
 	{
@@ -295,28 +327,6 @@ struct PlayerItemEffectDate : public PlayerItemEffect
 	}
 
 	bool IsDate() const
-	{ return true; }
-};
-
-struct PlayerItemEffectCreature : public PlayerItemEffect
-{
-	int16 monsterFamilyId;
-
-	PlayerItemEffectCreature(int16 action, int16 monster)
-	{
-		actionId = action;
-		monsterFamilyId = monster;
-	}
-	
-	ObjectEffectPtr ToObjectEffect()
-	{ return ObjectEffectPtr(new ObjectEffectCreature(this)); }
-
-	PlayerItemEffect* Clone()
-	{
-		return new PlayerItemEffectCreature(actionId, monsterFamilyId);
-	}
-
-	bool IsCreature() const
 	{ return true; }
 };
 
@@ -333,7 +343,7 @@ inline PlayerItemEffect* G(std::string& str)
 	case OBJECT_EFFECT_DURATION:
 		return new PlayerItemEffectDuration(table[1], table[2], table[3], table[4]);
 	case OBJECT_EFFECT_LADDER:
-		return new PlayerItemEffectLadder(table[1], table[2]);
+		return new PlayerItemEffectLadder(table[1], table[2], table[3]);
 	case OBJECT_EFFECT_MIN_MAX:
 		return new PlayerItemEffectMinMax(table[1], table[2], table[3]);
 	case OBJECT_EFFECT_MOUNT:
@@ -379,6 +389,7 @@ public:
 	std::string StatsToString();
 	PlayerItemEffect* GetEffect(int16);
 	void DeleteEffect(int16);
+	ObjectItem* ToObjectItem() const;
 
 	void AddEffect(PlayerItemEffect* effect)
 	{ m_effects.push_back(effect); }

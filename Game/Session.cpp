@@ -27,6 +27,31 @@ void Session::RemoveChannel(int8 chann)
 		m_channels.erase(it);
 }
 
+CharacterStatsListMessage Session::GetCharacterStatsListMessage()
+{
+	CharacterStats& s = m_char->GetStats();
+	return CharacterStatsListMessage(new CharacterCharacteristicsInformations(s.GetXp(), 0, 0, s.GetKamas(), s.GetStatsPoints(),
+		s.GetSpellsPoints(), new ActorExtendedAlignmentInformations(s.GetAlignmentSide(), s.GetAlignmentValue(),
+		s.GetAlignmentGrade(), s.GetDishonor(), m_char->GetLevel(), s.GetHonor(), 0, 0, s.IsPvpEnabled()),
+		m_char->GetCurrentLife(), m_char->GetMaxLife(), s.GetEnergy(), 10000, s.GetCurrentAp(), s.GetCurrentMp(),
+		s.initiative.ToBase(), s.prospecting.ToBase(), s.actionPoints.ToBase(), s.movementPoints.ToBase(), s.strength.ToBase(),
+		s.vitality.ToBase(), s.wisdom.ToBase(), s.chance.ToBase(), s.agility.ToBase(), s.intelligence.ToBase(), s.range.ToBase(),
+		s.summonableCreaturesBoost.ToBase(), s.reflect.ToBase(), s.criticalHit.ToBase(), 50, s.criticalMiss.ToBase(),
+		s.healBonus.ToBase(), s.allDamagesBonus.ToBase(), s.weaponDamagesBonusPercent.ToBase(), s.damagesBonusPercent.ToBase(),
+		s.trapBonus.ToBase(), s.trapBonusPercent.ToBase(), s.permanentDamagePercent.ToBase(), s.tackleBlock.ToBase(),
+		s.tackleEvade.ToBase(), s.PAAttack.ToBase(), s.PMAttack.ToBase(), s.pushDamageBonus.ToBase(), s.criticalDamageBonus.ToBase(),
+		s.neutralDamageBonus.ToBase(), s.earthDamageBonus.ToBase(), s.waterDamageBonus.ToBase(), s.airDamageBonus.ToBase(),
+		s.fireDamageBonus.ToBase(), s.dodgePALostProbability.ToBase(), s.dodgePMLostProbability.ToBase(),
+		s.neutralElementResistPercent.ToBase(), s.earthElementResistPercent.ToBase(), s.waterElementResistPercent.ToBase(),
+		s.airElementResistPercent.ToBase(), s.fireElementResistPercent.ToBase(), s.neutralElementReduction.ToBase(),
+		s.earthElementReduction.ToBase(), s.waterElementReduction.ToBase(), s.airElementReduction.ToBase(),
+		s.fireElementReduction.ToBase(), s.pushDamageReduction.ToBase(), s.criticalDamageReduction.ToBase(),
+		s.pvpNeutralElementResistPercent.ToBase(), s.pvpEarthElementResistPercent.ToBase(), s.pvpWaterElementResistPercent.ToBase(),
+		s.pvpAirElementResistPercent.ToBase(), s.pvpFireElementResistPercent.ToBase(), s.pvpNeutralElementReduction.ToBase(),
+		s.pvpEarthElementReduction.ToBase(), s.pvpWaterElementReduction.ToBase(), s.pvpAirElementReduction.ToBase(),
+		s.pvpFireElementReduction.ToBase(), std::vector<CharacterSpellModificationPtr>()));
+}
+
 void Session::LOG(const char* str, ...)
 {
 	if(m_data[FLAG_GUID].intValue == 0 || !str)

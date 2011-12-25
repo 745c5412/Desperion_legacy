@@ -56,6 +56,40 @@ namespace Desperion
 		}
 	}
 
+	IgnoredInformations* ProtocolTypeManager::GetIgnoredInformations(uint16 protocol)
+	{
+		switch(protocol)
+		{
+		case IGNORED_ONLINE_INFORMATIONS:
+			return new IgnoredOnlineInformations;
+		default:
+		case IGNORED_INFORMATIONS:
+			return new IgnoredInformations;
+		}
+	}
+
+	CharacterBaseInformations* ProtocolTypeManager::GetCharacterBaseInformations(uint16 protocol)
+	{
+		switch(protocol)
+		{
+		default:
+		case CHARACTER_BASE_INFORMATIONS:
+			return new CharacterBaseInformations;
+		}
+	}
+
+	FriendInformations* ProtocolTypeManager::GetFriendInformations(uint16 protocol)
+	{
+		switch(protocol)
+		{
+		case FRIEND_ONLINE_INFORMATIONS:
+			return new FriendOnlineInformations;
+		default:
+		case FRIEND_INFORMATIONS:
+			return new FriendInformations;
+		}
+	}
+
 	ObjectEffect* ProtocolTypeManager::GetObjectEffect(uint16 protocol)
 	{
 		switch(protocol)
@@ -81,6 +115,46 @@ namespace Desperion
 		default:
 		case OBJECT_EFFECT:
 			return new ObjectEffect;
+		}
+	}
+
+	HouseInformations* ProtocolTypeManager::GetHouseInformations(uint16 protocol)
+	{
+		switch(protocol)
+		{
+		default:
+		case HOUSE_INFORMATIONS:
+			return new HouseInformations;
+		}
+	}
+
+	InteractiveElementSkill* ProtocolTypeManager::GetInteractiveElementSkill(uint16 protocol)
+	{
+		switch(protocol)
+		{
+		default:
+		case INTERACTIVE_ELEMENT_SKILL:
+			return new InteractiveElementSkill;
+		}
+	}
+
+	FightTeamInformations* ProtocolTypeManager::GetFightTeamInformations(uint16 protocol)
+	{
+		switch(protocol)
+		{
+		default:
+		case FIGHT_TEAM_INFORMATIONS:
+			return new FightTeamInformations;
+		}
+	}
+
+	FightTeamMemberInformations* ProtocolTypeManager::GetFightTeamMemberInformations(uint16 protocol)
+	{
+		switch(protocol)
+		{
+		default:
+		case FIGHT_TEAM_MEMBER_INFORMATIONS:
+			return new FightTeamMemberInformations;
 		}
 	}
 }

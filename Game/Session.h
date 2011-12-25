@@ -162,6 +162,7 @@ public:
 	static void InitCommandsTable();
 	void Start();
 	void LOG(const char*, ...);
+	CharacterStatsListMessage GetCharacterStatsListMessage();
 
 	void OnData(GamePacketHandler* hdl, ByteBuffer& packet)
 	{ (this->*hdl->Handler)(packet); }

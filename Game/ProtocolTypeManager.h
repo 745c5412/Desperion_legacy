@@ -23,6 +23,13 @@ class EntityDispositionInformations;
 class HumanInformations;
 class ObjectEffect;
 class GameRolePlayActorInformations;
+class IgnoredInformations;
+class FriendInformations;
+class CharacterBaseInformations;
+class HouseInformations;
+class InteractiveElementSkill;
+class FightTeamInformations;
+class FightTeamMemberInformations;
 
 namespace Desperion
 {
@@ -33,6 +40,13 @@ namespace Desperion
 		static HumanInformations* GetHumanInformations(uint16);
 		static ObjectEffect* GetObjectEffect(uint16);
 		static GameRolePlayActorInformations* GetGameRolePlayActorInformations(uint16);
+		static IgnoredInformations* GetIgnoredInformations(uint16);
+		static FriendInformations* GetFriendInformations(uint16);
+		static CharacterBaseInformations* GetCharacterBaseInformations(uint16);
+		static HouseInformations* GetHouseInformations(uint16);
+		static InteractiveElementSkill* GetInteractiveElementSkill(uint16);
+		static FightTeamInformations* GetFightTeamInformations(uint16);
+		static FightTeamMemberInformations* GetFightTeamMemberInformations(uint16);
 	};
 };
 

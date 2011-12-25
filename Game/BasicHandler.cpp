@@ -38,8 +38,7 @@ void Session::HandleNumericWhoIsRequestMessage(ByteBuffer& packet)
 
 	if(s == NULL)
 		return;
-	Send(BasicWhoIsMessage(false, 0, s->GetData(FLAG_PSEUDO).stringValue, s->GetCharacter()->GetName(),
-		s->GetCharacter()->GetMap()->GetSubAreaId()));
+	Send(NumericWhoIsMessage(c->id, s->GetData(FLAG_GUID).intValue));
 }
 
 void Session::HandleBasicWhoIsRequestMessage(ByteBuffer& packet)
@@ -52,7 +51,7 @@ void Session::HandleBasicWhoIsRequestMessage(ByteBuffer& packet)
 	{
 		if(data.search.size() > 2 && data.search.at(0) == '*')
 		{
-			s = World::Instance().GetSession(data.search);
+			s = World::Instance().GetSession(data.search.substr(1));
 			if(s->GetCharacter() == NULL)
 				s = NULL;
 		}

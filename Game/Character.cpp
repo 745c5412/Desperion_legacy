@@ -203,7 +203,7 @@ void Character::MoveItem(PlayerItem* item, uint8 pos, bool create)
 			newItem->SetPos(pos);
 			PlayerItem::InsertIntoDB(newItem);
 
-			m_session->Send(ObjectAddedMessage(ObjectItemPtr(new ObjectItem(item))));
+			m_session->Send(ObjectAddedMessage(item->ToObjectItem()));
 			m_session->Send(ObjectQuantityMessage(item->GetGuid(), item->GetQuantity()));
 		}
 		else
@@ -214,7 +214,7 @@ void Character::MoveItem(PlayerItem* item, uint8 pos, bool create)
 				m_session->Send(ObjectMovementMessage(item->GetGuid(), item->GetPos()));
 			}
 			else
-				m_session->Send(ObjectAddedMessage(ObjectItemPtr(new ObjectItem(item))));
+				m_session->Send(ObjectAddedMessage(item->ToObjectItem()));
 		}
 	}
 }
@@ -235,7 +235,7 @@ void Character::MoveItemFromMap(PlayerItem* item)
 		item->SetOwner(this);
 		AddItem(item);
 
-		m_session->Send(ObjectAddedMessage(ObjectItemPtr(new ObjectItem(item))));
+		m_session->Send(ObjectAddedMessage(item->ToObjectItem()));
 		item->Save();
 	}
 }

@@ -56,7 +56,7 @@ namespace DofusUtils
 			dans la team: chaque personnage de la team doit avoir un niveau supérieur à 
 			(highestTeamLevel / 3) pour être considéré
 		*/
-		double teamFactors[8] = {1, 3, 4, 5, 6, 7, 8, 9};
+		double teamFactors[8] = {1, 1.1, 1.5, 2.3, 3.1, 3.6, 4.2, 4.7};
 		uint8 index = 0;
 		for(size_t a = 0; a < team.size(); ++a)
 		{

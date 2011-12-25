@@ -24,7 +24,13 @@ void Session::HandleCharactersListRequestMessage(ByteBuffer& packet)
 	data.Deserialize(packet);
 
 	std::list<CharacterMinimals*> characters = World::Instance().GetCharactersByAccount(m_data[FLAG_GUID].intValue);
-	Send(CharactersListMessage(false, characters));
+	std::vector<CharacterBaseInformationsPtr> clientList;
+	for(std::list<CharacterMinimals*>::iterator it = characters.begin(); it != characters.end(); ++it)
+	{
+		clientList.push_back(CharacterBaseInformationsPtr(new CharacterBaseInformations((*it)->id, (*it)->level,
+			(*it)->name, (*it)->GetLook(), (*it)->breed, (*it)->sex)));
+	}
+	Send(CharactersListMessage(false, clientList));
 }
 
 void Session::HandleCharacterDeletionRequestMessage(ByteBuffer& packet)
@@ -72,7 +78,13 @@ void Session::HandleCharacterDeletionRequestMessage(ByteBuffer& packet)
 		Desperion::Config::Instance().GetParam(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT));
 	delete toDelete;
 
-	Send(CharactersListMessage(false, characters));
+	std::vector<CharacterBaseInformationsPtr> clientList;
+	for(std::list<CharacterMinimals*>::iterator it = characters.begin(); it != characters.end(); ++it)
+	{
+		clientList.push_back(CharacterBaseInformationsPtr(new CharacterBaseInformations((*it)->id, (*it)->level,
+			(*it)->name, (*it)->GetLook(), (*it)->breed, (*it)->sex)));
+	}
+	Send(CharactersListMessage(false, clientList));
 }
 
 void Session::HandleCharacterNameSuggestionRequestMessage(ByteBuffer& packet)
@@ -218,11 +230,15 @@ void Session::HandleCharacterSelectionMessage(ByteBuffer& packet)
 
 void Session::SendCharacterSelectedSuccess(CharacterMinimals* ch)
 {
-	Send(CharacterSelectedSuccessMessage(new CharacterBaseInformations(ch->id, ch->level, ch->name, EntityLookPtr(m_char->GetLook()),
+	Send(CharacterSelectedSuccessMessage(new CharacterBaseInformations(ch->id, ch->level, ch->name, m_char->GetLook(),
 		ch->breed, ch->sex)));
 	m_char->GetMap()->AddActor(m_char);
 	
-	Send(InventoryContentMessage(m_char->GetItems(), m_char->GetStats().GetKamas()));
+	const std::list<PlayerItem*>& items = m_char->GetItems();
+	std::vector<ObjectItemPtr> clientList;
+	for(std::list<PlayerItem*>::const_iterator it = items.begin(); it != items.end(); ++it)
+		clientList.push_back(ObjectItemPtr((*it)->ToObjectItem()));
+	Send(InventoryContentMessage(clientList, m_char->GetStats().GetKamas()));
 	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
 	std::tr1::unordered_map<int16, std::vector<int16> > sets = m_char->GetTotalItemSets();
 	for(std::tr1::unordered_map<int16, std::vector<int16> >::iterator it = sets.begin(); it != sets.end(); ++it)
@@ -233,7 +249,7 @@ void Session::SendCharacterSelectedSuccess(CharacterMinimals* ch)
 		Send(SetUpdateMessage(set->GetId(), it->second, effects));
 	}
 	Send(EnabledChannelsMessage(m_channels, m_disallowed));
-	Send(CharacterStatsListMessage(m_char));
+	Send(GetCharacterStatsListMessage());
 }
 
 void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
@@ -280,6 +296,7 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 		Desperion::Config::Instance().GetParam<std::string>(START_EMOTES_STRING, START_EMOTES_DEFAULT).c_str()))
 	{
 		Send(CharacterCreationResultMessage(ERR_NO_REASON));
+		Log::Instance().outError("Invalid start position: %s.", __FUNCTION__);
 		return;
 	}
 

@@ -31,13 +31,12 @@ void OnCrash()
 	std::getchar();
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
 #ifdef _MSC_VER
 	HANDLE hLogFile;
-	hLogFile = CreateFile("./memory_leaks.log", GENERIC_WRITE, 
-		FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, 
-		FILE_ATTRIBUTE_NORMAL, NULL);
+	hLogFile = CreateFile("./memory_leaks.log", GENERIC_WRITE, FILE_SHARE_WRITE, NULL,
+		CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
 	_CrtSetReportFile(_CRT_WARN, hLogFile);
@@ -48,6 +47,7 @@ int main(int argc, char *argv[])
 		rde::CrashHandler::SetCrashHandler(&OnCrash);
 	}
 #endif
+
 	new Desperion::Master;
 	
 	if(Desperion::Master::Instance().Run(argc, argv))
