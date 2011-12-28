@@ -39,6 +39,8 @@ void Session::HandleLivingObjectChangeSkinRequestMessage(ByteBuffer& packet)
 	Send(ObjectModifiedMessage(item->ToObjectItem()));
 	if(item->GetPos() != INVENTORY_POSITION_NOT_EQUIPED)
 		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), m_char->GetLook()));
+	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
+	Send(BasicNoOperationMessage());
 }
 
 void Session::HandleLivingObjectDissociateMessage(ByteBuffer& packet)
@@ -96,6 +98,8 @@ void Session::HandleLivingObjectDissociateMessage(ByteBuffer& packet)
 		Send(ObjectModifiedMessage(item->ToObjectItem()));
 		if(item->GetPos() != INVENTORY_POSITION_NOT_EQUIPED)
 			Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), m_char->GetLook()));
+		Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
+		Send(BasicNoOperationMessage());
 }
 
 void Session::HandleLivingObjectMessageRequestMessage(ByteBuffer& packet)
@@ -170,6 +174,7 @@ void Session::HandleObjectFeedMessage(ByteBuffer& packet)
 	obvi->DeleteEffect(808);
 	obvi->AddEffect(new PlayerItemEffectDate(808, tm->tm_year, tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min));
 	Send(ObjectModifiedMessage(obvi->ToObjectItem()));
+	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
 	Send(BasicNoOperationMessage());
 }
 
@@ -301,16 +306,16 @@ void Session::HandleObjectSetPositionMessage(ByteBuffer& packet)
 	PlayerItem* item = m_char->GetItem(data.objectUID);
 	if(item == NULL)
 		return;
-	if(!DofusUtils::IsValidPlaceForItem(item->GetItem(), data.position))
+	if(data.position != INVENTORY_POSITION_NOT_EQUIPED && !DofusUtils::IsValidPlaceForItem(item->GetItem(), data.position))
 		return;
 
 	PlayerItem* exItem = m_char->GetItemByPos(data.position);
-
+	
 	if(item->GetItem()->GetTypeId() == 113)
 	{
 		if(exItem == NULL)
 		{
-			// Message
+			Send(TextInformationMessage(1, 161, std::vector<std::string>()));
 			return;
 		}
 
@@ -356,7 +361,10 @@ void Session::HandleObjectSetPositionMessage(ByteBuffer& packet)
 	}
 
 	if(exItem != NULL)
-		m_char->MoveItem(exItem, INVENTORY_POSITION_NOT_EQUIPED);
+	{
+		m_char->UpdateItemSet(exItem->GetItem()->GetItemSetId(), boost::bind(&Character::MoveItem, m_char, exItem,
+			INVENTORY_POSITION_NOT_EQUIPED, false));
+	}
 
 	if(item->GetItem()->GetLevel() > m_char->GetLevel())
 	{
@@ -384,8 +392,7 @@ void Session::HandleObjectSetPositionMessage(ByteBuffer& packet)
 		}
 	}
 
-	m_char->UpdateItemSet(item->GetItem()->GetItemSetId(), 
-			boost::bind(&Character::MoveItem, m_char, item, data.position, false));
+	m_char->UpdateItemSet(item->GetItem()->GetItemSetId(), boost::bind(&Character::MoveItem, m_char, item, data.position, false));
 	DofusUtils::LoopItemConditions(P, this);
 
 	Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), m_char->GetLook()));

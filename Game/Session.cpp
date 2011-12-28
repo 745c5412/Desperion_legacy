@@ -27,6 +27,21 @@ void Session::RemoveChannel(int8 chann)
 		m_channels.erase(it);
 }
 
+FriendOnlineInformations* Session::GetFriendInformations(bool isFriend)
+{
+	return new FriendOnlineInformations(m_data[FLAG_GUID].intValue, m_data[FLAG_PSEUDO].stringValue,
+			isFriend ? m_char->GetContextType() : 0, 0, m_char->GetName(),
+			isFriend ? m_char->GetLevel() : 0,m_char->GetStats().GetAlignmentSide(), m_char->GetBreed(),
+			m_char->GetSex(), isFriend ? new BasicGuildInformations(0, "vraies infos de guilde") : new BasicGuildInformations(0, ""),
+				m_char->GetSmileyId());
+}
+
+IgnoredOnlineInformations* Session::GetIgnoredInformations()
+{
+	return new IgnoredOnlineInformations(m_data[FLAG_GUID].intValue, m_data[FLAG_PSEUDO].stringValue, m_char->GetName(),
+		m_char->GetBreed(), m_char->GetSex());
+}
+
 CharacterStatsListMessage Session::GetCharacterStatsListMessage()
 {
 	CharacterStats& s = m_char->GetStats();
@@ -117,6 +132,16 @@ void Session::InitHandlersTable()
 	m_handlers[CMSG_BASIC_WHO_AM_I_REQUEST].Handler = &Session::HandleBasicWhoAmIRequestMessage;
 	m_handlers[CMSG_BASIC_WHO_IS_REQUEST].Handler = &Session::HandleBasicWhoIsRequestMessage;
 	m_handlers[CMSG_NUMERIC_WHO_IS_REQUEST].Handler = &Session::HandleNumericWhoIsRequestMessage;
+
+	m_handlers[CMSG_FRIENDS_GET_LIST].Handler = &Session::HandleFriendsGetListMessage;
+	m_handlers[CMSG_IGNORED_GET_LIST].Handler = &Session::HandleIgnoredGetListMessage;
+	m_handlers[CMSG_IGNORED_DELETE_REQUEST].Handler = &Session::HandleIgnoredDeleteRequestMessage;
+	m_handlers[CMSG_IGNORED_ADD_REQUEST].Handler = &Session::HandleIgnoredAddRequestMessage;
+	m_handlers[CMSG_FRIEND_SET_WARN_ON_CONNECTION].Handler = &Session::HandleFriendSetWarnOnConnectionMessage;
+	m_handlers[CMSG_FRIEND_SET_WARN_ON_LEVEL_GAIN].Handler = &Session::HandleFriendSetWarnOnLevelGainMessage;
+	m_handlers[CMSG_GUILD_MEMBER_SET_WARN_ON_CONNECTION].Handler = &Session::HandleGuildMemberSetWarnOnConnectionMessage;
+	m_handlers[CMSG_FRIEND_ADD_REQUEST].Handler = &Session::HandleFriendAddRequestMessage;
+	m_handlers[CMSG_FRIEND_DELETE_REQUEST].Handler = &Session::HandleFriendDeleteRequestMessage;
 }
 
 void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
@@ -152,12 +177,12 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	{
 		Field* fields = QR->Fetch();
 		std::vector<std::string> friends, ennemies;
-		Desperion::FastSplitString<';'>(friends, std::string(fields[1].GetString()));
-		Desperion::FastSplitString<';'>(ennemies, std::string(fields[2].GetString()));
+		Desperion::FastSplitString<';'>(friends, std::string(fields[1].GetString()), true);
+		Desperion::FastSplitString<';'>(ennemies, std::string(fields[2].GetString()), true);
 		for(size_t a = 0; a < friends.size(); ++a)
 		{
 			std::vector<std::string> intern;
-			Desperion::FastSplitString<','>(intern, friends[a]);
+			Desperion::FastSplitString<','>(intern, friends[a], true);
 			m_friends.insert(boost::bimap<int, std::string>::relation(atoi(intern.at(0).c_str()), intern.at(1)));
 		}
 		for(size_t a = 0; a < ennemies.size(); ++a)
@@ -171,12 +196,18 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 		m_booleanValues[BOOL_GUILD_MEMBER_WARN_ON_CONNECTION] = fields[5].GetBool();
 	}
 	else
+	{
 		Desperion::eDatabase->Execute("INSERT INTO account_social VALUES(%u, '', '', 0, 0, 0);", m_data[FLAG_GUID].intValue);
+		m_booleanValues[BOOL_FRIEND_WARN_ON_CONNECTION] = false;
+		m_booleanValues[BOOL_FRIEND_WARN_ON_LEVEL_GAIN] = false;
+		m_booleanValues[BOOL_GUILD_MEMBER_WARN_ON_CONNECTION] = false;
+	}
 	
 
 	uint16 servID = Desperion::Config::Instance().GetParam(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT);
-	Desperion::eDatabase->Execute("UPDATE accounts SET ticket='', logged=%u, lastServer=%u, lastConnectionDate=%llu WHERE guid=%u LIMIT 1;", servID, 
-		servID, time(NULL), m_data[FLAG_GUID].intValue);
+	Desperion::eDatabase->Execute("UPDATE accounts SET ticket='', logged=%u, lastServer=%u, lastIP='%s', lastConnectionDate=%llu WHERE guid=%u \
+								 LIMIT 1;", servID, servID, m_socket->remote_endpoint().address().to_string().c_str(), time(NULL),
+								 m_data[FLAG_GUID].intValue);
 
 	World::Instance().AddSession(this);
 	LOG("***** Connection with IP address %s {%s} *****", m_socket->remote_endpoint().address().to_string().c_str(),
@@ -212,6 +243,25 @@ void Session::Save()
 		}
 		Desperion::eDatabase->Execute("UPDATE accounts SET logged=0, channels='%s', disallowed='%s' WHERE guid=%u LIMIT 1;",
 			channels.str().c_str(), disallowed.str().c_str(), m_data[FLAG_GUID].intValue);
+
+		std::ostringstream friends, ennemies;
+		for(boost::bimap<int, std::string>::iterator it = m_friends.begin(); it != m_friends.end(); ++it)
+		{
+			if(it != m_friends.begin())
+				friends<<";";
+			friends<<it->get_left()<<","<<it->get_right();
+		}
+		for(boost::bimap<int, std::string>::iterator it = m_ennemies.begin(); it != m_ennemies.end(); ++it)
+		{
+			if(it != m_ennemies.begin())
+				ennemies<<";";
+			ennemies<<it->get_left()<<","<<it->get_right();
+		}
+		Desperion::eDatabase->Execute("UPDATE account_social SET friends='%s', ennemies='%s', friendWarnOnConnection=%u, \
+									  friendWarnOnLevelGain=%u, guildMemberWarnOnConnection=%u WHERE guid=%u LIMIT 1;",
+									  friends.str().c_str(), ennemies.str().c_str(), m_booleanValues[BOOL_FRIEND_WARN_ON_CONNECTION],
+									  m_booleanValues[BOOL_FRIEND_WARN_ON_LEVEL_GAIN], m_booleanValues[BOOL_GUILD_MEMBER_WARN_ON_CONNECTION],
+									  m_data[FLAG_GUID].intValue);
 
 		if(m_char != NULL)
 		{

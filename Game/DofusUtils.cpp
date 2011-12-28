@@ -205,66 +205,65 @@ namespace DofusUtils
 			break;
 		}
 
-		/*switch(item->GetTypeId())
+		switch(item->GetTypeId())
 		{
-		case INVENTORY_NECKLACE:
-			if(pos == INVENTORY_POSITION_NECKLACE)
+		case 1:
+			if(pos == ACCESSORY_POSITION_AMULET)
 				return true;
 			break;
-		case INVENTORY_BOW:
-		case INVENTORY_WAND:
-		case INVENTORY_STICK:
-		case INVENTORY_DAGGERS:
-		case INVENTORY_SWORD:
-		case INVENTORY_HAMMER:
-		case INVENTORY_SHOVEL:
-		case INVENTORY_AXE:
-		//case ITEM_TYPE_OUTIL:
-		//case ITEM_TYPE_PIOCHE:
-		//case ITEM_TYPE_FAUX:
-		case INVENTORY_SOUL_ROCK:
-			if(pos == INVENTORY_POSITION_WEAPON)
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 19:
+		case 20:
+		case 21:
+		case 22:
+		case 83:
+		case 114:
+			if(pos == ACCESSORY_POSITION_WEAPON)
 				return true;
 			break;
-		case INVENTORY_RING:
-			if(pos == INVENTORY_POSITION_RING1 || pos == INVENTORY_POSITION_RING2)
+		case 9:
+			if(pos == INVENTORY_POSITION_RING_LEFT || pos == INVENTORY_POSITION_RING_RIGHT)
 				return true;
 			break;
-		case INVENTORY_BELT:
-			if(pos == INVENTORY_POSITION_BELT)
+		case 10:
+			if(pos == ACCESSORY_POSITION_BELT)
 				return true;
 			break;
-		case INVENTORY_SHOES:
-			if(pos == INVENTORY_POSITION_SHOES)
+		case 11:
+			if(pos == ACCESSORY_POSITION_BOOTS)
 				return true;
 			break;
-		case INVENTORY_HAT:
-			if(pos == INVENTORY_POSITION_HAT)
+		case 16:
+			if(pos == ACCESSORY_POSITION_HAT)
 				return true;
 			break;
-		case INVENTORY_CLOAK:
-			if(pos == INVENTORY_POSITION_CLOAK)
+		case 17:
+		case 81:
+			if(pos == ACCESSORY_POSITION_CAPE)
 				return true;
 			break;
-		case INVENTORY_PET:
-			if(pos == INVENTORY_POSITION_PET)
+		case 18:
+			if(pos == ACCESSORY_POSITION_PETS)
 				return true;
 			break;
-		case INVENTORY_DOFUS:
-			if(pos == INVENTORY_POSITION_DOFUS1 
-			|| pos == INVENTORY_POSITION_DOFUS2
-			|| pos == INVENTORY_POSITION_DOFUS3
-			|| pos == INVENTORY_POSITION_DOFUS4
-			|| pos == INVENTORY_POSITION_DOFUS5
-			|| pos == INVENTORY_POSITION_DOFUS6)
+		case 23:
+			if(pos == INVENTORY_POSITION_DOFUS_1 || pos == INVENTORY_POSITION_DOFUS_2
+				|| pos == INVENTORY_POSITION_DOFUS_3 || pos == INVENTORY_POSITION_DOFUS_4
+				|| pos == INVENTORY_POSITION_DOFUS_5 || pos == INVENTORY_POSITION_DOFUS_6)
 				return true;
 			break;
-		case INVENTORY_SHIELD:
-			if(pos == INVENTORY_POSITION_SHIELD)
+		case 82:
+			if(pos == ACCESSORY_POSITION_SHIELD)
 				return true;
 			break;
-		}*/
-		return true;
+		}
+		return false;
 	}
 
 	void LoopItemConditions(ConditionsParser& P, Session* S)

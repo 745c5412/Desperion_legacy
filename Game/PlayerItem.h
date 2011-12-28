@@ -19,7 +19,7 @@
 #ifndef __PLAYER_ITEM__
 #define __PLAYER_ITEM__
 
-enum CharacterInventoryPositionEnum
+enum CharacterInventoryPosition
 {
 	ACCESSORY_POSITION_HAT = 6,
     ACCESSORY_POSITION_CAPE = 7,

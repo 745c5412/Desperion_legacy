@@ -203,7 +203,7 @@ void Character::MoveItem(PlayerItem* item, uint8 pos, bool create)
 			newItem->SetPos(pos);
 			PlayerItem::InsertIntoDB(newItem);
 
-			m_session->Send(ObjectAddedMessage(item->ToObjectItem()));
+			m_session->Send(ObjectAddedMessage(newItem->ToObjectItem()));
 			m_session->Send(ObjectQuantityMessage(item->GetGuid(), item->GetQuantity()));
 		}
 		else
@@ -245,15 +245,13 @@ void Character::Save()
 	for(std::list<PlayerItem*>::iterator it = m_items.begin(); it != m_items.end(); ++it)
 		(*it)->Save();
 
-	std::ostringstream zaaps;
+	std::ostringstream zaaps, emotes;
 	for(size_t a = 0; a < m_zaaps.size(); ++a)
 	{
 		if(a != 0)
 			zaaps<<",";
 		zaaps<<m_zaaps.at(a);
 	}
-
-	std::ostringstream emotes;
 	for(size_t a = 0; a < m_emotes.size(); ++a)
 	{
 		if(a != 0)
@@ -280,7 +278,7 @@ Character::~Character()
 	m_items.clear();
 }
 
-Character::Character() : m_smileyId(0), m_nextCell(-1), m_nextDirection(-1),
+Character::Character() : m_smileyId(-1), m_nextCell(-1), m_nextDirection(-1),
 	m_context(ROLE_PLAY)
 {
 }

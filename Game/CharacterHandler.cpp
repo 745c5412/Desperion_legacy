@@ -18,6 +18,15 @@
 
 #include "StdAfx.h"
 
+void FillCharactersClientList(std::vector<CharacterBaseInformationsPtr>& clientList, std::list<CharacterMinimals*>& list)
+{
+	for(std::list<CharacterMinimals*>::iterator it = list.begin(); it != list.end(); ++it)
+	{
+		clientList.push_back(CharacterBaseInformationsPtr(new CharacterBaseInformations((*it)->id, (*it)->level,
+			(*it)->name, (*it)->GetLook(), (*it)->breed, (*it)->sex)));
+	}
+}
+
 void Session::HandleCharactersListRequestMessage(ByteBuffer& packet)
 {
 	CharactersListRequestMessage data;
@@ -25,11 +34,7 @@ void Session::HandleCharactersListRequestMessage(ByteBuffer& packet)
 
 	std::list<CharacterMinimals*> characters = World::Instance().GetCharactersByAccount(m_data[FLAG_GUID].intValue);
 	std::vector<CharacterBaseInformationsPtr> clientList;
-	for(std::list<CharacterMinimals*>::iterator it = characters.begin(); it != characters.end(); ++it)
-	{
-		clientList.push_back(CharacterBaseInformationsPtr(new CharacterBaseInformations((*it)->id, (*it)->level,
-			(*it)->name, (*it)->GetLook(), (*it)->breed, (*it)->sex)));
-	}
+	FillCharactersClientList(clientList, characters);
 	Send(CharactersListMessage(false, clientList));
 }
 
@@ -54,8 +59,7 @@ void Session::HandleCharacterDeletionRequestMessage(ByteBuffer& packet)
 		Send(CharacterDeletionErrorMessage(DEL_ERR_NO_REASON));
 		return;
 	}
-
-	if(toDelete->level > 20)
+	else if(toDelete->level > 20)
 	{
 		std::ostringstream stream;
 		stream<<toDelete->id<<"~"<<m_data[FLAG_ANSWER].stringValue;
@@ -79,11 +83,7 @@ void Session::HandleCharacterDeletionRequestMessage(ByteBuffer& packet)
 	delete toDelete;
 
 	std::vector<CharacterBaseInformationsPtr> clientList;
-	for(std::list<CharacterMinimals*>::iterator it = characters.begin(); it != characters.end(); ++it)
-	{
-		clientList.push_back(CharacterBaseInformationsPtr(new CharacterBaseInformations((*it)->id, (*it)->level,
-			(*it)->name, (*it)->GetLook(), (*it)->breed, (*it)->sex)));
-	}
+	FillCharactersClientList(clientList, characters);
 	Send(CharactersListMessage(false, clientList));
 }
 
@@ -101,7 +101,6 @@ void Session::HandleCharacterNameSuggestionRequestMessage(ByteBuffer& packet)
 	}
 
 	m_lastNameSuggestionRequest = time;
-
 	struct RandomName
 	{
 	private:
@@ -180,7 +179,7 @@ void Session::HandleCharacterNameSuggestionRequestMessage(ByteBuffer& packet)
 			}
 		}
 	};
-	
+
 	RandomName name;
 	Send(CharacterNameSuggestionSuccessMessage(name.GetStr()));
 }
@@ -224,12 +223,12 @@ void Session::HandleCharacterSelectionMessage(ByteBuffer& packet)
 	}catch(...)
 	{ delete m_char; m_char = NULL; Send(CharacterSelectedErrorMessage()); return; }
 
-	toSelect->lastConnectionDate = time(NULL);
 	SendCharacterSelectedSuccess(toSelect);
 }
 
 void Session::SendCharacterSelectedSuccess(CharacterMinimals* ch)
 {
+	ch->lastConnectionDate = time(NULL);
 	Send(CharacterSelectedSuccessMessage(new CharacterBaseInformations(ch->id, ch->level, ch->name, m_char->GetLook(),
 		ch->breed, ch->sex)));
 	m_char->GetMap()->AddActor(m_char);
@@ -250,6 +249,9 @@ void Session::SendCharacterSelectedSuccess(CharacterMinimals* ch)
 	}
 	Send(EnabledChannelsMessage(m_channels, m_disallowed));
 	Send(GetCharacterStatsListMessage());
+	Send(FriendWarnOnConnectionStateMessage(m_booleanValues[BOOL_FRIEND_WARN_ON_CONNECTION]));
+	Send(FriendWarnOnLevelGainStateMessage(m_booleanValues[BOOL_FRIEND_WARN_ON_LEVEL_GAIN]));
+	Send(GuildMemberWarnOnConnectionStateMessage(m_booleanValues[BOOL_GUILD_MEMBER_WARN_ON_CONNECTION]));
 }
 
 void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
@@ -339,7 +341,7 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 									   characters.guid=%u LIMIT 1;", ch->breed, ch->id);
 	if(!QR)
 	{
-		Log::Instance().outError("Character creation guid %u went wrong...", ch->id);
+		LOG("Character creation guid %u went wrong...", ch->id);
 		return;
 	}
 	Field* fields = QR->Fetch();

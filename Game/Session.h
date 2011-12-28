@@ -154,6 +154,14 @@ private:
 
 	// SocialHandler.cpp
 	void HandleFriendsGetListMessage(ByteBuffer&);
+	void HandleIgnoredGetListMessage(ByteBuffer&);
+	void HandleIgnoredDeleteRequestMessage(ByteBuffer&);
+	void HandleIgnoredAddRequestMessage(ByteBuffer&);
+	void HandleFriendSetWarnOnConnectionMessage(ByteBuffer&);
+	void HandleFriendSetWarnOnLevelGainMessage(ByteBuffer&);
+	void HandleGuildMemberSetWarnOnConnectionMessage(ByteBuffer&);
+	void HandleFriendAddRequestMessage(ByteBuffer&);
+	void HandleFriendDeleteRequestMessage(ByteBuffer&);
 
 	// Session.cpp
 	void HandleAuthenticationTicketMessage(ByteBuffer&);
@@ -163,6 +171,8 @@ public:
 	void Start();
 	void LOG(const char*, ...);
 	CharacterStatsListMessage GetCharacterStatsListMessage();
+	FriendOnlineInformations* GetFriendInformations(bool);
+	IgnoredOnlineInformations* GetIgnoredInformations();
 
 	void OnData(GamePacketHandler* hdl, ByteBuffer& packet)
 	{ (this->*hdl->Handler)(packet); }

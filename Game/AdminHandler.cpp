@@ -81,7 +81,7 @@ void Session::HandleNameAnnounceCommand(std::vector<std::string>& args, bool qui
 		message += args[a];
 	}
 
-	World::Instance().Send(ChatAdminServerMessage(0, message, static_cast<int>(time(NULL)), "", m_char->GetGuid(),
+	World::Instance().Send(ChatAdminServerMessage(12, message, static_cast<int>(time(NULL)), "", m_char->GetGuid(),
 		m_char->GetName(), m_data[FLAG_GUID].intValue));
 
 	if(!quiet)

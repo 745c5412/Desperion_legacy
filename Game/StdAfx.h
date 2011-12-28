@@ -21,7 +21,7 @@
 
 #define GAME_VERSION_MAJOR 0
 #define GAME_VERSION_MINOR 8
-#define GAME_VERSION_REVISION 1
+#define GAME_VERSION_REVISION 3
 
 #define REQUIRED_SHARED_VERSION_MAJOR 0
 #define REQUIRED_SHARED_VERSION_MINOR 0
@@ -195,7 +195,6 @@
 #include "../Messages/BasicWhoIsRequestMessage.h"
 #include "../Messages/NumericWhoIsMessage.h"
 #include "../Messages/NumericWhoIsRequestMessage.h"
-#include "../Messages/SpouseStatusMessage.h"
 #include "../Messages/IgnoredListMessage.h"
 #include "../Messages/IgnoredGetListMessage.h"
 #include "../Messages/IgnoredDeleteResultMessage.h"
@@ -207,9 +206,16 @@
 #include "../Messages/GuildMemberSetWarnOnConnectionMessage.h"
 #include "../Messages/FriendWarnOnLevelGainStateMessage.h"
 #include "../Messages/FriendWarnOnConnectionStateMessage.h"
+#include "../Messages/FriendSetWarnOnConnectionMessage.h"
+#include "../Messages/FriendSetWarnOnLevelGainMessage.h"
 #include "../Messages/FriendUpdateMessage.h"
-#include "../Messages/FriendSpouseJoinRequestMessage.h"
-#include "../Messages/FriendSpouseFollowWithCompassRequestMessage.h"
+#include "../Messages/FriendAddedMessage.h"
+#include "../Messages/FriendAddFailureMessage.h"
+#include "../Messages/FriendAddRequestMessage.h"
+#include "../Messages/FriendDeleteRequestMessage.h"
+#include "../Messages/FriendDeleteResultMessage.h"
+#include "../Messages/FriendsGetListMessage.h"
+#include "../Messages/FriendsListMessage.h"
 #include "../Messages/CharacterStatsListMessage.h"
 #include "../Messages/MapComplementaryInformationsDataMessage.h"
 #include "../Messages/GameRolePlayShowActorMessage.h"

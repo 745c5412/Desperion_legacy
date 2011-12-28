@@ -18,29 +18,295 @@
 
 #include "StdAfx.h"
 
-void Session::HandleFriendsGetListMessage(ByteBuffer& data)
+int GetLastConnectionDate(std::list<CharacterMinimals*>& chars)
 {
+	time_t last = 0;
+	for(std::list<CharacterMinimals*>::iterator it2 = chars.begin(); it2 != chars.end(); ++it2)
+		if((*it2)->lastConnectionDate > last)
+			last = (*it2)->lastConnectionDate;
+	return static_cast<int>((time(NULL) - last) / 3600);
+}
+
+std::string GetOfflineCharacter(int guid)
+{
+	ResultPtr QR = Desperion::eDatabase->Query("SELECT pseudo FROM accounts WHERE guid=%u LIMIT 1;", guid);
+	if(!QR)
+		return "";
+	Field* fields = QR->Fetch();
+	return fields[0].GetString();
+}
+
+std::pair<int, std::string> GetOfflineAccount(std::string pseudo)
+{
+	ResultPtr QR = Desperion::eDatabase->Query("SELECT guid, pseudo FROM accounts WHERE LOWER(pseudo)='%s' LIMIT 1;",
+		Desperion::ToLowerCase(Desperion::sDatabase->EscapeString(pseudo)).c_str());
+	if(!QR)
+		return std::make_pair(0, "");
+	Field* fields = QR->Fetch();
+	return std::make_pair(fields[0].GetInt32(), std::string(fields[1].GetString()));
+}
+
+void Session::HandleIgnoredGetListMessage(ByteBuffer& packet)
+{
+	IgnoredGetListMessage data;
+	data.Deserialize(packet);
+
+	std::vector<IgnoredInformationsPtr> list;
+	for(boost::bimap<int, std::string>::iterator it = m_ennemies.begin(); it != m_ennemies.end(); ++it)
+	{
+		Session* S = World::Instance().GetSession(it->get_left());
+		if(S != NULL && S->GetCharacter() != NULL)
+			list.push_back(IgnoredInformationsPtr(S->GetIgnoredInformations()));
+		else
+		{
+			std::list<CharacterMinimals*> chars = World::Instance().GetCharactersByAccount(it->get_left());
+			if(chars.empty())
+				continue;
+			list.push_back(IgnoredInformationsPtr(new IgnoredInformations(it->get_left(), S->GetData(FLAG_PSEUDO).stringValue)));
+		}
+	}
+	Send(IgnoredListMessage(list));
+}
+
+void Session::HandleIgnoredDeleteRequestMessage(ByteBuffer& packet)
+{
+	IgnoredDeleteRequestMessage data;
+	data.Deserialize(packet);
+
+	boost::bimap<int, std::string>& map = data.session ? m_ignored : m_ennemies;
+	boost::bimap<int, std::string>::right_iterator it = map.right.find(data.name); // Todo: key comp
+	if(it == m_ignored.right.end())
+	{
+		Send(IgnoredDeleteResultMessage(false, data.session, data.name));
+		return;
+	}
+	map.right.erase(it);
+	Send(IgnoredDeleteResultMessage(true, data.session, data.name));
+}
+
+void Session::HandleIgnoredAddRequestMessage(ByteBuffer& packet)
+{
+	IgnoredAddRequestMessage data;
+	data.Deserialize(packet);
+
+	boost::bimap<int, std::string>& map = data.session ? m_ignored : m_ennemies;
+	if(m_subscriptionEnd - time(NULL) > 0 && map.size() >= 100)
+	{
+		Send(FriendAddFailureMessage(1));
+		return;
+	}
+	else if(map.size() >= 50)
+	{
+		Send(FriendAddFailureMessage(1));
+		return;
+	}
+	else if(Desperion::ToLowerCase(data.name) == Desperion::ToLowerCase(m_data[FLAG_PSEUDO].stringValue))
+	{
+		Send(FriendAddFailureMessage(3));
+		return;
+	}
+	else if(map.right.find(data.name) != map.right.end()) // Todo: key comp
+	{
+		Send(FriendAddFailureMessage(4));
+		return;
+	}
+
+	Session* S = World::Instance().GetSession(data.name);
+	if(S == NULL)
+	{
+		CharacterMinimals* ch = World::Instance().GetCharacterMinimals(data.name);
+		if(ch != NULL && ch->onlineCharacter == NULL)
+		{
+			std::string pseudo;
+			if(!(pseudo = GetOfflineCharacter(ch->account)).empty())
+			{
+				if(map.right.find(pseudo) != map.right.end()) // Todo: key comp
+				{
+					Send(FriendAddFailureMessage(4));
+					return;
+				}
+				map.insert(boost::bimap<int, std::string>::relation(ch->account, pseudo));
+				Send(IgnoredAddedMessage(new IgnoredInformations(ch->account, pseudo), data.session));
+				return;
+			}
+		}
+		else if(ch != NULL)
+			S = ch->onlineCharacter->GetSession();
+	}
+
+	if(S != NULL)
+	{
+		map.insert(boost::bimap<int, std::string>::relation(S->GetData(FLAG_GUID).intValue, S->GetData(FLAG_PSEUDO).stringValue));
+		Send(IgnoredAddedMessage(S->GetIgnoredInformations(), data.session));
+	}
+	else
+	{
+		std::pair<int, std::string> infos;
+		if((infos = GetOfflineAccount(data.name)).first != 0)
+		{
+			if(map.right.find(infos.second) != map.right.end()) // Todo: key comp
+			{
+				Send(FriendAddFailureMessage(4));
+				return;
+			}
+			std::list<CharacterMinimals*> chars = World::Instance().GetCharactersByAccount(infos.first);
+			if(chars.empty())
+			{
+				Send(IgnoredAddFailureMessage(1));
+				return;
+			}
+			map.insert(boost::bimap<int, std::string>::relation(infos.first, infos.second));
+			Send(IgnoredAddedMessage(new IgnoredInformations(infos.first, infos.second), data.session));
+		}
+		else
+			Send(IgnoredAddFailureMessage(1));
+	}
+}
+
+void Session::HandleFriendSetWarnOnConnectionMessage(ByteBuffer& packet)
+{
+	FriendSetWarnOnConnectionMessage data;
+	data.Deserialize(packet);
+
+	m_booleanValues[BOOL_FRIEND_WARN_ON_CONNECTION] = data.enable;
+	Send(FriendWarnOnConnectionStateMessage(m_booleanValues[BOOL_FRIEND_WARN_ON_CONNECTION]));
+}
+
+void Session::HandleFriendSetWarnOnLevelGainMessage(ByteBuffer& packet)
+{
+	FriendSetWarnOnLevelGainMessage data;
+	data.Deserialize(packet);
+
+	m_booleanValues[BOOL_FRIEND_WARN_ON_LEVEL_GAIN] = data.enable;
+	Send(FriendWarnOnLevelGainStateMessage(m_booleanValues[BOOL_FRIEND_WARN_ON_LEVEL_GAIN]));
+}
+
+void Session::HandleGuildMemberSetWarnOnConnectionMessage(ByteBuffer& packet)
+{
+	GuildMemberSetWarnOnConnectionMessage data;
+	data.Deserialize(packet);
+
+	m_booleanValues[BOOL_GUILD_MEMBER_WARN_ON_CONNECTION] = data.enable;
+	Send(GuildMemberWarnOnConnectionStateMessage(m_booleanValues[BOOL_GUILD_MEMBER_WARN_ON_CONNECTION]));
+}
+
+void Session::HandleFriendAddRequestMessage(ByteBuffer& packet)
+{
+	FriendAddRequestMessage data;
+	data.Deserialize(packet);
+
+	if(m_subscriptionEnd - time(NULL) > 0 && m_friends.size() >= 100)
+	{
+		Send(FriendAddFailureMessage(1));
+		return;
+	}
+	else if(m_friends.size() >= 50)
+	{
+		Send(FriendAddFailureMessage(1));
+		return;
+	}
+	else if(Desperion::ToLowerCase(data.name) == Desperion::ToLowerCase(m_data[FLAG_PSEUDO].stringValue))
+	{
+		Send(FriendAddFailureMessage(3));
+		return;
+	}
+	else if(m_friends.right.find(data.name) != m_friends.right.end()) // Todo: key comp
+	{
+		Send(FriendAddFailureMessage(4));
+		return;
+	}
+
+	Session* S = World::Instance().GetSession(data.name);
+	if(S == NULL)
+	{
+		CharacterMinimals* ch = World::Instance().GetCharacterMinimals(data.name);
+		if(ch != NULL && ch->onlineCharacter == NULL)
+		{
+			std::string pseudo;
+			if(!(pseudo = GetOfflineCharacter(ch->account)).empty())
+			{
+				if(m_friends.right.find(pseudo) != m_friends.right.end()) // Todo: key comp
+				{
+					Send(FriendAddFailureMessage(4));
+					return;
+				}
+				m_friends.insert(boost::bimap<int, std::string>::relation(ch->account, pseudo));
+				Send(FriendAddedMessage(new FriendInformations(ch->account, pseudo, 0,
+					GetLastConnectionDate(World::Instance().GetCharactersByAccount(ch->account)))));
+				return;
+			}
+		}
+		else if(ch != NULL)
+			S = ch->onlineCharacter->GetSession();
+	}
+
+	if(S != NULL)
+	{
+		bool isFriend = S->IsFriendWith(m_data[FLAG_GUID].intValue);
+		m_friends.insert(boost::bimap<int, std::string>::relation(S->GetData(FLAG_GUID).intValue, S->GetData(FLAG_PSEUDO).stringValue));
+		Send(FriendAddedMessage(S->GetFriendInformations(isFriend)));
+	}
+	else
+	{
+		std::pair<int, std::string> infos;
+		if((infos = GetOfflineAccount(data.name)).first != 0)
+		{
+			if(m_friends.right.find(infos.second) != m_friends.right.end()) // Todo: key comp
+			{
+				Send(FriendAddFailureMessage(4));
+				return;
+			}
+			std::list<CharacterMinimals*> chars = World::Instance().GetCharactersByAccount(infos.first);
+			if(chars.empty())
+			{
+				Send(FriendAddFailureMessage(2));
+				return;
+			}
+			m_friends.insert(boost::bimap<int, std::string>::relation(infos.first, infos.second));
+			Send(FriendAddedMessage(new FriendInformations(infos.first, infos.second, 0, GetLastConnectionDate(chars))));
+		}
+		else
+			Send(FriendAddFailureMessage(2));
+	}
+}
+
+void Session::HandleFriendDeleteRequestMessage(ByteBuffer& packet)
+{
+	FriendDeleteRequestMessage data;
+	data.Deserialize(packet);
+
+	boost::bimap<int, std::string>::right_iterator it = m_friends.right.find(data.name); // Todo: key comp
+	if(it == m_ignored.right.end())
+	{
+		Send(FriendDeleteResultMessage(false, data.name));
+		return;
+	}
+	m_friends.right.erase(it);
+	Send(FriendDeleteResultMessage(true, data.name));
+}
+
+void Session::HandleFriendsGetListMessage(ByteBuffer& packet)
+{
+	FriendsGetListMessage data;
+	data.Deserialize(packet);
+
 	std::vector<FriendInformationsPtr> list;
 	for(boost::bimap<int, std::string>::iterator it = m_friends.begin(); it != m_friends.end(); ++it)
 	{
 		Session* S = World::Instance().GetSession(it->get_left());
 		if(S != NULL && S->GetCharacter() != NULL)
 		{
-			list.push_back(FriendInformationsPtr(new FriendOnlineInformations(S->GetData(FLAG_GUID).intValue,
-				S->GetData(FLAG_PSEUDO).stringValue, S->GetCharacter()->GetContextType(), 0, S->GetCharacter()->GetName(),
-				S->GetCharacter()->GetLevel(), S->GetCharacter()->GetStats().GetAlignmentSide(), S->GetCharacter()->GetBreed(),
-				S->GetCharacter()->GetSex(), new BasicGuildInformations(0, ""), S->GetCharacter()->GetSmileyId())));
+			bool isFriend = S->IsFriendWith(m_data[FLAG_GUID].intValue);
+			list.push_back(FriendInformationsPtr(S->GetFriendInformations(isFriend)));
 		}
 		else
 		{
 			std::list<CharacterMinimals*> chars = World::Instance().GetCharactersByAccount(it->get_left());
 			if(chars.empty())
 				continue;
-			time_t last = 0;
-			for(std::list<CharacterMinimals*>::iterator it2 = chars.begin(); it2 != chars.end(); ++it2)
-				if((*it2)->lastConnectionDate > last)
-					last = (*it2)->lastConnectionDate;
-			list.push_back(FriendInformationsPtr(new FriendInformations(it->get_left(), it->get_right(), 0, static_cast<int>(last))));
+			list.push_back(FriendInformationsPtr(new FriendInformations(it->get_left(), it->get_right(), 0,
+				GetLastConnectionDate(chars))));
 		}
 	}
+	Send(FriendsListMessage(list));
 }

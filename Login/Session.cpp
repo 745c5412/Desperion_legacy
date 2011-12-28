@@ -194,9 +194,9 @@ void Session::HandleIdentificationMessage(ByteBuffer& packet)
 		return;
 	}
 
-	const char* query = "SELECT password, guid, question, pseudo, logged, level, lastServer, subscriptionEnd, banEnd FROM accounts WHERE account='%s'\
-						LIMIT 1;";
-	ResultPtr QR = Desperion::sDatabase->Query(query, Desperion::sDatabase->EscapeString(data.login).c_str());
+	const char* query = "SELECT password, guid, question, pseudo, logged, level, lastServer, subscriptionEnd, banEnd FROM accounts \
+						WHERE LOWER(account)='%s' LIMIT 1;";
+	ResultPtr QR = Desperion::sDatabase->Query(query, Desperion::ToLowerCase(Desperion::sDatabase->EscapeString(data.login)).c_str());
 	
 	if(!QR)
 	{
@@ -219,7 +219,7 @@ void Session::HandleIdentificationMessage(ByteBuffer& packet)
 		CryptoPP::AutoSeededRandomPool rng;
 		CryptoPP::StringSource((uint8*)&data.credentials[0], data.credentials.size(), true,
 			new CryptoPP::PK_DecryptorFilter(rng, d, new CryptoPP::StringSink(result)));
-		result = result.substr(32 + 2 + 66);
+		result = data.useCertificate ? result.substr(m_salt.size() + 2 + 66) : result.substr(m_salt.size());
 	}
 	catch(...)
 	{

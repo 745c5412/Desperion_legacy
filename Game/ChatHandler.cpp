@@ -79,7 +79,6 @@ void Session::HandleMultiMessage(ChatClientMultiMessage* data)
 	delete toSend;
 }
 
-
 void Session::HandleChatClientMultiMessage(ByteBuffer& packet)
 {
 	ChatClientMultiMessage data;
@@ -113,7 +112,9 @@ void Session::HandlePrivateMessage(ChatClientPrivateMessage* data)
 		|| (cm->onlineCharacter->GetSession()->GetBoolValue(BOOL_INVISIBLE) &&
 		!cm->onlineCharacter->GetSession()->IsFriendWith(m_data[FLAG_GUID].intValue)))
 	{
-		// todo: message
+		std::vector<std::string> args;
+		args.push_back(cm->name);
+		Send(TextInformationMessage(1, 14, args));
 		return;
 	}
 	

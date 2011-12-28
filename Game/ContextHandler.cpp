@@ -55,6 +55,29 @@ void Session::HandleGameContextCreateRequestMessage(ByteBuffer& packet)
 	
 	Send(CurrentMapMessage(m_char->GetMap()->GetId()));
 	Send(TextInformationMessage(1, 89, std::vector<std::string>()));
+	std::vector<std::string> args;
+	args.push_back(m_data[FLAG_PSEUDO].stringValue);
+	args.push_back(m_char->GetName());
+	uint8 count = 0;
+	for(boost::bimap<int, std::string>::iterator it = m_friends.begin(); it != m_friends.end(); ++it)
+	{
+		Session* S = World::Instance().GetSession(it->get_left());
+		if(S == NULL)
+			continue;
+		++count;
+		if(S->IsFriendWith(m_data[FLAG_GUID].intValue))
+		{
+			if(S->GetBoolValue(BOOL_FRIEND_WARN_ON_CONNECTION))
+				S->Send(TextInformationMessage(0, 143, args));
+			S->Send(FriendUpdateMessage(GetFriendInformations(true)));
+		}
+	}
+	if(count > 0)
+	{
+		std::vector<std::string> args;
+		args.push_back(Desperion::ToString(count));
+		Send(TextInformationMessage(0, 197, args));
+	}
 }
 
 void Session::HandleChangeMapMessage(ByteBuffer& packet)

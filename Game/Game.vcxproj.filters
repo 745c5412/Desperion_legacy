@@ -31,9 +31,6 @@
     <Filter Include="Desperion\H">
       <UniqueIdentifier>{63153bd4-1ea0-480c-832c-e7e28a255da6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Messages">
-      <UniqueIdentifier>{fa1f2ea0-6856-4f7a-b405-c471d58c028e}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
