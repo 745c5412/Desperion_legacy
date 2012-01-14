@@ -263,7 +263,7 @@ namespace Desperion
 		return buffer;
 	}
 
-	inline std::string ComputeMD5Digest(std::string& src)
+	inline std::istring ComputeMD5Digest(std::string& src)
 	{
 		CryptoPP::MD5 hash;
 		uint8 digest[CryptoPP::MD5::DIGESTSIZE];
@@ -273,7 +273,7 @@ namespace Desperion
 		encoder.Attach(new CryptoPP::StringSink(output));
 		encoder.Put(digest, sizeof(digest));
 		encoder.MessageEnd();
-		return ToLowerCase(output);
+		return std::istring(output.c_str());
 	}
 
 	inline std::string FormatTime(const char* format)

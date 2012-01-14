@@ -25,6 +25,7 @@ struct CharacterMinimals;
 class Map;
 class ItemSet;
 class SubArea;
+class Monster;
 
 typedef boost::mutex Mutex;
 
@@ -37,8 +38,15 @@ public:
 	typedef std::tr1::unordered_map<int, Map*> MapMap;
 	typedef std::tr1::unordered_map<int16, ItemSet*> ItemSetMap;
 	typedef std::tr1::unordered_map<int16, SubArea*> SubAreaMap;
+	typedef std::tr1::unordered_map<int, Monster*> MonsterMap;
 
-	World();
+	World()
+	{
+		// pas de constructeur atomique
+		m_maxPlayers = 0;
+		m_hiCharacterGuid = 0;
+	}
+
 	~World();
 	void Init();
 	void SaveAll();
@@ -48,31 +56,28 @@ public:
 	void LoadMaps();
 	void LoadItemSets();
 	void LoadSubAreas();
+	void LoadMonsters();
+	void SpawnMonsters();
 
 	void AddSession(Session*);
 	void DeleteSession(int);
 	Session* GetSession(int);
 	Session* GetSession(std::string);
-	void Send(DofusMessage&);
+	void Send(DofusMessage&, bool admin = false);
 
 	Map* GetMap(int);
 	Map* GetMap(int16, int16);
 	SubArea* GetSubArea(int16);
+	Monster* GetMonster(int);
 
 	void AddCharacterMinimals(CharacterMinimals*);
 	CharacterMinimals* GetCharacterMinimals(int);
 	CharacterMinimals* GetCharacterMinimals(std::string);
 	void DeleteCharacterMinimals(int);
-	std::list<CharacterMinimals*> GetCharactersByAccount(int);
+	std::list<CharacterMinimals*> GetCharactersByAccount(int, bool sort = false);
 
 	int GetNextCharacterGuid()
-	{
-		int guid = 0;
-		HiCharacterGuidMutex.lock();
-		guid = ++m_hiCharacterGuid;
-		HiCharacterGuidMutex.unlock();
-		return guid;
-	}
+	{ return ++m_hiCharacterGuid; }
 
 	Item* GetItem(int);
 	ItemSet* GetItemSet(int16);
@@ -85,6 +90,7 @@ public:
 
 	const SessionMap& GetSessions() const
 	{ return Sessions; }
+
 private:
 	SessionMap Sessions;
 	CharacterMinimalsMap Characters;
@@ -92,18 +98,12 @@ private:
 	MapMap Maps;
 	ItemSetMap ItemSets;
 	SubAreaMap SubAreas;
+	MonsterMap Monsters;
 
-	uint16 m_maxPlayers;
-
-	int m_hiCharacterGuid;
-	Mutex HiCharacterGuidMutex;
-
-	Mutex ItemSetsMutex;
-	Mutex MapsMutex;
-	Mutex SessionsMutex;
-	Mutex CharactersMutex;
-	Mutex ItemsMutex;
-	Mutex SubAreasMutex;
+	tbb::atomic<uint16> m_maxPlayers;
+	tbb::atomic<int> m_hiCharacterGuid;
+	boost::shared_mutex SessionsMutex;
+	boost::shared_mutex CharactersMutex;
 };
 
 #endif

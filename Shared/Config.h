@@ -24,7 +24,7 @@ namespace Desperion
 	class Config : public Singleton<Config>
 	{
 	public:
-		void Init(std::string, std::vector<std::string>&);
+		void Init(std::string, std::vector<const char*>&);
 		Config();
 		void ParseAll();
 		
@@ -38,15 +38,15 @@ namespace Desperion
 			return value;
 		}
 
-		const std::vector<std::string>& GetFiles() const
+		const std::vector<const char*>& GetFiles() const
 		{ return m_files; }
 	private:
-		bool ParseFile(std::string);
-
-		std::vector<std::string> m_files;
+		std::vector<const char*> m_files;
 		std::string m_path;
 		typedef std::tr1::unordered_map<std::string, std::string> ConfigMap;
 		ConfigMap m_configMap;
+
+		bool ParseFile(const char*);
 	};
 
 	template<> inline bool Config::GetParam(std::string index, bool def)

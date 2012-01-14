@@ -30,6 +30,10 @@ public:
 	{
 	}
 
+	AbstractPartyEventMessage(int partyId) : AbstractPartyMessage(partyId)
+	{
+	}
+
 	void Serialize(ByteBuffer& data)
 	{
 		AbstractPartyMessage::Serialize(data);

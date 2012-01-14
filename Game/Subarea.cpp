@@ -24,3 +24,9 @@ void SubArea::Init(Field* fields)
 	m_areaId = fields[1].GetInt32();
 	Desperion::FastSplit<';'>(m_spawns, std::string(fields[3].GetString()), S, true);
 }
+
+void SubArea::Send(DofusMessage& message)
+{
+	for(std::list<Map*>::iterator it = m_maps.begin(); it != m_maps.end(); ++it)
+		(*it)->Send(message);
+}

@@ -27,16 +27,18 @@ typedef boost::mutex Mutex;
 
 class World : public Singleton<World>
 {
-	friend class Singleton<World>;
 public:
-	/* arrays typedefs */
 	typedef std::tr1::unordered_map<uint16, GameServer*> GameServerMap;
 	typedef std::tr1::unordered_map<int, Session*> SessionMap;
 	typedef std::tr1::unordered_map<int, GameSession*> GameSessionMap;
 
-	World();
-	~World();
+	World()
+	{
+		// pas de constructeur atomique
+		m_maxPlayers = 0;
+	}
 
+	~World();
 	void Init();
 	void LoadGameServers();
 
@@ -65,12 +67,9 @@ private:
 	GameSessionMap GameSessions;
 	GameServerMap GameServers;
 
-	time_t m_startTime;
-	uint16 m_maxPlayers;
-
-	Mutex SessionsMutex;
-	Mutex GameSessionsMutex;
-	Mutex GameServersMutex;
+	tbb::atomic<uint16> m_maxPlayers;
+	boost::shared_mutex SessionsMutex;
+	boost::shared_mutex GameSessionsMutex;
 };
 
 #endif

@@ -38,6 +38,14 @@ void GameSession::HandleStateMessage(ByteBuffer& packet)
 	World::Instance().RefreshGameServer(m_server);
 }
 
+void GameSession::SendDisconnectPlayerMessage(int account)
+{
+	ByteBuffer dest, src;
+	src<<account;
+	Packet::Pack(SMSG_DISCONNECT_PLAYER, dest, src);
+	_Send(dest);
+}
+
 void GameSession::HandlePlayersMessage(ByteBuffer& packet)
 {
 	uint16 players;

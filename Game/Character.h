@@ -189,6 +189,21 @@ public:
 		return currentLife;
 	}
 
+	PartyGuestInformations* GetPartyGuestInformations(int hostId)
+	{ return new PartyGuestInformations(m_guid, hostId, m_name, GetLook()); }
+
+	PartyMemberInformations* GetPartyMemberInformations()
+	{
+		return new PartyMemberInformations(m_guid, m_level, m_name, GetLook(), GetCurrentLife(), GetMaxLife(),
+			m_stats.prospecting.Total(), 0, m_stats.initiative.Total(), m_stats.IsPvpEnabled(), m_stats.GetAlignmentSide());
+	}
+
+	PartyInvitationMemberInformations* GetPartyInvitationMemberInformations()
+	{
+		return new PartyInvitationMemberInformations(m_guid, m_level, m_name, GetLook(), m_breed, m_sex,
+			m_map->GetPosX(), m_map->GetPosY(), m_map->GetId(), m_map->GetSubAreaId());
+	}
+
 	virtual GameRolePlayActorInformations* ToActor()
 	{ 
 		return new GameRolePlayCharacterInformations(m_guid, GetLook(), new EntityDispositionInformations(m_cell, m_direction), m_name,

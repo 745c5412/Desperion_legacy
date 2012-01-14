@@ -17,7 +17,6 @@
 */
 
 #include "StdAfx.h"
-#include "../CacheDataExploiter/StdAfx.h"
 
 template<> Desperion::Master* Singleton<Desperion::Master>::m_singleton = NULL;
 
@@ -25,8 +24,8 @@ void OnCrash();
 
 namespace Desperion
 {
-	Database* sDatabase = NULL;
-	Database* eDatabase = NULL;
+	Database sDatabase(3);
+	Database eDatabase(3);
 
 	void OnSignal(int s)
 	{
@@ -38,7 +37,8 @@ namespace Desperion
 #ifdef _WIN32
 		case SIGBREAK:
 #endif
-			Master::Instance().Stop();
+			ThreadPool::Instance().GetIoService().stop();
+			Master::Instance().MasterCondition.notify_all();
 			break;
 		}
 		signal(s, OnSignal);
@@ -74,10 +74,22 @@ namespace Desperion
 #endif
 	}
 
+	Master::Master() : m_startTime(getMSTime())
+	{
+		InitRandomNumberGenerators();
+		new ThreadPool;
+		new Config;
+		new Log;
+		new World;
+		new GameClient;
+	}
+
 	Master::~Master()
 	{
 		CleanupRandomNumberGenerators();
-		delete sListener;
+		delete Desperion::Config::InstancePtr();
+		delete Log::InstancePtr();
+		delete GameClient::InstancePtr();
 	}
 
 	bool Master::StartUpDatabase()
@@ -85,8 +97,7 @@ namespace Desperion
 		Log::Instance().outNotice("Database", "Connecting to the local database...");
 		{
 			barGoLink bar(1);
-			sDatabase = new Database(3);
-			if(!sDatabase->Init(Config::Instance().GetParam<std::string>(LOCAL_DATABASE_HOST_STRING, LOCAL_DATABASE_HOST_DEFAULT), 
+			if(!sDatabase.Init(Config::Instance().GetParam<std::string>(LOCAL_DATABASE_HOST_STRING, LOCAL_DATABASE_HOST_DEFAULT), 
 				Config::Instance().GetParam(LOCAL_DATABASE_PORT_STRING, LOCAL_DATABASE_PORT_DEFAULT), 
 				Config::Instance().GetParam<std::string>(LOCAL_DATABASE_USER_STRING, LOCAL_DATABASE_USER_DEFAULT), 
 				Config::Instance().GetParam<std::string>(LOCAL_DATABASE_PASSWORD_STRING, LOCAL_DATABASE_PASSWORD_DEFAULT), 
@@ -99,8 +110,7 @@ namespace Desperion
 		Log::Instance().outNotice("Database", "Connecting to the distant database...");
 		{
 			barGoLink bar(1);
-			eDatabase = new Database(1);
-			if(!eDatabase->Init(Config::Instance().GetParam<std::string>(DISTANT_DATABASE_HOST_STRING, DISTANT_DATABASE_HOST_DEFAULT), 
+			if(!eDatabase.Init(Config::Instance().GetParam<std::string>(DISTANT_DATABASE_HOST_STRING, DISTANT_DATABASE_HOST_DEFAULT), 
 				Config::Instance().GetParam(DISTANT_DATABASE_PORT_STRING, DISTANT_DATABASE_PORT_DEFAULT), 
 				Config::Instance().GetParam<std::string>(DISTANT_DATABASE_USER_STRING, DISTANT_DATABASE_USER_DEFAULT), 
 				Config::Instance().GetParam<std::string>(DISTANT_DATABASE_PASSWORD_STRING, DISTANT_DATABASE_PASSWORD_DEFAULT), 
@@ -115,19 +125,16 @@ namespace Desperion
 
 	bool Master::Run(int argc, char **argv)
 	{
-		m_startTime = getMSTime();
+		std::vector<const char*> files;
+		files.push_back("server.properties"), files.push_back("misc.properties"),
+			files.push_back("character.properties");
+		std::string path = "./config";
+		if(argc >= 2)
+			path = argv[1];
+		Config::Instance().Init(path, files);
 
-		new Config;
-		std::vector<std::string> files;
-		files.push_back("server.properties"), files.push_back("misc.properties");
-		std::string configPath = "config";
-		Config::Instance().Init(configPath, files);
-
-		new Log;
 		Log::Instance().Init(Config::Instance().GetParam<std::string>(LOGS_PATH_STRING, LOGS_PATH_DEFAULT),
 			Config::Instance().GetParam<uint8>(LOGS_LEVEL_STRING, LOGS_LEVEL_DEFAULT));
-
-		InitRandomNumberGenerators();
 
 		SetApplicationTitle("Desperion GameServer v%u.%u.%u", GAME_VERSION_MAJOR, GAME_VERSION_MINOR, GAME_VERSION_REVISION);
 		Log::Instance().outColor(TBLUE, 	",------,  ,-----. ,-----, ,------. ,-----. ,------.  ,------. ,------, ,,    ,,");
@@ -145,43 +152,32 @@ namespace Desperion
 		if(!StartUpDatabase())
 			return false;
 
-		new World;
 		World::Instance().Init();
-
-		sListener = new SocketListener<Session>(m_service);
-		sListener->Init(Config::Instance().GetParam(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
-		if(sListener->IsOpen())
+		sListener.Init(Config::Instance().GetParam(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
+		if(sListener.IsOpen())
 		{
 			Log::Instance().outNotice("Network", "Local socket listening on port %u",
 				Config::Instance().GetParam(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
+			sListener.Run();
 		}
 		else
 		{
 			Log::Instance().outError("Error: Local socket");
 			return false;
 		}
-
-		boost::shared_ptr<GameClient> ptr(new GameClient);
-		GameClient::Instance().Init(new Socket(m_service));
+		GameClient::Instance().Init(new boost::asio::ip::tcp::socket(ThreadPool::Instance().GetIoService()));
 
 		std::cout<<std::endl;
 		Log::Instance().outString("Uptime: %ums", getMSTime() - m_startTime);
 		Log::Instance().outColor(TBLUE, "Type Ctrl+C to safely shutdown the server.\n");
 
-		sListener->Run();
 		GameClient::Instance().Launch();
 
 		HookSignals();
-		while(!m_stopEvent)
-		{
-			try{
-			m_service.run();
-			}catch(const std::exception& err)
-			{ Log::Instance().outError("Unhandled exception: %s", err.what()); }
-		}
+		boost::mutex::scoped_lock lock(m_mutex);
+		while(!ThreadPool::Instance().GetIoService().stopped())
+			MasterCondition.wait(lock);
 		UnHookSignals();
-
-		GameClient::Instance().Stop();
 		return true;
 	}
 

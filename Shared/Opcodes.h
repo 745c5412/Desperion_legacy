@@ -13,7 +13,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Desperion.  If not, see <http://www.gnu.org/licenses/>.
+    along with Desperion. 6 If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef __OPCODES__
@@ -787,6 +787,7 @@ enum Opcode
 	CMSG_CONNECT = 10000,
 	CMSG_STATE = 10001,
 	CMSG_PLAYERS = 10002,
+	SMSG_DISCONNECT_PLAYER = 10003,
 };
 
 enum ProtocolType

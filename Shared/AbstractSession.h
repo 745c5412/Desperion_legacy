@@ -19,8 +19,6 @@
 #ifndef __ABSTRACT_SESSION__
 #define __ABSTRACT_SESSION__
 
-typedef boost::asio::ip::tcp::socket Socket;
-
 template<class HandlerType>
 class AbstractSession : public boost::enable_shared_from_this<AbstractSession<HandlerType> >
 {
@@ -28,7 +26,7 @@ protected:
 	typedef std::tr1::unordered_map<uint32, HandlerType> HandlerStorageMap;
 	static HandlerStorageMap m_handlers;
 	time_t m_startTime;
-	Socket* m_socket;
+	boost::asio::ip::tcp::socket* m_socket;
 
 	
 	void _Send(ByteBuffer& buffer)
@@ -43,17 +41,16 @@ private:
 	uint16 m_opcode;
 	std::vector<uint8> m_length;
 	std::vector<uint8> m_buffer;
+	std::queue<boost::shared_ptr<ByteBuffer> > m_packets;
+	bool m_isSharedPtr;
 public:
 	virtual void Start() = 0;
 	virtual bool IsAllowed(uint8 flag) = 0;
-	virtual void OnData(HandlerType* hdl, ByteBuffer& packet) = 0;
+	virtual void HandleData(HandlerType* hdl, ByteBuffer& packet) = 0;
 
-	virtual void OnClose() // this function's only called by GameClient, so no need to make it pure virtual
-	{ }
-
-	AbstractSession()
-	{ 
-		m_startTime = time(NULL);
+	AbstractSession(bool isSharedPtr = true) : m_startTime(time(NULL)),
+		m_isSharedPtr(isSharedPtr), m_opcode(0)
+	{
 	}
 
 	virtual ~AbstractSession()
@@ -73,89 +70,117 @@ public:
 		_Send(dest);
 	}
 
-	void Init(Socket* socket)
+	void Init(boost::asio::ip::tcp::socket* socket)
 	{ m_socket = socket; }
+
+	virtual void HandleError()
+	{ }
 
 	void HandleReadLength(const boost::system::error_code& error)
 	{
 		if(error)
 		{
-			OnClose();
+			HandleError();
 			return;
 		}
-
 		uint32 length = 0;
 		for(uint8 a = 0; a < m_length.size(); ++a)
 			length = (length << 8) + m_length[a];
 		m_buffer.resize(length);
 		m_length.clear();
-
-		boost::asio::async_read(*m_socket, boost::asio::buffer(m_buffer), boost::bind(&AbstractSession::HandleReadData, shared_from_this(), 
-			boost::asio::placeholders::error));
+		if(m_isSharedPtr)
+		{
+			boost::asio::async_read(*m_socket, boost::asio::buffer(m_buffer), boost::bind(&AbstractSession::HandleReadContent,
+				shared_from_this(), boost::asio::placeholders::error));
+		}
+		else
+		{
+			boost::asio::async_read(*m_socket, boost::asio::buffer(m_buffer), boost::bind(&AbstractSession::HandleReadContent,
+				this, boost::asio::placeholders::error));
+		}
 	}
 
 	void HandleReadHeader(const boost::system::error_code& error)
 	{
 		if(error)
 		{
-			OnClose();
+			HandleError();
 			return;
 		}
-
 		uint16 header = *((uint16*)&m_header[0]);
 		if(ByteBuffer::ENDIANNESS == LITTLE_ENDIAN)
 			SwapBytes((uint8*)&header, sizeof(header));
 		m_opcode = header >> 2;
 		uint8 typeLen = header & 3;
 		m_length.resize(typeLen);
-
-		boost::asio::async_read(*m_socket, boost::asio::buffer(m_length), boost::bind(&AbstractSession::HandleReadLength, shared_from_this(), 
-			boost::asio::placeholders::error));
+		if(m_isSharedPtr)
+		{
+			boost::asio::async_read(*m_socket, boost::asio::buffer(m_length), boost::bind(&AbstractSession::HandleReadLength,
+				shared_from_this(), boost::asio::placeholders::error));
+		}
+		else
+		{
+			boost::asio::async_read(*m_socket, boost::asio::buffer(m_length), boost::bind(&AbstractSession::HandleReadLength,
+				this, boost::asio::placeholders::error));
+		}
 	}
 
-	void HandleReadData(const boost::system::error_code& error)
+	void AsyncHandleData(HandlerType hdl)
+	{
+		boost::shared_ptr<ByteBuffer> buf = m_packets.front();
+		m_packets.pop();
+		try{
+		HandleData(&hdl, *buf);
+		}catch(const boost::exception&){
+		}catch(const std::exception& except)
+		{ Log::Instance().outError(except.what()); }
+	}
+
+	void HandleReadContent(const boost::system::error_code& error)
 	{
 		if(error)
 		{
-			OnClose();
+			HandleError();
 			return;
 		}
-
 		Log::Instance().outDebug("Received: <%u>", m_opcode);
 		HandlerStorageMap::iterator it = AbstractSession::m_handlers.find(m_opcode);
-		
-		try
+		if(it != AbstractSession::m_handlers.end())
 		{
-			if(it != AbstractSession::m_handlers.end())
+			HandlerType hdl = it->second;
+			if(IsAllowed(hdl.Flag))
 			{
-				ByteBuffer received;
+				ByteBuffer* received = new ByteBuffer;
 				size_t size = m_buffer.size();
 				if(size > 0)
-					received.AppendBytes(&m_buffer[0], size);
-
-				HandlerType* hdl = &it->second;
-				if(IsAllowed(hdl->Flag))
-					OnData(hdl, received);
+					received->AppendBytes(&m_buffer[0], size);
+				m_packets.push(boost::shared_ptr<ByteBuffer>(received));
+				if(m_isSharedPtr)
+					ThreadPool::Instance().Schedule(boost::bind(&AbstractSession::AsyncHandleData, shared_from_this(), hdl));
+				else
+					ThreadPool::Instance().Schedule(boost::bind(&AbstractSession::AsyncHandleData, this, hdl));
 			}
 		}
-		catch(const boost::exception&)
-		{ }
-		catch(const std::exception& except)
-		{ Log::Instance().outError(except.what()); }
-		
 		m_opcode = 0;
 		m_buffer.clear();
-
 		Run();
 	}
 
 	void Run()
 	{
-		boost::asio::async_read(*m_socket, boost::asio::buffer(m_header), boost::bind(&AbstractSession::HandleReadHeader, shared_from_this(), 
-			boost::asio::placeholders::error));
+		if(m_isSharedPtr)
+		{
+			boost::asio::async_read(*m_socket, boost::asio::buffer(m_header), boost::bind(&AbstractSession::HandleReadHeader,
+				shared_from_this(), boost::asio::placeholders::error));
+		}
+		else
+		{
+			boost::asio::async_read(*m_socket, boost::asio::buffer(m_header), boost::bind(&AbstractSession::HandleReadHeader,
+				this, boost::asio::placeholders::error));
+		}
 	}
 
-	Socket* GetSocket()
+	boost::asio::ip::tcp::socket* GetSocket()
 	{ return m_socket; }
 
 	time_t GetStartTime() const

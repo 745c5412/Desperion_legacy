@@ -22,7 +22,7 @@ template <> Session::HandlerStorageMap AbstractSession<LoginPacketHandler>::m_ha
 
 bool IsIpBanned(std::string address)
 {
-	ResultPtr QR = Desperion::sDatabase->Query("SELECT banEnd FROM ip_bans WHERE IP='%s' LIMIT 1;", address.c_str());
+	ResultPtr QR = Desperion::sDatabase.Query("SELECT banEnd FROM ip_bans WHERE IP='%s' LIMIT 1;", address.c_str());
 	if(!QR)
 		return false;
 	Field* fields = QR->Fetch();
@@ -30,7 +30,7 @@ bool IsIpBanned(std::string address)
 
 	if(banEnd < time(NULL))
 	{
-		Desperion::sDatabase->Execute("DELETE FROM ip_bans WHERE IP='%s' LIMIT 1;", address.c_str());
+		Desperion::sDatabase.Execute("DELETE FROM ip_bans WHERE IP='%s' LIMIT 1;", address.c_str());
 		return false;
 	}
 	else
@@ -64,8 +64,9 @@ void Session::HandleAcquaintanceSearchMessage(ByteBuffer& packet)
 	data.Deserialize(packet);
 
 	const char* query = "SELECT serverID FROM character_counts INNER JOIN accounts ON accounts.guid = character_counts.accountGuid "\
-		"WHERE LOWER(accounts.pseudo)=LOWER('%s');";
-	ResultPtr QR = Desperion::sDatabase->Query(query, Desperion::sDatabase->EscapeString(data.nickname).c_str());
+		"WHERE LOWER(accounts.pseudo)='%s';";
+	ResultPtr QR = Desperion::sDatabase.Query(query,
+		Desperion::ToLowerCase(Desperion::sDatabase.EscapeString(data.nickname)).c_str());
 	if(!QR)
 	{
 		Send(AcquaintanceSearchErrorMessage(2));
@@ -106,17 +107,16 @@ bool Session::HandleServerSelection(GameServer* G, bool quiet)
 		}
 		
 		if(!quiet)
-			Send(SelectedServerRefusedMessage(G->GetID(), reason, G->GetState(m_data[FLAG_LEVEL].intValue, IsSubscriber())));
+			Send(SelectedServerRefusedMessage(G->GetID(), reason, state));
 		return false;
 	}
 	//todo: restriction de communauté et de géolocalisation
 	
 	std::string ticket = GenerateRandomKey();
-	if(!Desperion::sDatabase->Execute("UPDATE accounts SET ticket='%s' WHERE guid=%u LIMIT 1;", ticket.c_str(), m_data[FLAG_GUID].intValue))
+	if(!Desperion::sDatabase.Execute("UPDATE accounts SET ticket='%s' WHERE guid=%u LIMIT 1;", ticket.c_str(), m_data[FLAG_GUID].intValue))
 	{
 		if(!quiet)
-			Send(SelectedServerRefusedMessage(G->GetID(), SERVER_CONNECTION_ERROR_NO_REASON, 
-				G->GetState(m_data[FLAG_LEVEL].intValue, IsSubscriber())));
+			Send(SelectedServerRefusedMessage(G->GetID(), SERVER_CONNECTION_ERROR_NO_REASON, state));
 		return false;
 	}
 
@@ -150,14 +150,13 @@ void Session::SendServersList()
 	};
 
 	std::tr1::unordered_map<uint16, Count> counts;
-	ResultPtr QR = Desperion::sDatabase->Query("SELECT serverID FROM character_counts WHERE accountGuid=%u;", m_data[FLAG_GUID].intValue);
+	ResultPtr QR = Desperion::sDatabase.Query("SELECT serverID FROM character_counts WHERE accountGuid=%u;", m_data[FLAG_GUID].intValue);
 	if(QR)
 	{
 		do
 		{
 			Field* fields = QR->Fetch();
-			uint16 serverID = fields[0].GetUInt16();
-			++counts[serverID].count;
+			++counts[fields[0].GetUInt16()].count;
 		}while(QR->NextRow());
 	}
 	
@@ -196,7 +195,7 @@ void Session::HandleIdentificationMessage(ByteBuffer& packet)
 
 	const char* query = "SELECT password, guid, question, pseudo, logged, level, lastServer, subscriptionEnd, banEnd FROM accounts \
 						WHERE LOWER(account)='%s' LIMIT 1;";
-	ResultPtr QR = Desperion::sDatabase->Query(query, Desperion::ToLowerCase(Desperion::sDatabase->EscapeString(data.login)).c_str());
+	ResultPtr QR = Desperion::sDatabase.Query(query, Desperion::ToLowerCase(Desperion::sDatabase.EscapeString(data.login)).c_str());
 	
 	if(!QR)
 	{
@@ -229,7 +228,7 @@ void Session::HandleIdentificationMessage(ByteBuffer& packet)
 	}
 
 	Field* fields = QR->Fetch();
-	if(Desperion::ToLowerCase(std::string(fields[0].GetString())) != Desperion::ComputeMD5Digest(result))
+	if(std::istring(fields[0].GetString()) != Desperion::ComputeMD5Digest(result))
 	{
 		Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
 		m_socket->close();
@@ -239,7 +238,7 @@ void Session::HandleIdentificationMessage(ByteBuffer& packet)
 	int guid = fields[1].GetUInt32();
 	time_t banEnd = fields[8].GetUInt64();
 	if(banEnd < time(NULL))
-		Desperion::sDatabase->Execute("UPDATE accounts SET banEnd=0 WHERE guid=%u LIMIT 1;", guid);
+		Desperion::sDatabase.Execute("UPDATE accounts SET banEnd=0 WHERE guid=%u LIMIT 1;", guid);
 	else
 	{
 		Send(IdentificationFailedBannedMessage(BANNED, banEnd));
@@ -247,12 +246,27 @@ void Session::HandleIdentificationMessage(ByteBuffer& packet)
 		return;
 	}
 
-	Session* S = World::Instance().GetSession(guid);
+	uint16 logged = fields[4].GetUInt16();
 	bool alreadyConnected = false;
+	Session* S = World::Instance().GetSession(guid);
 	if(S != NULL)
 	{
 		alreadyConnected = true;
 		S->GetSocket()->close();
+	}
+	else if(logged != 0)
+	{
+		GameSession* G = World::Instance().GetGameSession(logged);
+		if(G != NULL)
+		{
+			G->SendDisconnectPlayerMessage(guid);
+			alreadyConnected = true;
+		}
+		else if(World::Instance().GetGameServer(logged) != NULL)
+		{
+			Send(IdentificationFailedMessage(SPARE));
+			return;
+		}
 	}
 
 	m_subscriptionEnd = fields[7].GetUInt64();

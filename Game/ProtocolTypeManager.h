@@ -30,6 +30,7 @@ class HouseInformations;
 class InteractiveElementSkill;
 class FightTeamInformations;
 class FightTeamMemberInformations;
+class PartyInvitationMemberInformations;
 
 namespace Desperion
 {
@@ -47,6 +48,7 @@ namespace Desperion
 		static InteractiveElementSkill* GetInteractiveElementSkill(uint16);
 		static FightTeamInformations* GetFightTeamInformations(uint16);
 		static FightTeamMemberInformations* GetFightTeamMemberInformations(uint16);
+		static PartyInvitationMemberInformations* GetPartyInvitationMemberInformations(uint16);
 	};
 };
 

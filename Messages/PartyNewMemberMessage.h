@@ -30,6 +30,10 @@ public:
 	{
 	}
 
+	PartyNewMemberMessage(int partyId, PartyMemberInformations* memberInformations) : PartyUpdateMessage(partyId, memberInformations)
+	{
+	}
+
 	void Serialize(ByteBuffer& data)
 	{
 		PartyUpdateMessage::Serialize(data);

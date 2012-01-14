@@ -20,22 +20,17 @@
 
 template<> World * Singleton<World>::m_singleton = NULL;
 
-void World::Send(DofusMessage& data)
+void World::Send(DofusMessage& data, bool admin)
 {
-	boost::mutex::scoped_lock lock(SessionsMutex);
+	boost::shared_lock<boost::shared_mutex> lock(SessionsMutex);
 	for(SessionMap::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
-		it->second->Send(data);
-}
-
-World::World()
-{
-	m_maxPlayers = 0;
-	m_hiCharacterGuid = 0;
+		if(!admin || it->second->GetData(FLAG_LEVEL).intValue > 0)
+			it->second->Send(data);
 }
 
 void World::SaveAll()
 {
-	boost::mutex::scoped_lock lock(SessionsMutex);
+	boost::shared_lock<boost::shared_mutex> lock(SessionsMutex);
 	for(SessionMap::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
 	{
 		if(it->second->GetData(FLAG_GUID).intValue != 0)
@@ -49,7 +44,11 @@ void World::SaveAll()
 
 World::~World()
 {
-	// les sessions sont delete par le ~io_service du Master (ce sont des shared_ptr)
+	for(SessionMap::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
+	{
+		delete it->second->GetParty();
+		it->second->SetParty(NULL);
+	}
 	Sessions.clear();
 
 	for(CharacterMinimalsMap::iterator it = Characters.begin(); it != Characters.end(); ++it)
@@ -72,7 +71,11 @@ World::~World()
 		delete it->second;
 	SubAreas.clear();
 
-	Desperion::sDatabase->Execute("DELETE FROM character_items WHERE owner=-1;");
+	for(MonsterMap::iterator it = Monsters.begin(); it != Monsters.end(); ++it)
+		delete it->second;
+	Monsters.clear();
+
+	Desperion::sDatabase.Execute("DELETE FROM character_items WHERE owner=-1;");
 }
 
 /*void ReadData(D2oFile* file, std::string name)
@@ -148,7 +151,7 @@ void CreateSchema()
 
 void World::Init()
 {
-	boost::threadpool::pool tp(boost::thread::hardware_concurrency() + 1);
+	boost::threadpool::pool tp(boost::thread::hardware_concurrency());
 	Log::Instance().outNotice("World", "Loading world...");
 	tp.schedule(boost::bind(&World::LoadSubAreas, this));
 	tp.wait();
@@ -156,18 +159,89 @@ void World::Init()
 	tp.schedule(boost::bind(&World::LoadItemSets, this));
 	tp.schedule(boost::bind(&World::LoadItems, this));
 	tp.schedule(boost::bind(&World::LoadMaps, this));
+	tp.schedule(boost::bind(&World::LoadMonsters, this));
 	tp.wait();
+	SpawnMonsters();
 	Log::Instance().outNotice("World", "World loaded!\n\n");
 
 	Session::InitHandlersTable();
 	Session::InitCommandsTable();
 }
 
+void World::SpawnMonsters()
+{
+	Log::Instance().outNotice("World", "Spawning monsters...");
+	uint32 time = getMSTime();
+
+	struct stream
+	{
+		SubAreaMap::iterator it;
+
+		bool pop_if_present(SubAreaMap::iterator& it)
+		{
+			if(this->it != World::Instance().SubAreas.end())
+			{
+				it = this->it;
+				++(this->it);
+				return true;
+			}
+			else
+				return false;
+		}
+
+		stream() : it(World::Instance().SubAreas.begin())
+		{
+		}
+	};
+	struct apply
+	{
+		typedef SubAreaMap::iterator argument_type; 
+
+		void operator()(SubAreaMap::iterator it) const
+		{
+			if(!it->second->GetPossibleSpawns().empty())
+			{
+				std::list<Map*>& maps = it->second->GetMaps();
+				time_t now = ::time(NULL);
+				for(std::list<Map*>::iterator it2 = maps.begin(); it2 != maps.end(); ++it2)
+					if((*it2)->SpawnSubAreaMonsters())
+						(*it2)->SpawnMonsters(it->second, now);
+			}
+		}
+	};
+
+	tbb::parallel_while<apply> w;
+	stream s;
+	apply a;
+	w.run(s, a);
+	Log::Instance().outNotice("World", "Monsters spawned in %ums!", getMSTime() - time);
+}
+
+void World::LoadMonsters()
+{
+	uint32 time = getMSTime();
+	ResultPtr QR = Desperion::sDatabase.Query("SELECT id, gfxId, race, grades, look, canPlay, canTackle, isBoss, monster_stats.stats, \
+												monster_stats.minRespawnTime FROM d2o_monster JOIN monster_stats ON \
+												d2o_monster.id=monster_stats.monsterId;");
+	if(!QR)
+		return;
+	do
+	{
+		Field* fields = QR->Fetch();
+		Monster* m = new Monster;
+		std::tr1::unordered_map<int, std::string>::value_type;
+		m->Init(fields);
+		Monsters[m->GetId()] = m;
+	}while(QR->NextRow());
+
+	Log::Instance().outNotice("World", "%u monsters loaded in %ums!", Monsters.size(), getMSTime() - time);
+}
+
 void World::LoadSubAreas()
 {
 	uint32 time = getMSTime();
-	ResultPtr QR = Desperion::sDatabase->Query("SELECT d2o_sub_area.id, areaId, mapIds, sub_area_spawns.spawns FROM d2o_sub_area JOIN sub_area_spawns ON \
-											   d2o_sub_area.id=sub_area_spawns.id;");
+	ResultPtr QR = Desperion::sDatabase.Query("SELECT d2o_sub_area.id, areaId, mapIds, sub_area_spawns.spawns FROM d2o_sub_area \
+											   JOIN sub_area_spawns ON d2o_sub_area.id=sub_area_spawns.id;");
 	if(!QR)
 		return;
 	do
@@ -175,8 +249,6 @@ void World::LoadSubAreas()
 		Field* fields = QR->Fetch();
 		SubArea* s = new SubArea;
 		s->Init(fields);
-		std::vector<int> maps;
-		Desperion::FastSplit<','>(maps, std::string(fields[2].GetString()), Desperion::SplitInt);
 		SubAreas[s->GetId()] = s;
 	}while(QR->NextRow());
 
@@ -186,7 +258,9 @@ void World::LoadSubAreas()
 void World::LoadItems()
 {
 	uint32 time = getMSTime();
-	ResultPtr QR = Desperion::sDatabase->Query("SELECT id, typeId, level, realWeight, cursed, useAnimationId, usable, targetable, price, twoHanded, etheral, itemSetId, criteria, appearanceId, possibleEffects, favoriteSubAreas, favoriteSubAreasBonus FROM d2o_item;");
+	ResultPtr QR = Desperion::sDatabase.Query("SELECT id, typeId, level, realWeight, cursed, useAnimationId, usable, targetable, price, \
+											  twoHanded, etheral, itemSetId, criteria, appearanceId, possibleEffects, favoriteSubAreas, \
+											  favoriteSubAreasBonus FROM d2o_item;");
 	if(!QR)
 		return;
 	do
@@ -197,7 +271,10 @@ void World::LoadItems()
 		Items[i->GetId()] = i;
 	}while(QR->NextRow());
 	
-	QR = Desperion::sDatabase->Query("SELECT id, typeId, level, realWeight, cursed, useAnimationId, usable, targetable, price, twoHanded, etheral, itemSetId, criteria, appearanceId, possibleEffects, favoriteSubAreas, favoriteSubAreasBonus, `range`, criticalHitBonus, minRange, castTestLos, criticalFailureProbability, criticalHitProbability, apCost, castInLine FROM d2o_weapon;");
+	QR = Desperion::sDatabase.Query("SELECT id, typeId, level, realWeight, cursed, useAnimationId, usable, targetable, price, twoHanded, \
+									etheral, itemSetId, criteria, appearanceId, possibleEffects, favoriteSubAreas, favoriteSubAreasBonus, \
+									`range`, criticalHitBonus, minRange, castTestLos, criticalFailureProbability, criticalHitProbability, \
+									apCost, castInLine FROM d2o_weapon;");
 	if(!QR)
 		return;
 	do
@@ -207,14 +284,14 @@ void World::LoadItems()
 		w->Init(fields);
 		Items[w->GetId()] = w;
 	}while(QR->NextRow());
-	
+
 	Log::Instance().outNotice("World", "%u items loaded in %ums!", Items.size(), getMSTime() - time);
 }
 
 void World::LoadItemSets()
 {
 	uint32 time = getMSTime();
-	ResultPtr QR = Desperion::sDatabase->Query("SELECT id, effects FROM d2o_item_set;");
+	ResultPtr QR = Desperion::sDatabase.Query("SELECT id, effects FROM d2o_item_set;");
 	if(!QR)
 		return;
 	do
@@ -231,8 +308,8 @@ void World::LoadItemSets()
 void World::LoadMaps()
 {
 	uint32 time = getMSTime();
-	ResultPtr QR = Desperion::sDatabase->Query("SELECT maps.*, posX, posY, capabilities, subAreaId FROM maps JOIN d2o_map_position \
-		ON maps.id = d2o_map_position.id;");
+	ResultPtr QR = Desperion::sDatabase.Query("SELECT maps.*, posX, posY, capabilities, subAreaId FROM maps JOIN d2o_map_position \
+											  ON maps.id = d2o_map_position.id;");
 	if(!QR)
 		return;
 	do
@@ -251,7 +328,7 @@ void World::LoadMaps()
 void World::LoadCharacterMinimals()
 {
 	uint32 time = getMSTime();
-	ResultPtr QR = Desperion::sDatabase->Query("SELECT * FROM character_minimals ORDER BY id DESC;");
+	ResultPtr QR = Desperion::sDatabase.Query("SELECT * FROM character_minimals ORDER BY id DESC;");
 	if(!QR)
 		return;
 	do
@@ -269,142 +346,130 @@ void World::LoadCharacterMinimals()
 
 Map* World::GetMap(int id)
 {
-	Map* map = NULL;
-	boost::mutex::scoped_lock lock(MapsMutex);
 	MapMap::iterator it = Maps.find(id);
 	if(it != Maps.end())
-	{
-		map = it->second;
-		if(!map->IsBuilt())
-			map->Build();
-	}
-	return map;
+		return it->second;
+	return NULL;
+}
+
+Monster* World::GetMonster(int id)
+{
+	MonsterMap::iterator it = Monsters.find(id);
+	if(it != Monsters.end())
+		return it->second;
+	return NULL;
 }
 
 Map* World::GetMap(int16 x, int16 y)
 {
-	Map* map = NULL;
-	boost::mutex::scoped_lock lock(MapsMutex);
 	for(MapMap::iterator it = Maps.begin(); it != Maps.end(); ++it)
-	{
 		if(it->second->GetPosX() == x && it->second->GetPosY() == y)
-		{
-			map = it->second;
-			if(!map->IsBuilt())
-				map->Build();
-			break;
-		}
-	}
-	return map;
+			return it->second;
+	return NULL;
 }
 
 CharacterMinimals* World::GetCharacterMinimals(std::string name)
 {
-	CharacterMinimals* ch = NULL;
 	name = Desperion::ToLowerCase(name);
-	boost::mutex::scoped_lock lock(CharactersMutex);
+	boost::shared_lock<boost::shared_mutex> lock(CharactersMutex);
 	for(CharacterMinimalsMap::iterator it = Characters.begin(); it != Characters.end(); ++it)
-	{
 		if(Desperion::ToLowerCase(it->second->name) == name)
-		{
-			ch = it->second;
-			break;
-		}
-	}
-	return ch;
+			return it->second;
+	return NULL;
 }
 
 void World::AddCharacterMinimals(CharacterMinimals* ch)
 {
-	boost::mutex::scoped_lock lock(CharactersMutex);
+	boost::unique_lock<boost::shared_mutex> lock(CharactersMutex);
 	Characters[ch->id] = ch;
 }
 
 CharacterMinimals* World::GetCharacterMinimals(int guid)
 {
-	CharacterMinimals* ch = NULL;
-	boost::mutex::scoped_lock lock(CharactersMutex);
+	boost::shared_lock<boost::shared_mutex> lock(CharactersMutex);
 	CharacterMinimalsMap::iterator it = Characters.find(guid);
 	if(it != Characters.end())
-		ch = it->second;
-	return ch;
+		return it->second;
+	return NULL;
 }
 
 void World::DeleteCharacterMinimals(int guid)
 {
-	boost::mutex::scoped_lock lock(CharactersMutex);
+	boost::unique_lock<boost::shared_mutex> lock(CharactersMutex);
 	CharacterMinimalsMap::iterator it = Characters.find(guid);
 	if(it != Characters.end())
 		Characters.erase(it);
 }
 
-std::list<CharacterMinimals*> World::GetCharactersByAccount(int guid)
+std::list<CharacterMinimals*> World::GetCharactersByAccount(int guid, bool sort)
 {
 	std::list<CharacterMinimals*> result;
-	boost::mutex::scoped_lock lock(CharactersMutex);
-	for(CharacterMinimalsMap::iterator it = Characters.begin(); it != Characters.end(); ++it)
-		if(it->second->account == guid)
-			result.push_back(it->second);
+	{
+		boost::shared_lock<boost::shared_mutex> lock(CharactersMutex);
+		for(CharacterMinimalsMap::iterator it = Characters.begin(); it != Characters.end(); ++it)
+			if(it->second->account == guid)
+				result.push_back(it->second);
+	}
+	if(sort)
+	{
+		struct sort
+		{
+			bool operator()(CharacterMinimals* ch1, CharacterMinimals* ch2)
+			{ return ch1->lastConnectionDate > ch2->lastConnectionDate; }
+		};
+		result.sort(sort());
+	}
 	return result;
 }
 
 Item* World::GetItem(int id)
 {
-	Item* i = NULL;
-	boost::mutex::scoped_lock lock(ItemsMutex);
 	ItemMap::iterator it = Items.find(id);
 	if(it != Items.end())
-		i = it->second;
-	return i;
+		return it->second;
+	return NULL;
 }
 
 ItemSet* World::GetItemSet(int16 id)
 {
-	ItemSet* i = NULL;
-	boost::mutex::scoped_lock lock(ItemSetsMutex);
 	ItemSetMap::iterator it = ItemSets.find(id);
 	if(it != ItemSets.end())
-		i = it->second;
-	return i;
+		return it->second;
+	return NULL;
 }
 
 void World::AddSession(Session* s)
 {
-	boost::mutex::scoped_lock lock(SessionsMutex);
-	Sessions[s->GetData(FLAG_GUID).intValue] = s;
+	{
+		boost::unique_lock<boost::shared_mutex> lock(SessionsMutex);
+		Sessions[s->GetData(FLAG_GUID).intValue] = s;
+	}
 	if(Sessions.size() > m_maxPlayers)
 		m_maxPlayers = Sessions.size();
 }
 
 Session* World::GetSession(int guid)
 {
-	Session* s = NULL;
-	boost::mutex::scoped_lock lock(SessionsMutex);
+	boost::shared_lock<boost::shared_mutex> lock(SessionsMutex);
 	SessionMap::iterator it = Sessions.find(guid);
 	if(it != Sessions.end())
-		s = it->second;
-	return s;
+		return it->second;
+	return NULL;
 }
 
 Session* World::GetSession(std::string pseudo)
 {
 	pseudo = Desperion::ToLowerCase(pseudo);
-	Session* s= NULL;
-	boost::mutex::scoped_lock lock(SessionsMutex);
+	boost::shared_lock<boost::shared_mutex> lock(SessionsMutex);
 	for(SessionMap::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
-	{
 		if(Desperion::ToLowerCase(it->second->GetData(FLAG_PSEUDO).stringValue) == pseudo)
-		{
-			s = it->second;
-			break;
-		}
-	}
-	return s;
+			return it->second;
+	return NULL;
 }
 
 void World::DeleteSession(int guid)
 {
-	boost::mutex::scoped_lock lock(SessionsMutex);
+	boost::unique_lock<boost::shared_mutex> lock(SessionsMutex);
 	SessionMap::iterator it = Sessions.find(guid);
 	if(it != Sessions.end())
 		Sessions.erase(it);

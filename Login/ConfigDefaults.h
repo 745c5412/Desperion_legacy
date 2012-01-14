@@ -63,4 +63,7 @@
 #define PUB_FILE_PATH_STRING "PubFilePath"
 #define PUB_FILE_PATH_DEFAULT "pub.der"
 
+#define MAX_IDLE_TIME_STRING "MaxIdleTime"
+#define MAX_IDLE_TIME_DEFAULT 15
+
 #endif

@@ -59,7 +59,7 @@ void Session::HandleGameContextCreateRequestMessage(ByteBuffer& packet)
 	args.push_back(m_data[FLAG_PSEUDO].stringValue);
 	args.push_back(m_char->GetName());
 	uint8 count = 0;
-	for(boost::bimap<int, std::string>::iterator it = m_friends.begin(); it != m_friends.end(); ++it)
+	for(boost::bimap<int, std::istring>::iterator it = m_friends.begin(); it != m_friends.end(); ++it)
 	{
 		Session* S = World::Instance().GetSession(it->get_left());
 		if(S == NULL)

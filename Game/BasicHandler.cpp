@@ -46,23 +46,7 @@ void Session::HandleBasicWhoIsRequestMessage(ByteBuffer& packet)
 	BasicWhoIsRequestMessage data;
 	data.Deserialize(packet);
 
-	Session* s = NULL;
-	if(!data.search.empty())
-	{
-		if(data.search.size() > 2 && data.search.at(0) == '*')
-		{
-			s = World::Instance().GetSession(data.search.substr(1));
-			if(s->GetCharacter() == NULL)
-				s = NULL;
-		}
-		else
-		{
-			CharacterMinimals* c = World::Instance().GetCharacterMinimals(data.search);
-			if(c != NULL && c->onlineCharacter != NULL)
-				s = c->onlineCharacter->GetSession();
-		}
-	}
-
+	Session* s = SearchForSession(data.search);
 	if(s == NULL)
 	{
 		Send(BasicWhoIsNoMatchMessage(data.search));

@@ -209,7 +209,7 @@ void Session::HandleObjectDeleteMessage(ByteBuffer& packet)
 		ConditionsParser P(m_char->GetEmotes(), m_char->GetItems(), m_char->GetName());
 		DofusUtils::LoopItemConditions(P, this);
 		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), m_char->GetLook()));
-		Send(GetCharacterStatsListMessage());
+		SendCharacterStatsListMessage();
 	}
 	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
 }
@@ -254,7 +254,7 @@ void Session::HandleObjectDropMessage(ByteBuffer& packet)
 		}
 		Cell curcell = m_char->GetMap()->GetCell(cellID);
 		if(curcell.id == -1 || (curcell.losmov & 128) >> 7 == 1 ||
-			m_char->GetMap()->GetItem(cellID) != NULL || m_char->GetMap()->EntityOnCell(cellID))
+			m_char->GetMap()->GetItem(cellID) != NULL || m_char->GetMap()->GetEntityOnCell(cellID) != NULL)
 		{
 			cellID = -1;
 			continue;
@@ -293,7 +293,7 @@ void Session::HandleObjectDropMessage(ByteBuffer& packet)
 		ConditionsParser P(m_char->GetEmotes(), m_char->GetItems(), m_char->GetName());
 		DofusUtils::LoopItemConditions(P, this);
 		Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), m_char->GetLook()));
-		Send(GetCharacterStatsListMessage());
+		SendCharacterStatsListMessage();
 	}
 	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
 }
@@ -396,6 +396,6 @@ void Session::HandleObjectSetPositionMessage(ByteBuffer& packet)
 	DofusUtils::LoopItemConditions(P, this);
 
 	Send(GameContextRefreshEntityLookMessage(m_char->GetGuid(), m_char->GetLook()));
-	Send(GetCharacterStatsListMessage());
+	SendCharacterStatsListMessage();
 	Send(InventoryWeightMessage(m_char->GetCurrentPods(), m_char->GetMaxPods()));
 }

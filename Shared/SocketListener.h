@@ -19,32 +19,24 @@
 #ifndef __SOCKET_LISTENER__
 #define __SOCKET_LISTENER__
 
-typedef boost::asio::ip::tcp::acceptor Acceptor;
-typedef boost::asio::ip::tcp::endpoint Endpoint;
-typedef boost::asio::ip::tcp::socket Socket;
-typedef boost::asio::io_service Service;
-
 template<class T>
 class SocketListener
 {
 public:
 	typedef boost::shared_ptr<T> SessionPtr;
 private:
-	Acceptor* m_acceptor;
-	Socket* m_socket;
-	Service& m_service;
+	boost::asio::ip::tcp::acceptor* m_acceptor;
+	boost::asio::ip::tcp::socket* m_socket;
 public:
-	SocketListener(Service& service) : m_service(service)
+	SocketListener()
 	{
-		m_acceptor = NULL;
-		m_socket = NULL;
 	}
 
 	void Init(uint16 port)
 	{
-		m_acceptor = new boost::asio::ip::tcp::acceptor(m_service, 
+		m_acceptor = new boost::asio::ip::tcp::acceptor(ThreadPool::Instance().GetIoService(), 
 			boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v6(), port));
-		m_socket = new Socket(m_service);
+		m_socket = new boost::asio::ip::tcp::socket(ThreadPool::Instance().GetIoService());
 	}
 
 	~SocketListener()
@@ -61,7 +53,7 @@ public:
 			return;
 		SessionPtr session(new T);
 		session->Init(m_socket);
-		m_socket = new Socket(m_service);
+		m_socket = new boost::asio::ip::tcp::socket(ThreadPool::Instance().GetIoService());
 		session->Start();
 		Run();
 	}

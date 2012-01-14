@@ -29,6 +29,10 @@ public:
 	PartyDeletedMessage()
 	{
 	}
+	
+	PartyDeletedMessage(int partyId) : AbstractPartyMessage(partyId)
+	{
+	}
 
 	void Serialize(ByteBuffer& data)
 	{

@@ -44,12 +44,55 @@ private:
 	int m_areaId;
 	std::list<Map*> m_maps;
 	std::vector<MonsterSpawnInformations> m_spawns;
+	std::map<int, uint16> m_monsterCounts;
+	std::map<int, time_t> m_monsterSpawnDates;
 public:
 	SubArea()
 	{
 	}
 
+	time_t GetMonsterSpawnDate(int id)
+	{
+		std::map<int, time_t>::iterator it = m_monsterSpawnDates.find(id);
+		if(it == m_monsterSpawnDates.end())
+		{
+			m_monsterSpawnDates[id] = 0;
+			return 0;
+		}
+		return it->second;
+	}
+
+	void SetMonsterSpawnDate(int id, time_t date)
+	{ m_monsterSpawnDates[id] = date; }
+	
+	uint16 GetMonsterCount(int id)
+	{
+		std::map<int, uint16>::iterator it = m_monsterCounts.find(id);
+		if(it == m_monsterCounts.end())
+		{
+			m_monsterCounts[id] = 0;
+			return 0;
+		}
+		return it->second;
+	}
+
+	void IncMonsterCount(int id)
+	{
+		std::map<int, uint16>::iterator it = m_monsterCounts.find(id);
+		if(it == m_monsterCounts.end())
+			m_monsterCounts[id] = 1;
+		else
+			++m_monsterCounts[id];
+	}
+
+	std::vector<MonsterSpawnInformations>& GetPossibleSpawns()
+	{ return m_spawns; }
+
+	std::list<Map*>& GetMaps()
+	{ return m_maps; }
+
 	void Init(Field*);
+	void Send(DofusMessage&);
 
 	int16 GetId() const
 	{ return m_id; }

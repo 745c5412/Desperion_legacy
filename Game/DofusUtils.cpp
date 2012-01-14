@@ -248,6 +248,7 @@ namespace DofusUtils
 			if(pos == ACCESSORY_POSITION_CAPE)
 				return true;
 			break;
+		case 121:
 		case 18:
 			if(pos == ACCESSORY_POSITION_PETS)
 				return true;

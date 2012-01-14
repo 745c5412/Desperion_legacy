@@ -63,7 +63,7 @@ namespace Desperion
 					return (param1 & 128) != 0;
 				}
 				default:
-					throw ServerError("Bytes overflow");
+					throw std::exception("Bytes overflow");
 			}
 		}
 
@@ -168,7 +168,7 @@ namespace Desperion
 					break;
 				}
 				default:
-					throw ServerError("Bytes overflow");
+					throw std::exception("Bytes overflow");
 			}
 		}
 	};

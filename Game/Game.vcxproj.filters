@@ -78,9 +78,6 @@
     <ClCompile Include="Entity.cpp">
       <Filter>Objects\CPP</Filter>
     </ClCompile>
-    <ClCompile Include="Path.cpp">
-      <Filter>Desperion\CPP</Filter>
-    </ClCompile>
     <ClCompile Include="AdminHandler.cpp">
       <Filter>Handlers</Filter>
     </ClCompile>
@@ -115,6 +112,15 @@
       <Filter>Objects\CPP</Filter>
     </ClCompile>
     <ClCompile Include="SubEntity.cpp" />
+    <ClCompile Include="Monster.cpp">
+      <Filter>Objects\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Party.cpp">
+      <Filter>Objects\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="PartyHandler.cpp">
+      <Filter>Handlers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StdAfx.h">
@@ -178,6 +184,12 @@
       <Filter>Desperion\H</Filter>
     </ClInclude>
     <ClInclude Include="Subarea.h">
+      <Filter>Objects\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Monster.h">
+      <Filter>Objects\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Party.h">
       <Filter>Objects\H</Filter>
     </ClInclude>
   </ItemGroup>

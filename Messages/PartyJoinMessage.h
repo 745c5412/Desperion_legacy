@@ -48,7 +48,7 @@ public:
 		data<<size;
 		for(uint16 a = 0; a < size; ++a)
 			members[a]->Serialize(data);
-		uint16 size = guests.size();
+		size = guests.size();
 		data<<size;
 		for(uint16 a = 0; a < size; ++a)
 			guests[a]->Serialize(data);
@@ -69,7 +69,6 @@ public:
 			members.push_back(model);
 		}
 		guests.clear();
-		uint16 size;
 		data>>size;
 		for(uint16 a = 0; a < size; ++a)
 		{

@@ -69,27 +69,26 @@ bool Database::Init(std::string host, uint16 port, std::string user, std::string
 	return true;
 }
 
-bool Database::Reconnect(Connection * conn)
+bool Database::Reconnect(Connection* conn)
 {
 	MYSQL * temp, *temp2;
 
-	temp = mysql_init( NULL );
-	temp2 = mysql_real_connect( temp, m_hostName.c_str(), m_userName.c_str(), m_password.c_str(), m_databaseName.c_str(), m_port, NULL , 0 );
-	if( temp2 == NULL )
+	temp = mysql_init(NULL);
+	temp2 = mysql_real_connect(temp, m_hostName.c_str(), m_userName.c_str(), m_password.c_str(), m_databaseName.c_str(), m_port, NULL, 0);
+	if(temp2 == NULL)
 	{
-		Log::Instance().outError("Database: Could not reconnect to database because of `%s`", mysql_error( temp ) );
-		mysql_close( temp );
+		Log::Instance().outError("Database: Could not reconnect to database because of `%s`", mysql_error(temp));
+		mysql_close(temp);
 		return false;
 	}
 
-	if( conn->conn != NULL )
-		mysql_close( conn->conn );
-
+	if(conn->conn != NULL)
+		mysql_close(conn->conn);
 	conn->conn = temp;
 	return true;
 }
 
-bool Database::HandleError(Connection * con, uint32 errorNumber)
+bool Database::HandleError(Connection* con, uint32 errorNumber)
 {
 	// Handle errors that should cause a reconnect to the Database.
 	switch(errorNumber)
@@ -107,17 +106,16 @@ bool Database::HandleError(Connection * con, uint32 errorNumber)
 	return false;
 }
 
-bool Database::SendQuery(Connection* con, const char* Sql, bool Self)
+bool Database::SendQuery(Connection* con, const char* sql, bool self)
 {
-	int result = mysql_query(con->conn, Sql);
+	int result = mysql_query(con->conn, sql);
 	if(result > 0)
 	{
-		if( Self == false && HandleError(con, mysql_errno( con->conn ) ) )
-			result = SendQuery(con, Sql, true);
+		if(self == false && HandleError(con, mysql_errno(con->conn)))
+			result = SendQuery(con, sql, true);
 		else
-			Log::Instance().outError("Database: Sql query failed due to [%s], Query: [%s]\n", mysql_error( con->conn ), Sql);
+			Log::Instance().outError("Database: Sql query failed due to [%s], Query: [%s]\n", mysql_error(con->conn), sql);
 	}
-
 	return (result == 0 ? true : false);
 }
 
@@ -126,45 +124,57 @@ Connection* Database::GetFreeConnection()
 	uint32 i = 0;
 	for(;;)
 	{
-		Connection * con = &m_connections[ ((i++) % m_connectionsNumber) ];
+		Connection * con = &m_connections[((i++) % m_connectionsNumber)];
 		if(con->lock.try_lock())
 			return con;
-
-		if( !(i % 20) )
+		if(!(i % 20))
 			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 	}
-
 	return NULL;
 }
 
-bool Database::Execute(const char* QueryString, ...)
+void Database::AsyncExecute(const char* queryString, ...)
 {
-	char query[32768];
-
+	char sql[32768];
 	va_list vlist;
-	va_start(vlist, QueryString);
-	vsnprintf_s(query, 32768, QueryString, vlist);
+	va_start(vlist, queryString);
+	vsnprintf_s(sql, 32768, queryString, vlist);
 	va_end(vlist);
+	ThreadPool::Instance().Schedule(boost::bind(&Database::_Execute, this, new std::string(sql)));
+}
 
+void Database::_Execute(std::string* sql)
+{
 	Connection* con = GetFreeConnection();
-	bool result = SendQuery(con, query, false);
+	bool result = SendQuery(con, (*sql).c_str(), false);
 	con->lock.unlock();
+	delete sql;
+}
 
+bool Database::Execute(const char* queryString, ...)
+{
+	char sql[32768];
+	va_list vlist;
+	va_start(vlist, queryString);
+	vsnprintf_s(sql, 32768, queryString, vlist);
+	va_end(vlist);
+	
+	Connection* con = GetFreeConnection();
+	bool result = SendQuery(con, sql, false);
+	con->lock.unlock();
 	return result;
 }
 
 ResultPtr Database::StoreResult(Connection* con)
 {
 	ResultPtr qResult;
-
-	MYSQL_RES * pRes = mysql_store_result( con->conn );
-	uint32 uRows = (uint32)mysql_affected_rows( con->conn );
-	uint32 uFields = (uint32)mysql_field_count( con->conn );
-
-	if( uRows == 0 || uFields == 0 || pRes == 0 )
+	MYSQL_RES * pRes = mysql_store_result(con->conn);
+	uint32 uRows = (uint32) mysql_affected_rows(con->conn);
+	uint32 uFields = (uint32) mysql_field_count(con->conn);
+	if(uRows == 0 || uFields == 0 || pRes == 0)
 	{
-		if( pRes != NULL )
-			mysql_free_result( pRes );
+		if(pRes != NULL)
+			mysql_free_result(pRes);
 		return qResult;
 	}
 
@@ -173,31 +183,27 @@ ResultPtr Database::StoreResult(Connection* con)
 	return qResult;
 }
 
-ResultPtr Database::Query(const char* QueryString, ...)
+ResultPtr Database::Query(const char* queryString, ...)
 {	
 	char sql[32768];
 	va_list vlist;
-	va_start(vlist, QueryString);
-	vsnprintf_s(sql, 32768, QueryString, vlist);
+	va_start(vlist, queryString);
+	vsnprintf_s(sql, 32768, queryString, vlist);
 	va_end(vlist);
-
-	// Send the query
+	
 	ResultPtr qResult;
 	Connection * con = GetFreeConnection();
-
 	if(SendQuery(con, sql, false))
 		qResult = StoreResult(con);
 	con->lock.unlock();
-
 	return qResult;
 }
 
 std::string Database::EscapeString(std::string str)
 {
 	char a2[16384] = {0};
-
-	Connection * con = GetFreeConnection();
-	const char * ret;
+	Connection* con = GetFreeConnection();
+	const char* ret;
 	const char* escape = str.c_str();
 	if(mysql_real_escape_string(con->conn, a2, escape, (unsigned long)str.length()) == 0)
 		ret = escape;

@@ -20,12 +20,12 @@
 #define __STDAFX__
 
 #define GAME_VERSION_MAJOR 0
-#define GAME_VERSION_MINOR 8
-#define GAME_VERSION_REVISION 3
+#define GAME_VERSION_MINOR 9
+#define GAME_VERSION_REVISION 0
 
 #define REQUIRED_SHARED_VERSION_MAJOR 0
 #define REQUIRED_SHARED_VERSION_MINOR 0
-#define REQUIRED_SHARED_VERSION_REVISION 3
+#define REQUIRED_SHARED_VERSION_REVISION 4
 
 #include "../Shared/StdAfx.h"
 
@@ -90,13 +90,18 @@
 #include "../Models/FightTeamInformations.h"
 #include "../Models/FightOptionsInformations.h"
 #include "../Models/FightCommonInformations.h"
+#include "../Models/PartyGuestInformations.h"
+#include "../Models/PartyInvitationMemberInformations.h"
+#include "../Models/PartyMemberInformations.h"
+#include "../Models/PartyUpdateCommonsInformations.h"
+#include "../Models/MonsterInGroupInformations.h"
+#include "../Models/GroupMonsterStaticInformations.h"
+#include "../Models/GameRolePlayGroupMonsterInformations.h"
 
 #include "CharacterStats.h"
 #include "PlayerItem.h"
 #include "Item.h"
 #include "Weapon.h"
-#include "Map.h"
-#include "Path.h"
 #include "GameClient.h"
 
 #include "../Messages/AuthenticationTicketMessage.h"
@@ -219,12 +224,49 @@
 #include "../Messages/CharacterStatsListMessage.h"
 #include "../Messages/MapComplementaryInformationsDataMessage.h"
 #include "../Messages/GameRolePlayShowActorMessage.h"
+#include "../Messages/NotificationUpdateFlagMessage.h"
+#include "../Messages/NotificationByServerMessage.h"
+#include "../Messages/NotificationListMessage.h"
+#include "../Messages/NotificationResetMessage.h"
+#include "../Messages/AbstractPartyMessage.h"
+#include "../Messages/AbstractPartyEventMessage.h"
+#include "../Messages/PartyMemberRemoveMessage.h"
+#include "../Messages/PartyKickRequestMessage.h"
+#include "../Messages/PartyKickedByMessage.h"
+#include "../Messages/PartyAbdicateThroneMessage.h"
+#include "../Messages/PartyAcceptInvitationMessage.h"
+#include "../Messages/PartyCancelInvitationMessage.h"
+#include "../Messages/PartyCancelInvitationNotificationMessage.h"
+#include "../Messages/PartyCannotJoinErrorMessage.h"
+#include "../Messages/PartyDeletedMessage.h"
+#include "../Messages/PartyFollowStatusUpdateMessage.h"
+#include "../Messages/PartyFollowMemberRequestMessage.h"
+#include "../Messages/PartyFollowThisMemberRequestMessage.h"
+#include "../Messages/PartyInvitationCancelledForGuestMessage.h"
+#include "../Messages/PartyInvitationDetailsMessage.h"
+#include "../Messages/PartyInvitationDetailsRequestMessage.h"
+#include "../Messages/PartyInvitationMessage.h"
+#include "../Messages/PartyInvitationRequestMessage.h"
+#include "../Messages/PartyJoinMessage.h"
+#include "../Messages/PartyLeaveMessage.h"
+#include "../Messages/PartyLeaveRequestMessage.h"
+#include "../Messages/PartyMemberEjectedMessage.h"
+#include "../Messages/PartyUpdateMessage.h"
+#include "../Messages/PartyNewGuestMessage.h"
+#include "../Messages/PartyNewMemberMessage.h"
+#include "../Messages/PartyRefuseInvitationMessage.h"
+#include "../Messages/PartyRefuseInvitationNotificationMessage.h"
+#include "../Messages/PartyLeaderUpdateMessage.h"
+#include "../Messages/PartyNewMemberMessage.h"
 
 #include "SubArea.h"
 #include "Mount.h"
 #include "ItemSet.h"
 #include "Entity.h"
+#include "Monster.h"
+#include "Map.h"
 #include "Character.h"
 #include "Session.h"
+#include "Party.h"
 
 #endif

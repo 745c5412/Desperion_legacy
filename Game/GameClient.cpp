@@ -21,18 +21,12 @@
 template<> GameClient * Singleton<GameClient>::m_singleton = NULL;
 template<> GameClient::HandlerStorageMap AbstractSession<ComPacketHandler>::m_handlers;
 
-GameClient::~GameClient()
-{
-	delete m_timer;
-}
-
 void GameClient::Launch()
 {
-	if(m_timer == NULL)
-		m_timer = new boost::asio::deadline_timer(m_socket->io_service());
-	else
+	if(m_timer)
 		m_timer->cancel();
-	m_socket->close();
+	if(m_socket->is_open())
+		m_socket->close();
 	boost::asio::ip::tcp::endpoint host(boost::asio::ip::address::from_string(
 		Desperion::Config::Instance().GetParam<std::string>(DISTANT_SERVER_HOST_STRING, DISTANT_SERVER_HOST_DEFAULT)),
 		Desperion::Config::Instance().GetParam(DISTANT_SERVER_PORT_STRING, DISTANT_SERVER_PORT_DEFAULT));
@@ -44,11 +38,21 @@ void GameClient::HandleConnect(const boost::system::error_code& error)
 	if(error)
 	{
 		Log::Instance().outDebug("Problems with game client connection, waiting 5 seconds...");
-		m_timer->expires_from_now(boost::posix_time::seconds(5));
-		m_timer->async_wait(boost::bind(&GameClient::Launch, this));
+		ThreadPool::Instance().TimedSchedule(boost::bind(&GameClient::Launch, this), boost::posix_time::seconds(5));
 	}
 	else
 		Start();
+}
+
+void GameClient::HandleDisconnectPlayerMessage(ByteBuffer& data)
+{
+	int account;
+	data>>account;
+
+	Session* S = World::Instance().GetSession(account);
+	if(S == NULL)
+		return;
+	S->GetSocket()->close();
 }
 
 void GameClient::Start()
@@ -67,5 +71,8 @@ void GameClient::Start()
 	Packet::Pack(CMSG_STATE, dest, src);
 	_Send(dest);
 
+	m_timer = ThreadPool::Instance().PeriodicSchedule(boost::bind(&GameClient::SendPlayers, this),
+		boost::posix_time::seconds(Desperion::Config::Instance().GetParam(PLAYERS_UPDATE_INTERVAL_STRING,
+		PLAYERS_UPDATE_INTERVAL_DEFAULT)));
 	Run();
 }

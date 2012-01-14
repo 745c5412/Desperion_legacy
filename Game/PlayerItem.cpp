@@ -75,7 +75,7 @@ int PlayerItem::GetNextItemGuid()
 {
 	int guid = 1;
 	m_guidLock.lock();
-	ResultPtr QR = Desperion::sDatabase->Query("SELECT guid FROM character_items ORDER BY guid DESC;");
+	ResultPtr QR = Desperion::sDatabase.Query("SELECT guid FROM character_items ORDER BY guid DESC;");
 	if(QR)
 		guid = (QR->Fetch()[0].GetInt32()) + 1;
 	
@@ -85,7 +85,7 @@ int PlayerItem::GetNextItemGuid()
 
 void PlayerItem::InsertIntoDB(PlayerItem* item)
 {
-	Desperion::sDatabase->Execute("INSERT INTO character_items VALUES(%u, %u, %u, %u, '%s', %u);", item->GetGuid(),
+	Desperion::sDatabase.Execute("INSERT INTO character_items VALUES(%u, %u, %u, %u, '%s', %u);", item->GetGuid(),
 		item->GetItem()->GetId(), item->GetQuantity(), item->GetPos(), item->StatsToString().c_str(), 
 		item->GetOwner() ? item->GetOwner()->GetGuid() : 0);
 }
@@ -299,11 +299,11 @@ std::string PlayerItem::StatsToString()
 
 void PlayerItem::Save()
 {
-	Desperion::sDatabase->Execute("UPDATE character_items SET quantity=%u, pos=%u, stats='%s', owner=%u WHERE guid=%u LIMIT 1;",
+	Desperion::sDatabase.Execute("UPDATE character_items SET quantity=%u, pos=%u, stats='%s', owner=%u WHERE guid=%u LIMIT 1;",
 		m_quantity, m_pos, StatsToString().c_str(), m_owner ? m_owner->GetGuid() : -1, m_guid);
 }
 
 void PlayerItem::DeleteFromDB(int guid)
 {
-	Desperion::sDatabase->Execute("DELETE FROM character_items WHERE guid=%u LIMIT 1;", guid);
+	Desperion::sDatabase.Execute("DELETE FROM character_items WHERE guid=%u LIMIT 1;", guid);
 }

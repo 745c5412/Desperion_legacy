@@ -25,6 +25,9 @@
     <ClCompile Include="ByteBuffer.cpp">
       <Filter>Network\CPP</Filter>
     </ClCompile>
+    <ClCompile Include="ThreadPool.cpp">
+      <Filter>Shared\CPP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ByteBuffer.h">
@@ -66,9 +69,6 @@
     <ClInclude Include="BooleanByteWrapper.h">
       <Filter>Network\H</Filter>
     </ClInclude>
-    <ClInclude Include="ServerError.h">
-      <Filter>Shared\H</Filter>
-    </ClInclude>
     <ClInclude Include="Opcodes.h">
       <Filter>Network\H</Filter>
     </ClInclude>
@@ -86,6 +86,9 @@
     </ClInclude>
     <ClInclude Include="Utils.inl">
       <Filter>Utils\H</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadPool.h">
+      <Filter>Shared\H</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -19,9 +19,8 @@
 #ifndef __PACKET__
 #define __PACKET__
 
-class Packet
+namespace Packet
 {
-public:
 	static uint8 ComputeTypeLen(size_t size)
 	{
 		if(size > 0xffff)
@@ -57,6 +56,6 @@ public:
 		if(size > 0)
 			dest.AppendBytes(src.Contents(), size);
 	}
-};
+}
 
 #endif

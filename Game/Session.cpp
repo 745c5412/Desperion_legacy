@@ -42,10 +42,10 @@ IgnoredOnlineInformations* Session::GetIgnoredInformations()
 		m_char->GetBreed(), m_char->GetSex());
 }
 
-CharacterStatsListMessage Session::GetCharacterStatsListMessage()
+void Session::SendCharacterStatsListMessage()
 {
 	CharacterStats& s = m_char->GetStats();
-	return CharacterStatsListMessage(new CharacterCharacteristicsInformations(s.GetXp(), 0, 0, s.GetKamas(), s.GetStatsPoints(),
+	Send(CharacterStatsListMessage(new CharacterCharacteristicsInformations(s.GetXp(), 0, 0, s.GetKamas(), s.GetStatsPoints(),
 		s.GetSpellsPoints(), new ActorExtendedAlignmentInformations(s.GetAlignmentSide(), s.GetAlignmentValue(),
 		s.GetAlignmentGrade(), s.GetDishonor(), m_char->GetLevel(), s.GetHonor(), 0, 0, s.IsPvpEnabled()),
 		m_char->GetCurrentLife(), m_char->GetMaxLife(), s.GetEnergy(), 10000, s.GetCurrentAp(), s.GetCurrentMp(),
@@ -64,7 +64,7 @@ CharacterStatsListMessage Session::GetCharacterStatsListMessage()
 		s.pvpNeutralElementResistPercent.ToBase(), s.pvpEarthElementResistPercent.ToBase(), s.pvpWaterElementResistPercent.ToBase(),
 		s.pvpAirElementResistPercent.ToBase(), s.pvpFireElementResistPercent.ToBase(), s.pvpNeutralElementReduction.ToBase(),
 		s.pvpEarthElementReduction.ToBase(), s.pvpWaterElementReduction.ToBase(), s.pvpAirElementReduction.ToBase(),
-		s.pvpFireElementReduction.ToBase(), std::vector<CharacterSpellModificationPtr>()));
+		s.pvpFireElementReduction.ToBase(), std::vector<CharacterSpellModificationPtr>())));
 }
 
 void Session::LOG(const char* str, ...)
@@ -142,6 +142,15 @@ void Session::InitHandlersTable()
 	m_handlers[CMSG_GUILD_MEMBER_SET_WARN_ON_CONNECTION].Handler = &Session::HandleGuildMemberSetWarnOnConnectionMessage;
 	m_handlers[CMSG_FRIEND_ADD_REQUEST].Handler = &Session::HandleFriendAddRequestMessage;
 	m_handlers[CMSG_FRIEND_DELETE_REQUEST].Handler = &Session::HandleFriendDeleteRequestMessage;
+
+	m_handlers[CMSG_PARTY_INVITATION_REQUEST].Handler = &Session::HandlePartyInvitationRequestMessage;
+	m_handlers[CMSG_PARTY_REFUSE_INVITATION].Handler = &Session::HandlePartyRefuseInvitationMessage;
+	m_handlers[CMSG_PARTY_ACCEPT_INVITATION].Handler = &Session::HandlePartyAcceptInvitationMessage;
+	m_handlers[CMSG_PARTY_KICK_REQUEST].Handler = &Session::HandlePartyKickRequestMessage;
+	m_handlers[CMSG_PARTY_INVITATION_DETAILS_REQUEST].Handler = &Session::HandlePartyInvitationDetailsRequestMessage;
+	m_handlers[CMSG_PARTY_LEAVE_REQUEST].Handler = &Session::HandlePartyLeaveRequestMessage;
+	m_handlers[CMSG_PARTY_ABDICATE_THRONE].Handler = &Session::HandlePartyAbdicateThroneMessage;
+	m_handlers[CMSG_PARTY_CANCEL_INVITATION].Handler = &Session::HandlePartyCancelInvitationMessage;
 }
 
 void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
@@ -151,7 +160,7 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 
 	const char* query = "SELECT guid, answer, pseudo, level, lastIP, lastConnectionDate, subscriptionEnd, channels, disallowed FROM accounts \
 						WHERE ticket='%s' LIMIT 1;";
-	ResultPtr QR = Desperion::eDatabase->Query(query, data.ticket.c_str());
+	ResultPtr QR = Desperion::eDatabase.Query(query, data.ticket.c_str());
 	if(QR)
 	{
 		Field* fields = QR->Fetch();
@@ -172,7 +181,7 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 		return;
 	}
 
-	QR = Desperion::eDatabase->Query("SELECT * FROM account_social WHERE guid=%u LIMIT 1;", m_data[FLAG_GUID].intValue);
+	QR = Desperion::eDatabase.Query("SELECT * FROM account_social WHERE guid=%u LIMIT 1;", m_data[FLAG_GUID].intValue);
 	if(QR)
 	{
 		Field* fields = QR->Fetch();
@@ -183,13 +192,15 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 		{
 			std::vector<std::string> intern;
 			Desperion::FastSplitString<','>(intern, friends[a], true);
-			m_friends.insert(boost::bimap<int, std::string>::relation(atoi(intern.at(0).c_str()), intern.at(1)));
+			m_friends.insert(boost::bimap<int, std::istring>::relation(atoi(intern.at(0).c_str()),
+				std::istring(intern.at(1).c_str())));
 		}
 		for(size_t a = 0; a < ennemies.size(); ++a)
 		{
 			std::vector<std::string> intern;
 			Desperion::FastSplitString<','>(intern, ennemies[a]);
-			m_ennemies.insert(boost::bimap<int, std::string>::relation(atoi(intern.at(0).c_str()), intern.at(1)));
+			m_ennemies.insert(boost::bimap<int, std::istring>::relation(atoi(intern.at(0).c_str()),
+				std::istring(intern.at(1).c_str())));
 		}
 		m_booleanValues[BOOL_FRIEND_WARN_ON_CONNECTION] = fields[3].GetBool();
 		m_booleanValues[BOOL_FRIEND_WARN_ON_LEVEL_GAIN] = fields[4].GetBool();
@@ -197,7 +208,7 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	}
 	else
 	{
-		Desperion::eDatabase->Execute("INSERT INTO account_social VALUES(%u, '', '', 0, 0, 0);", m_data[FLAG_GUID].intValue);
+		Desperion::eDatabase.AsyncExecute("INSERT INTO account_social VALUES(%u, '', '', 0, 0, 0);", m_data[FLAG_GUID].intValue);
 		m_booleanValues[BOOL_FRIEND_WARN_ON_CONNECTION] = false;
 		m_booleanValues[BOOL_FRIEND_WARN_ON_LEVEL_GAIN] = false;
 		m_booleanValues[BOOL_GUILD_MEMBER_WARN_ON_CONNECTION] = false;
@@ -205,7 +216,7 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	
 
 	uint16 servID = Desperion::Config::Instance().GetParam(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT);
-	Desperion::eDatabase->Execute("UPDATE accounts SET ticket='', logged=%u, lastServer=%u, lastIP='%s', lastConnectionDate=%llu WHERE guid=%u \
+	Desperion::eDatabase.AsyncExecute("UPDATE accounts SET ticket='', logged=%u, lastServer=%u, lastIP='%s', lastConnectionDate=%llu WHERE guid=%u \
 								 LIMIT 1;", servID, servID, m_socket->remote_endpoint().address().to_string().c_str(), time(NULL),
 								 m_data[FLAG_GUID].intValue);
 
@@ -241,23 +252,23 @@ void Session::Save()
 				disallowed<<",";
 			disallowed<<int16(*it);
 		}
-		Desperion::eDatabase->Execute("UPDATE accounts SET logged=0, channels='%s', disallowed='%s' WHERE guid=%u LIMIT 1;",
+		Desperion::eDatabase.Execute("UPDATE accounts SET logged=0, channels='%s', disallowed='%s' WHERE guid=%u LIMIT 1;",
 			channels.str().c_str(), disallowed.str().c_str(), m_data[FLAG_GUID].intValue);
 
 		std::ostringstream friends, ennemies;
-		for(boost::bimap<int, std::string>::iterator it = m_friends.begin(); it != m_friends.end(); ++it)
+		for(boost::bimap<int, std::istring>::iterator it = m_friends.begin(); it != m_friends.end(); ++it)
 		{
 			if(it != m_friends.begin())
 				friends<<";";
-			friends<<it->get_left()<<","<<it->get_right();
+			friends<<it->get_left()<<","<<it->get_right().c_str();
 		}
-		for(boost::bimap<int, std::string>::iterator it = m_ennemies.begin(); it != m_ennemies.end(); ++it)
+		for(boost::bimap<int, std::istring>::iterator it = m_ennemies.begin(); it != m_ennemies.end(); ++it)
 		{
 			if(it != m_ennemies.begin())
 				ennemies<<";";
-			ennemies<<it->get_left()<<","<<it->get_right();
+			ennemies<<it->get_left()<<","<<it->get_right().c_str();
 		}
-		Desperion::eDatabase->Execute("UPDATE account_social SET friends='%s', ennemies='%s', friendWarnOnConnection=%u, \
+		Desperion::eDatabase.AsyncExecute("UPDATE account_social SET friends='%s', ennemies='%s', friendWarnOnConnection=%u, \
 									  friendWarnOnLevelGain=%u, guildMemberWarnOnConnection=%u WHERE guid=%u LIMIT 1;",
 									  friends.str().c_str(), ennemies.str().c_str(), m_booleanValues[BOOL_FRIEND_WARN_ON_CONNECTION],
 									  m_booleanValues[BOOL_FRIEND_WARN_ON_LEVEL_GAIN], m_booleanValues[BOOL_GUILD_MEMBER_WARN_ON_CONNECTION],
@@ -267,7 +278,7 @@ void Session::Save()
 		{
 			m_char->Save();
 			CharacterMinimals* cm = World::Instance().GetCharacterMinimals(m_char->GetGuid());
-			Desperion::sDatabase->Execute("UPDATE character_minimals SET lastConnectionDate=%llu WHERE id=%u LIMIT 1;",
+			Desperion::sDatabase.AsyncExecute("UPDATE character_minimals SET lastConnectionDate=%llu WHERE id=%u LIMIT 1;",
 				cm->lastConnectionDate, cm->id);
 		}
 	}
@@ -280,9 +291,26 @@ Session::~Session()
 	{
 		World::Instance().DeleteSession(m_data[FLAG_GUID].intValue);
 		LOG("***** Disconnection *****");
-		
 		if(m_char != NULL)
 		{
+			if(m_party != NULL)
+			{
+				INIT_PARTY_LOCK
+				PARTY_LOCK(m_party)
+				m_party->Delete(&Party::m_players, m_char->GetGuid());
+				m_party->IntegrityCheck(lock);
+			}
+			for(std::map<int, Session*>::iterator it = m_partyInvitations.begin(); it != m_partyInvitations.end(); ++it)
+			{
+				it->second->Send(PartyRefuseInvitationNotificationMessage(it->first, m_char->GetGuid()));
+				if(it->second->m_party == NULL)
+					continue; // ne devrait pas arriver non plus
+				INIT_PARTY_LOCK
+				PARTY_LOCK(it->second->m_party)
+				it->second->m_party->Delete(&Party::m_guests, m_char->GetGuid());
+				it->second->m_party->IntegrityCheck(lock);
+			}
+
 			m_char->GetMap()->RemoveActor(m_char->GetGuid());
 			delete m_char;
 		}

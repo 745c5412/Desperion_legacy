@@ -32,7 +32,7 @@ void Session::HandleCharactersListRequestMessage(ByteBuffer& packet)
 	CharactersListRequestMessage data;
 	data.Deserialize(packet);
 
-	std::list<CharacterMinimals*> characters = World::Instance().GetCharactersByAccount(m_data[FLAG_GUID].intValue);
+	std::list<CharacterMinimals*> characters = World::Instance().GetCharactersByAccount(m_data[FLAG_GUID].intValue, true);
 	std::vector<CharacterBaseInformationsPtr> clientList;
 	FillCharactersClientList(clientList, characters);
 	Send(CharactersListMessage(false, clientList));
@@ -63,7 +63,7 @@ void Session::HandleCharacterDeletionRequestMessage(ByteBuffer& packet)
 	{
 		std::ostringstream stream;
 		stream<<toDelete->id<<"~"<<m_data[FLAG_ANSWER].stringValue;
-		if(Desperion::ComputeMD5Digest(stream.str()) != Desperion::ToLowerCase(data.secretAnswerHash))
+		if(Desperion::ComputeMD5Digest(stream.str()) != std::istring(data.secretAnswerHash.c_str()))
 		{
 			Send(CharacterDeletionErrorMessage(DEL_ERR_BAD_SECRET_ANSWER));
 			return;
@@ -71,14 +71,14 @@ void Session::HandleCharacterDeletionRequestMessage(ByteBuffer& packet)
 	}
 
 	World::Instance().DeleteCharacterMinimals(toDelete->id);
-	if(!Desperion::sDatabase->Execute("DELETE FROM characters WHERE guid=%u LIMIT 1;", toDelete->id))
+	if(!Desperion::sDatabase.Execute("DELETE FROM characters WHERE guid=%u LIMIT 1;", toDelete->id))
 	{
 		Send(CharacterDeletionErrorMessage(DEL_ERR_NO_REASON));
 		return;
 	}
-	Desperion::sDatabase->Execute("DELETE FROM character_minimals WHERE id=%u LIMIT 1;", toDelete->id);
-	Desperion::sDatabase->Execute("DELETE FROM character_stats WHERE guid=%u LIMIT 1;", toDelete->id);
-	Desperion::eDatabase->Execute("DELETE FROM character_counts WHERE accountGuid=%u AND serverID=%u LIMIT 1;", m_data[FLAG_GUID].intValue,
+	Desperion::sDatabase.AsyncExecute("DELETE FROM character_minimals WHERE id=%u LIMIT 1;", toDelete->id);
+	Desperion::sDatabase.AsyncExecute("DELETE FROM character_stats WHERE guid=%u LIMIT 1;", toDelete->id);
+	Desperion::eDatabase.AsyncExecute("DELETE FROM character_counts WHERE accountGuid=%u AND serverID=%u LIMIT 1;", m_data[FLAG_GUID].intValue,
 		Desperion::Config::Instance().GetParam(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT));
 	delete toDelete;
 
@@ -206,7 +206,7 @@ void Session::HandleCharacterSelectionMessage(ByteBuffer& packet)
 		return;
 	}
 
-	ResultPtr QR = Desperion::sDatabase->Query("SELECT * FROM characters JOIN character_stats ON characters.guid=character_stats.guid \
+	ResultPtr QR = Desperion::sDatabase.Query("SELECT * FROM characters JOIN character_stats ON characters.guid=character_stats.guid \
 									   JOIN character_breeds ON character_breeds.id=%u WHERE \
 									   characters.guid=%u LIMIT 1;", toSelect->breed, toSelect->id);
 	if(!QR)
@@ -248,7 +248,7 @@ void Session::SendCharacterSelectedSuccess(CharacterMinimals* ch)
 		Send(SetUpdateMessage(set->GetId(), it->second, effects));
 	}
 	Send(EnabledChannelsMessage(m_channels, m_disallowed));
-	Send(GetCharacterStatsListMessage());
+	SendCharacterStatsListMessage();
 	Send(FriendWarnOnConnectionStateMessage(m_booleanValues[BOOL_FRIEND_WARN_ON_CONNECTION]));
 	Send(FriendWarnOnLevelGainStateMessage(m_booleanValues[BOOL_FRIEND_WARN_ON_LEVEL_GAIN]));
 	Send(GuildMemberWarnOnConnectionStateMessage(m_booleanValues[BOOL_GUILD_MEMBER_WARN_ON_CONNECTION]));
@@ -271,7 +271,7 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 	}
 
 	int16 id = Desperion::Config::Instance().GetParam(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT);
-	ResultPtr QR = Desperion::eDatabase->Query("SELECT * FROM character_counts WHERE accountGuid=%u;", m_data[FLAG_GUID].intValue);
+	ResultPtr QR = Desperion::eDatabase.Query("SELECT * FROM character_counts WHERE accountGuid=%u;", m_data[FLAG_GUID].intValue);
 	if(QR)
 	{
 		if(QR->GetRowCount() > Desperion::Config::Instance().GetParam<uint8>(MAX_CHARACTERS_COUNT_STRING, MAX_CHARACTERS_COUNT_DEFAULT))
@@ -292,7 +292,7 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 	}
 
 	int guid = World::Instance().GetNextCharacterGuid();
-	if(!Desperion::sDatabase->Execute("INSERT INTO characters VALUES(%u, '%s', %u, %u, '%s', %u, %u, '', 0, -1, 0, 0, 0, '%s');",
+	if(!Desperion::sDatabase.Execute("INSERT INTO characters VALUES(%u, '%s', %u, %u, '%s', %u, %u, '', 0, -1, 0, 0, 0, '%s');",
 		guid, Desperion::Config::Instance().GetParam<std::string>(START_ZAAPS_STRING, START_ZAAPS_DEFAULT).c_str(),
 		startMap, startCell, "", startMap, startCell,
 		Desperion::Config::Instance().GetParam<std::string>(START_EMOTES_STRING, START_EMOTES_DEFAULT).c_str()))
@@ -314,14 +314,14 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 	look.indexedColors.push_back(data.colors[4]);
 	uint8 level = Desperion::Config::Instance().GetParam(START_LEVEL_STRING, START_LEVEL_DEFAULT);
 	bool full = Desperion::Config::Instance().GetParam(FULL_SCROLLED_STRING, FULL_SCROLLED_DEFAULT);
-	Desperion::sDatabase->Execute("INSERT INTO character_minimals VALUES(%u, %u, '%s', '%s', %u, %u, %u);",
+	Desperion::sDatabase.AsyncExecute("INSERT INTO character_minimals VALUES(%u, %u, '%s', '%s', %u, %u, %u, %llu);",
 		guid, level, data.name.c_str(), look.ToString().c_str(), data.breed, data.sex, m_data[FLAG_GUID].intValue);
-	Desperion::sDatabase->Execute("INSERT INTO character_stats VALUES(%u, %u, %u, %u, 0, 0, 0, 0, 0, 0, 10000, %u, %u, %u, %u, %u, %u, \
+	Desperion::sDatabase.AsyncExecute("INSERT INTO character_stats VALUES(%u, %u, %u, %u, 0, 0, 0, 0, 0, 0, 10000, %u, %u, %u, %u, %u, %u, \
 								  %llu, 0);",
 								  guid, Desperion::Config::Instance().GetParam(START_KAMAS_STRING, START_KAMAS_DEFAULT), (level - 1) * 5,
 								  level - 1, full ? 101 : 0, full ? 101 : 0, full ? 101 : 0, full ? 101 : 0, full ? 101 : 0, 
-								  full ? 101 : 0, 0); // dernier 0: xp --> TODO
-	Desperion::eDatabase->Execute("INSERT INTO character_counts VALUES(%u, %u);", m_data[FLAG_GUID].intValue, id);
+								  full ? 101 : 0, 0, time(NULL)); // dernier 0: xp --> TODO
+	Desperion::eDatabase.AsyncExecute("INSERT INTO character_counts VALUES(%u, %u);", m_data[FLAG_GUID].intValue, id);
 
 	CharacterMinimals* ch = new CharacterMinimals;
 	ch->id = guid;
@@ -336,7 +336,7 @@ void Session::HandleCharacterCreationRequestMessage(ByteBuffer& packet)
 
 	Send(CharacterCreationResultMessage(OK));
 
-	QR = Desperion::sDatabase->Query("SELECT * FROM characters JOIN character_stats ON characters.guid=character_stats.guid \
+	QR = Desperion::sDatabase.Query("SELECT * FROM characters JOIN character_stats ON characters.guid=character_stats.guid \
 									   JOIN character_breeds ON character_breeds.id=%u WHERE \
 									   characters.guid=%u LIMIT 1;", ch->breed, ch->id);
 	if(!QR)

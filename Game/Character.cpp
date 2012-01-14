@@ -53,19 +53,14 @@ EntityLook* Character::GetLook() const
 			{
 				EntityLook* ent = new EntityLook;
 				ent->bonesId = (*it)->GetItem()->GetAppearanceId();
-
-				int8 category, index;
 				if((*it)->GetItem()->GetTypeId() == 121)
 				{
-					category = 2;
-					index = 1;
+					l->bonesId = 2;
+					ent->subentities.push_back(SubEntityPtr(new SubEntity(2, 0, l)));
+					l = ent;
 				}
 				else
-				{
-					category = 1;
-					index = 0;
-				}
-				l->subentities.push_back(SubEntityPtr(new SubEntity(category, index, ent)));
+					l->subentities.push_back(SubEntityPtr(new SubEntity(1, 0, ent)));
 			}
 			break;
 		}
@@ -258,11 +253,11 @@ void Character::Save()
 			emotes<<",";
 		emotes<<uint16(m_emotes.at(a));
 	}
-	Desperion::sDatabase->Execute("UPDATE characters SET zaaps='%s', currentMap=%u, currentCell=%u, spells='%s', saveMap=%u, \
+	Desperion::sDatabase.Execute("UPDATE characters SET zaaps='%s', currentMap=%u, currentCell=%u, spells='%s', saveMap=%u, \
 								  saveCell=%u, jobs='%s', mountXp=%u, mountId=%d, isDead=%u, title=%u, isMerchant=%u, emotes='%s' \
 								  WHERE guid=%u LIMIT 1;", zaaps.str().c_str(), m_map->GetId(), m_cell, "", m_saveMap, m_saveCell,
 								  "", m_mountXp, -1, 0, m_title, 0, emotes.str().c_str(), m_guid);
-	Desperion::sDatabase->Execute("UPDATE character_minimals SET level=%u, name='%s', entityLook='%s', breed=%u, sex=%u \
+	Desperion::sDatabase.Execute("UPDATE character_minimals SET level=%u, name='%s', entityLook='%s', breed=%u, sex=%u \
 								  WHERE id=%u LIMIT 1;", m_level, m_name.c_str(), m_look.ToString().c_str(), m_breed, 
 								  m_sex ? 1 : 0, m_guid);
 	// TODO: update stats
@@ -329,7 +324,7 @@ void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 
 void Character::InitItems()
 {
-	ResultPtr QR = Desperion::sDatabase->Query("SELECT * FROM character_items WHERE owner=%u;", m_guid);
+	ResultPtr QR = Desperion::sDatabase.Query("SELECT * FROM character_items WHERE owner=%u;", m_guid);
 	if(!QR)
 		return;
 	do

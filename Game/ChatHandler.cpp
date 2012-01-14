@@ -67,11 +67,41 @@ void Session::HandleMultiMessage(ChatClientMultiMessage* data)
 	else
 		return;
 
-	// TODO: gestion des differents timers, zones et ChatError en fonction du packet
+	time_t* last = &m_lastTradingChatRequest;
+	time_t interval = Desperion::Config::Instance().GetParam(TRADING_FLOOD_INTERVAL_STRING, TRADING_FLOOD_INTERVAL_DEFAULT);
 	switch(data->channel)
 	{
 	case MULTI_CHANNEL_GLOBAL:
 		m_char->GetMap()->Send(*toSend);
+		break;
+	case MULTI_CHANNEL_SEEK:
+		last = &m_lastRecruitmentChatRequest;
+		interval = Desperion::Config::Instance().GetParam(RECRUITMENT_FLOOD_INTERVAL_STRING, RECRUITMENT_FLOOD_INTERVAL_DEFAULT);
+	case MULTI_CHANNEL_SALES:
+		{
+			time_t now = time(NULL);
+			if(now > *last + interval)
+			{
+				World::Instance().Send(*toSend); // todo: area
+				*last = now;
+			}
+			else
+			{
+				std::vector<std::string> params;
+				params.push_back(Desperion::ToString(*last + interval - now));
+				Send(TextInformationMessage(0, 115, params));
+			}
+		}
+		break;
+	case MULTI_CHANNEL_PARTY:
+		if(m_party != NULL)
+			m_party->Send(*toSend);
+		else
+			Send(ChatErrorMessage(CHAT_ERROR_NO_PARTY));
+		break;
+	case MULTI_CHANNEL_ADMIN:
+		if(m_data[FLAG_LEVEL].intValue > 0)
+			World::Instance().Send(*toSend, true);
 		break;
 	default:
 		break;
@@ -95,25 +125,23 @@ void Session::HandleChatClientMultiWithObjectMessage(ByteBuffer& packet)
 
 void Session::HandlePrivateMessage(ChatClientPrivateMessage* data)
 {
-	CharacterMinimals* cm = World::Instance().GetCharacterMinimals(data->receiver);
-	if(cm == NULL || cm->onlineCharacter == NULL)
+	Session* S = SearchForSession(data->receiver);
+	if(S == NULL)
 	{
 		Send(ChatErrorMessage(CHAT_ERROR_RECEIVER_NOT_FOUND));
 		return;
 	}
-	else if(cm->id == m_char->GetGuid())
+	else if(S->GetCharacter()->GetGuid() == m_char->GetGuid())
 	{
 		Send(ChatErrorMessage(CHAT_ERROR_INTERIOR_MONOLOGUE));
 		return;
 	}
-	else if(cm->onlineCharacter->GetSession()->GetBoolValue(BOOL_AWAY)
-		|| cm->onlineCharacter->GetSession()->IsEnnemyWith(m_data[FLAG_GUID].intValue)
-		|| cm->onlineCharacter->GetSession()->IsIgnoredWith(m_data[FLAG_GUID].intValue)
-		|| (cm->onlineCharacter->GetSession()->GetBoolValue(BOOL_INVISIBLE) &&
-		!cm->onlineCharacter->GetSession()->IsFriendWith(m_data[FLAG_GUID].intValue)))
+	else if(S->GetBoolValue(BOOL_AWAY) || S->IsEnnemyWith(m_data[FLAG_GUID].intValue)
+		|| S->IsIgnoredWith(m_data[FLAG_GUID].intValue) || (S->GetBoolValue(BOOL_INVISIBLE)
+		&& !S->IsFriendWith(m_data[FLAG_GUID].intValue)))
 	{
 		std::vector<std::string> args;
-		args.push_back(cm->name);
+		args.push_back(S->GetCharacter()->GetName());
 		Send(TextInformationMessage(1, 14, args));
 		return;
 	}
@@ -126,19 +154,20 @@ void Session::HandlePrivateMessage(ChatClientPrivateMessage* data)
 	{
 		distant = new ChatServerMessage(PSEUDO_CHANNEL_PRIVATE, data->content, static_cast<int>(t), "", m_char->GetGuid(), m_char->GetName(),
 			m_data[FLAG_GUID].intValue);
-		local = new ChatServerCopyMessage(PSEUDO_CHANNEL_PRIVATE, data->content, static_cast<int>(t), "", cm->id, cm->name);
+		local = new ChatServerCopyMessage(PSEUDO_CHANNEL_PRIVATE, data->content, static_cast<int>(t), "", S->GetCharacter()->GetGuid(),
+			S->GetCharacter()->GetName());
 	}
 	else if(data->GetOpcode() == CMSG_CHAT_CLIENT_PRIVATE_WITH_OBJECT)
 	{
 		distant = new ChatServerWithObjectMessage(PSEUDO_CHANNEL_PRIVATE, data->content, static_cast<int>(t), "", m_char->GetGuid(), m_char->GetName(),
 			m_data[FLAG_GUID].intValue, ((ChatClientPrivateWithObjectMessage*)data)->objects);
-		local = new ChatServerCopyWithObjectMessage(PSEUDO_CHANNEL_PRIVATE, data->content, static_cast<int>(t), "", cm->id, cm->name,
-			((ChatClientPrivateWithObjectMessage*)data)->objects);
+		local = new ChatServerCopyWithObjectMessage(PSEUDO_CHANNEL_PRIVATE, data->content, static_cast<int>(t), "", S->GetCharacter()->GetGuid(),
+			S->GetCharacter()->GetName(), ((ChatClientPrivateWithObjectMessage*)data)->objects);
 	}
 	else
 		return;
 
-	cm->onlineCharacter->GetSession()->Send(*distant);
+	S->Send(*distant);
 	Send(*local);
 
 	delete distant;

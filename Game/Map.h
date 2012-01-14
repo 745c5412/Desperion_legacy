@@ -20,8 +20,7 @@
 #define __MAP__
 
 #define ToCharacter(X) ((Character*)X)
-
-class DisplayableEntity;
+#define ToMonsterGroup(X) ((MonsterGroup*)X)
 
 struct Cell
 {
@@ -31,9 +30,23 @@ struct Cell
 	uint8 mapChangeData;
 };
 
+struct MonsterGroup : DisplayableEntity
+{
+	void Init(int, int16, MonsterGrade*, std::vector<MonsterGrade*>&, Map*, int8);
+	MonsterGrade* mainMonster;
+	time_t spawnDate;
+	std::vector<MonsterGrade*> monsters;
+	virtual GameRolePlayActorInformations* ToActor();
+	int16 GetAgeBonus() const;
+};
+
 class Map
 {
 public:
+	Map() : m_currentActorId(0)
+	{
+	}
+
 	~Map();
 	void Init(Field*);
 	DisplayableEntity* GetActor(int);
@@ -43,7 +56,7 @@ public:
 	PlayerItem* GetItem(int16);
 	void AddItem(PlayerItem*, int16);
 	void DeleteItem(int16);
-	bool EntityOnCell(int16);
+	DisplayableEntity* GetEntityOnCell(int16);
 
 	int GetId() const
 	{ return m_id; }
@@ -77,20 +90,19 @@ public:
 	int GetLeftMap() const
 	{ return m_leftMap; }
 
-	bool IsBuilt() const
-	{ return m_isBuilt; }
+	void SpawnMonsters(SubArea*, time_t);
 
-	void Build()
-	{
-		Desperion::FastSplit<','>(m_cells, m_cellsString, Desperion::SplitInt);
-		m_cellsString.clear();
-		m_isBuilt = true;
-	}
+	int GetNextActorId()
+	{ return --m_currentActorId; }
 
 	const std::unordered_map<int16, PlayerItem*>& GetItems() const
 	{ return m_items; }
+
+	bool SpawnSubAreaMonsters() const
+	{ return m_spawnSubAreaMonsters; }
 private:
-	std::string m_cellsString;
+	bool m_spawnSubAreaMonsters;
+	int m_currentActorId;
 	int m_id;
 	int16 m_posX;
 	int16 m_posY;
@@ -100,7 +112,6 @@ private:
 	int m_rightMap;
 	int m_leftMap;
 	int m_capabilities;
-	bool m_isBuilt;
 	std::list<DisplayableEntity*> m_actors;
 	std::unordered_map<int16, PlayerItem*> m_items;
 	std::vector<int> m_cells;

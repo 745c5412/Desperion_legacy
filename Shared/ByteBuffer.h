@@ -24,9 +24,6 @@ inline void SwapBytes(uint8 *p, size_t n)
     size_t lo, hi;
     for(lo = 0, hi = n - 1; hi > lo; lo++, hi--)
 		p[lo] ^= p[hi] ^= p[lo] ^= p[hi];
-    /*uint8 tmp=p[lo];
-    p[lo] = p[hi];
-    p[hi] = tmp;*/
 }
 
 enum Endianness
@@ -63,8 +60,10 @@ public:
 	ByteBuffer() : m_rpos(0), m_wpos(0)
 	{ m_data.reserve(DEFAULT_SIZE); }
 
-	ByteBuffer(const ByteBuffer& that) : m_rpos(that.m_rpos), m_wpos(that.m_wpos), m_data(that.m_data)
-	{ }
+	ByteBuffer(const ByteBuffer& that) : m_rpos(that.m_rpos), m_wpos(that.m_wpos),
+		m_data(that.m_data)
+	{
+	}
 
 	size_t GetReadPos() const
 	{ return m_rpos; }
@@ -86,7 +85,7 @@ public:
 				std::cout<<0;
 			std::cout<<std::hex<<uint16(val)<<" ";
 		}
-		std::cout<<std::endl;
+		std::cout<<std::dec<<std::endl;
 	}
 
 	void Clear()
@@ -95,11 +94,10 @@ public:
 		m_rpos = m_wpos = 0;
 	}
 
-	uint8 operator[](size_t pos) {
-		return Read<uint8>(pos);
-	}
+	uint8 operator[](size_t pos)
+	{ return Read<uint8>(pos); }
 
-	inline size_t Size() const
+	size_t Size() const
 	{ return m_data.size(); }
 
 	template<class T>

@@ -32,11 +32,12 @@ class GameClient : public AbstractSession<ComPacketHandler>, public Singleton<Ga
 {
 private:
 	uint8 m_state;
-	time_t m_lastUpdate;
-	boost::asio::deadline_timer* m_timer;
+	boost::shared_ptr<boost::asio::deadline_timer> m_timer;
 
 	void HandleConnect(const boost::system::error_code&);
+	void HandleDisconnectPlayerMessage(ByteBuffer&);
 public:
+
 	uint8 GetState() const
 	{ return m_state; }
 
@@ -48,49 +49,22 @@ public:
 		_Send(dest);
 	}
 
-	void OnClose()
-	{
-		Stop();
-		Launch(); 
-	}
-
-	void Wait()
-	{
-		SendPlayers();
-		m_timer->expires_from_now(boost::posix_time::seconds(60));
-		m_timer->async_wait(boost::bind(&GameClient::SendPlayers, this));
-	}
-
 	bool IsAllowed(uint8 flag)
 	{ return true; }
 
-	void Stop()
+	GameClient() : AbstractSession(false), m_state(3)
 	{
-		m_timer->cancel();
-		delete m_timer;
-		m_timer = NULL;
+		m_handlers[SMSG_DISCONNECT_PLAYER].Handler = &GameClient::HandleDisconnectPlayerMessage;
 	}
 
-	GameClient()
-	{
-		m_state = 3;
-		m_lastUpdate = time(NULL);
-		m_timer = NULL;
-	}
-
-	void RefreshLastUpdate()
-	{ m_lastUpdate = time(NULL); }
-
-	time_t GetLastUpdate()
-	{ return m_lastUpdate; }
+	void HandleError()
+	{ Launch(); }
 
 	void Launch();
 	void Start();
 
-	void OnData(ComPacketHandler* hdl, ByteBuffer& packet)
+	void HandleData(ComPacketHandler* hdl, ByteBuffer& packet)
 	{ (this->*hdl->Handler)(packet); }
-
-	~GameClient();
 };
 
 #endif

@@ -157,4 +157,14 @@ namespace Desperion
 			return new FightTeamMemberInformations;
 		}
 	}
+
+	PartyInvitationMemberInformations* ProtocolTypeManager::GetPartyInvitationMemberInformations(uint16 protocol)
+	{
+		switch(protocol)
+		{
+		default:
+		case PARTY_INVITATION_MEMBER_INFORMATIONS:
+			return new PartyInvitationMemberInformations;
+		}
+	}
 }

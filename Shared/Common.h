@@ -61,6 +61,48 @@
 #include <crypto/osrng.h>
 #include <crypto/md5.h>
 #include <boost/bimap.hpp>
+#include <tbb/concurrent_unordered_map.h>
+#include <tbb/concurrent_vector.h>
+#include <tbb/atomic.h>
+#include <tbb/parallel_while.h>
+#include <tbb/concurrent_unordered_set.h>
+
+
+// for Session => boost::bimap (friends / ennemies / ignored) [Game]
+struct ci_char_traits : public std::char_traits<char>
+{
+	static bool eq(char c1, char c2)
+	{
+		return toupper(c1) == toupper(c2);
+	}
+
+	static bool ne(char c1, char c2)
+	{
+		return toupper(c1) != toupper(c2);
+	}
+
+	static bool lt(char c1, char c2)
+	{
+		return toupper(c1) < toupper(c2);
+	}
+
+	static int compare(const char* s1, const char* s2, size_t n)
+	{
+		return memicmp(s1, s2, n);
+	}
+
+	static const char* find(const char* s, int n, char a)
+	{
+		while((n-- > 0) && (toupper(*s) != toupper(a)))
+			++s;
+		return s;
+	}
+};
+
+namespace std
+{
+	typedef std::basic_string<char, ci_char_traits> istring;
+}
 
 #ifdef _MSC_VER
 
@@ -70,7 +112,6 @@
 #define snprintf _snprintf
 #define atoll __atoi64
 
-//#define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #include <CrashHandler.h>
 
 inline bool CheckForDebugger()
@@ -100,7 +141,5 @@ typedef signed long long int int64;
 typedef signed int int32;
 typedef unsigned short uint16;
 typedef unsigned char uint8;
-
-#define ASSERT( assertion ) { if( !(assertion) ) { fprintf( stderr, "\n%s:%i ASSERTION FAILED:\n  %s\n", __FILE__, __LINE__, #assertion ); assert(assertion); } }
 
 #endif

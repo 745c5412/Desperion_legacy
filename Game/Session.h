@@ -80,6 +80,8 @@ struct GamePacketHandler
 	}
 };
 
+struct Party;
+
 class Session : public AbstractSession<GamePacketHandler>
 {
 private:
@@ -87,19 +89,18 @@ private:
 	static CommandStorageMap m_commands;
 	AccountData m_data[FLAGS_NUMBER];
 	bool m_booleanValues[BOOLS_NUMBER];
-	time_t m_subscriptionEnd;
+	time_t m_subscriptionEnd, m_lastTradingChatRequest, m_lastRecruitmentChatRequest;
 	Character* m_char;
-	std::set<int8> m_channels;
-	std::set<int8> m_disallowed;
-	boost::bimap<int, std::string> m_friends;
-	boost::bimap<int, std::string> m_ennemies;
-	boost::bimap<int, std::string> m_ignored;
+	std::set<int8> m_channels, m_disallowed;
+	boost::bimap<int, std::istring> m_friends, m_ennemies, m_ignored;
 	uint32 m_lastNameSuggestionRequest;
 	std::ofstream m_logs;
+	Party* m_party;
+	std::map<int, Session*> m_partyInvitations;
+	boost::shared_ptr<boost::asio::deadline_timer> m_timer;
 
 	// AdminHandler.cpp
 	void HandleAdminCommand(std::string&, bool);
-
 	void HandleMoveToCommand(std::vector<std::string>&, bool);
 	void HandleAddItemCommand(std::vector<std::string>&, bool);
 	void HandleManCommand(std::vector<std::string>&, bool);
@@ -111,7 +112,6 @@ private:
 
 	// CharacterHandler.cpp
 	void SendCharacterSelectedSuccess(CharacterMinimals*);
-
 	void HandleCharactersListRequestMessage(ByteBuffer&);
 	void HandleCharacterDeletionRequestMessage(ByteBuffer&);
 	void HandleCharacterNameSuggestionRequestMessage(ByteBuffer&);
@@ -128,7 +128,6 @@ private:
 	// ChatHandler.cpp
 	void HandlePrivateMessage(ChatClientPrivateMessage*);
 	void HandleMultiMessage(ChatClientMultiMessage*);
-
 	void HandleChatClientMultiMessage(ByteBuffer&);
 	void HandleChatClientMultiWithObjectMessage(ByteBuffer&);
 	void HandleChatClientPrivateMessage(ByteBuffer&);
@@ -163,22 +162,37 @@ private:
 	void HandleFriendAddRequestMessage(ByteBuffer&);
 	void HandleFriendDeleteRequestMessage(ByteBuffer&);
 
+	// PartyHandler.cpp
+	void HandlePartyInvitationRequestMessage(ByteBuffer&);
+	void HandlePartyRefuseInvitationMessage(ByteBuffer&);
+	void HandlePartyAcceptInvitationMessage(ByteBuffer&);
+	void HandlePartyKickRequestMessage(ByteBuffer&);
+	void HandlePartyInvitationDetailsRequestMessage(ByteBuffer&);
+	void HandlePartyLeaveRequestMessage(ByteBuffer&);
+	void HandlePartyAbdicateThroneMessage(ByteBuffer&);
+	void HandlePartyCancelInvitationMessage(ByteBuffer&);
+
 	// Session.cpp
 	void HandleAuthenticationTicketMessage(ByteBuffer&);
+
 public:
 	static void InitHandlersTable();
 	static void InitCommandsTable();
 	void Start();
 	void LOG(const char*, ...);
-	CharacterStatsListMessage GetCharacterStatsListMessage();
+	void SendCharacterStatsListMessage();
 	FriendOnlineInformations* GetFriendInformations(bool);
 	IgnoredOnlineInformations* GetIgnoredInformations();
 
-	void OnData(GamePacketHandler* hdl, ByteBuffer& packet)
-	{ (this->*hdl->Handler)(packet); }
+	void HandleData(GamePacketHandler* hdl, ByteBuffer& packet)
+	{
+		m_timer->expires_from_now(boost::posix_time::minutes(Desperion::Config::Instance().GetParam(MAX_IDLE_TIME_STRING,
+			MAX_IDLE_TIME_DEFAULT)));
+		(this->*hdl->Handler)(packet);
+	}
 
 	bool IsSubscriber() const
-	{ return true; }
+	{ return m_subscriptionEnd > time(NULL); }
 
 	bool IsAllowed(uint8 flag)
 	{
@@ -196,10 +210,13 @@ public:
 		return true;
 	}
 
-	Session() : m_char(NULL)
+	Session() : m_char(NULL), m_party(NULL), m_lastNameSuggestionRequest(0),
+		m_lastTradingChatRequest(0), m_lastRecruitmentChatRequest(0),
+		m_timer(ThreadPool::Instance().TimedSchedule(boost::bind(&boost::asio::ip::tcp::socket::close,
+		m_socket), boost::posix_time::minutes(Desperion::Config::Instance().GetParam(MAX_IDLE_TIME_STRING,
+		MAX_IDLE_TIME_DEFAULT))))
 	{
 		m_data[FLAG_GUID].intValue = 0;
-		m_lastNameSuggestionRequest = 0;
 		m_booleanValues[BOOL_INVISIBLE] = false;
 		m_booleanValues[BOOL_AWAY] = false;
 	}
@@ -231,22 +248,56 @@ public:
 	{ return m_friends.left.find(id) != m_friends.left.end(); }
 
 	bool IsFriendWith(std::string name)
-	{ return m_friends.right.find(Desperion::ToLowerCase(name)) != m_friends.right.end(); }
+	{ return m_friends.right.find(std::istring(name.c_str())) != m_friends.right.end(); }
 
 	bool IsEnnemyWith(int id)
 	{ return m_ennemies.left.find(id) != m_ennemies.left.end(); }
 
 	bool IsEnnemyWith(std::string name)
-	{ return m_ennemies.right.find(Desperion::ToLowerCase(name)) != m_ennemies.right.end(); }
+	{ return m_ennemies.right.find(std::istring(name.c_str())) != m_ennemies.right.end(); }
 
 	bool IsIgnoredWith(int id)
 	{ return m_ignored.left.find(id) != m_ignored.left.end(); }
 
 	bool IsIgnoredWith(std::string name)
-	{ return m_ignored.right.find(Desperion::ToLowerCase(name)) != m_ignored.right.end(); }
+	{ return m_ignored.right.find(std::istring(name.c_str())) != m_ignored.right.end(); }
 
 	bool HasChannel(int8 chann)
 	{ return m_channels.find(chann) != m_channels.end(); }
+
+	Party* GetParty()
+	{ return m_party; }
+
+	void SetParty(Party* party)
+	{ m_party = party; }
+
+	void ErasePartyInvitation(int partyId)
+	{
+		std::map<int, Session*>::iterator it = m_partyInvitations.find(partyId);
+		if(it != m_partyInvitations.end())
+			m_partyInvitations.erase(it);
+	}
 };
+
+inline Session* SearchForSession(std::string str)
+{
+	Session* s = NULL;
+	if(!str.empty())
+	{
+		if(str.size() > 2 && str.at(0) == '*')
+		{
+			s = World::Instance().GetSession(str.substr(1));
+			if(s->GetCharacter() == NULL)
+				s = NULL;
+		}
+		else
+		{
+			CharacterMinimals* c = World::Instance().GetCharacterMinimals(str);
+			if(c != NULL && c->onlineCharacter != NULL)
+				s = c->onlineCharacter->GetSession();
+		}
+	}
+	return s;
+}
 
 #endif

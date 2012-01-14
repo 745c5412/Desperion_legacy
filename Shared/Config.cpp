@@ -22,11 +22,11 @@ template<> Desperion::Config* Singleton<Desperion::Config>::m_singleton = NULL;
 
 namespace Desperion
 {
-	Config::Config() : m_path("")
+	Config::Config() : m_path("./")
 	{
 	}
 
-	void Config::Init(std::string path, std::vector<std::string>& files)
+	void Config::Init(std::string path, std::vector<const char*>& files)
 	{
 		m_path = path;
 		m_files = files;
@@ -35,14 +35,14 @@ namespace Desperion
 
 	void Config::ParseAll()
 	{
-		for(std::vector<std::string>::iterator it = m_files.begin(); it != m_files.end(); ++it)
+		for(std::vector<const char*>::iterator it = m_files.begin(); it != m_files.end(); ++it)
 		{
 			if(!ParseFile(*it))
 				std::cerr<<"Parsing failed: "<<*it<<std::endl;
 		}
 	}
 
-	bool Config::ParseFile(std::string fileName)
+	bool Config::ParseFile(const char* fileName)
 	{
 		std::string file = m_path + "/" + fileName;
 		std::ifstream config(file.c_str(), std::ios::in);

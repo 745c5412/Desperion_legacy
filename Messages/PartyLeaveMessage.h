@@ -29,6 +29,10 @@ public:
 	PartyLeaveMessage()
 	{
 	}
+	
+	PartyLeaveMessage(int partyId) : AbstractPartyMessage(partyId)
+	{
+	}
 
 	void Serialize(ByteBuffer& data)
 	{

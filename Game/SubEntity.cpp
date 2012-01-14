@@ -18,6 +18,8 @@
 
 #include "StdAfx.h"
 
+// c'est chiant parfois le c++ :(
+
 SubEntity::SubEntity(int8 bindingPointCategory, int8 bindingPointIndex, EntityLook* look) : bindingPointCategory(bindingPointCategory),
 	bindingPointIndex(bindingPointIndex), look(look)
 {

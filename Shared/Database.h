@@ -28,25 +28,13 @@ struct Connection
 {
 	MYSQL* conn;
 	boost::mutex lock;
-
-	Connection()
-	{
-	}
-
-	/*Connection(const Connection& that)
-	{
-	}*/
 };
 
 class Database
 {
 private:
-	Connection * m_connections;
-
-	std::string m_hostName;
-	std::string m_userName;
-	std::string m_password;
-	std::string m_databaseName;
+	Connection* m_connections;
+	std::string m_hostName, m_userName, m_password, m_databaseName;
 	uint16 m_port;
 	uint8 m_connectionsNumber;
 
@@ -55,14 +43,16 @@ private:
 	ResultPtr StoreResult(Connection*);
 	bool HandleError(Connection*, uint32);
 	bool Reconnect(Connection*);
+	void _Execute(std::string*);
+
 public:
 	Database(uint8);
 	~Database();
-
 	std::string EscapeString(std::string);
 	bool Init(std::string, uint16, std::string, std::string, std::string);
 	ResultPtr Query(const char*, ...);
 	bool Execute(const char*, ...);
+	void AsyncExecute(const char*, ...);
 };
 
 #endif

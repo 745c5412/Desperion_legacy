@@ -20,12 +20,12 @@
 #define __STDAFX__
 
 #define LOGIN_VERSION_MAJOR 0
-#define LOGIN_VERSION_MINOR 5
-#define LOGIN_VERSION_REVISION 2
+#define LOGIN_VERSION_MINOR 6
+#define LOGIN_VERSION_REVISION 0
 
 #define REQUIRED_SHARED_VERSION_MAJOR 0
 #define REQUIRED_SHARED_VERSION_MINOR 0
-#define REQUIRED_SHARED_VERSION_REVISION 3
+#define REQUIRED_SHARED_VERSION_REVISION 4
 
 #include "../Shared/StdAfx.h"
 
@@ -33,11 +33,6 @@
 	|| SHARED_VERSION_REVISION != REQUIRED_SHARED_VERSION_REVISION
 #pragma error("This Shared version isn't compatible with this Desperion version.");
 #endif
-
-#include "ConfigDefaults.h"
-#include "World.h"
-#include "GameServer.h"
-#include "Master.h"
 
 #include "../Models/TrustCertificate.h"
 #include "../Models/GameServerInformations.h"
@@ -59,6 +54,10 @@
 #include "../Messages/IdentificationFailedForBadVersionMessage.h"
 #include "../Messages/IdentificationFailedBannedMessage.h"
 
+#include "ConfigDefaults.h"
+#include "World.h"
+#include "GameServer.h"
+#include "Master.h"
 #include "Session.h"
 #include "GameSession.h"
 

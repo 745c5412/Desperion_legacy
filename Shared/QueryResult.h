@@ -67,7 +67,7 @@ public:
 	}
 
 private:
-		char *m_value;
+	char *m_value;
 };
 
 class QueryResult

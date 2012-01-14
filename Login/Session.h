@@ -84,6 +84,7 @@ private:
 	std::string m_salt;
 	time_t m_subscriptionEnd;
 	std::ofstream m_logs;
+	boost::shared_ptr<boost::asio::deadline_timer> m_timer;
 
 	void HandleIdentification(IdentificationMessage*);
 	bool HandleServerSelection(GameServer*, bool);
@@ -97,11 +98,15 @@ public:
 	void Start();
 	void LOG(const char*, ...);
 
-	void OnData(LoginPacketHandler* hdl, ByteBuffer& packet)
-	{ (this->*hdl->Handler)(packet); }
+	void HandleData(LoginPacketHandler* hdl, ByteBuffer& packet)
+	{
+		m_timer->expires_from_now(boost::posix_time::minutes(Desperion::Config::Instance().GetParam(MAX_IDLE_TIME_STRING,
+			MAX_IDLE_TIME_DEFAULT)));
+		(this->*hdl->Handler)(packet);
+	}
 
 	bool IsSubscriber() const
-	{ return true; }
+	{ return m_subscriptionEnd > time(NULL); }
 
 	bool IsAllowed(uint8 flag)
 	{
@@ -138,7 +143,9 @@ public:
 		}
 	}
 
-	Session()
+	Session() : m_timer(ThreadPool::Instance().TimedSchedule(boost::bind(&boost::asio::ip::tcp::socket::close,
+		m_socket), boost::posix_time::minutes(Desperion::Config::Instance().GetParam(MAX_IDLE_TIME_STRING,
+		MAX_IDLE_TIME_DEFAULT))))
 	{
 		m_data[FLAG_GUID].intValue = 0;
 	}

@@ -39,11 +39,13 @@ private:
 	void HandlePlayersMessage(ByteBuffer&);
 	void HandleConnectMessage(ByteBuffer&);
 public:
+	void SendDisconnectPlayerMessage(int);
 	static void InitHandlersTable();
+
 	void Start() 
 	{ Run(); }
 
-	void OnData(GamePacketHandler* hdl, ByteBuffer& packet)
+	void HandleData(GamePacketHandler* hdl, ByteBuffer& packet)
 	{ (this->*hdl->Handler)(packet); }
 
 	bool IsAllowed(uint8 flag)
@@ -58,9 +60,8 @@ public:
 		return true;
 	}
 
-	GameSession()
-	{ 
-		m_server = NULL;
+	GameSession() : m_server(NULL)
+	{
 	}
 
 	~GameSession();

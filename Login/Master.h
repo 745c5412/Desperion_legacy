@@ -21,38 +21,27 @@
 
 namespace Desperion
 {
-	extern Database* sDatabase;
+	extern Database sDatabase;
 
 	class Master : public Singleton<Master>
 	{
 	public:
-		Master() : m_stopEvent(false), sListener(NULL), eListener(NULL)
-		{
-		}
+		SocketListener<Session> sListener;
+		SocketListener<GameSession> eListener;
+		boost::condition MasterCondition;
 
+		Master();
 		bool Run(int, char **);
 		~Master();
-		SocketListener<Session>* sListener;
-		SocketListener<GameSession>* eListener;
 
 		uint32 GetUpTime() const
 		{ return getMSTime() - m_startTime; }
 
-		boost::asio::io_service& GetService()
-		{ return m_service; }
-
-		void Stop()
-		{ 
-			m_service.stop();
-			m_stopEvent = true;
-		}
-
 	private:
-		bool StartUpDatabase();
-
-		boost::asio::io_service m_service;
 		uint32 m_startTime;
-		bool m_stopEvent;
+		boost::mutex m_mutex;
+
+		bool StartUpDatabase();
 	};
 };
 

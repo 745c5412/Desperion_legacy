@@ -24,21 +24,21 @@
 
 #define SHARED_VERSION_MAJOR 0
 #define SHARED_VERSION_MINOR 0
-#define SHARED_VERSION_REVISION 3
+#define SHARED_VERSION_REVISION 4
 
 #define DOFUS_VERSION_MAJOR 2
 #define DOFUS_VERSION_MINOR 5
-#define DOFUS_VERSION_RELEASE 3
-#define DOFUS_VERSION_REVISION 53948
-#define DOFUS_VERSION_PATCH 2
+#define DOFUS_VERSION_RELEASE 4
+#define DOFUS_VERSION_REVISION 54398
+#define DOFUS_VERSION_PATCH 1
 #define DOFUS_VERSION_BUILD_TYPE 0
 
 #include "Common.h"
 
 #include "Singleton.h"
 #include "MersenneTwister.h"
-#include "ServerError.h"
 #include "Opcodes.h"
+#include "ThreadPool.h"
 #include "ByteBuffer.h"
 #include "BooleanByteWrapper.h"
 #include "Utils.inl"
