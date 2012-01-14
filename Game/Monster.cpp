@@ -16,42 +16,25 @@
     along with Desperion.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PATH__
-#define __PATH__
+#include "StdAfx.h"
 
-namespace Desperion
+Monster::~Monster()
 {
-	struct MapPoint
-	{
-		int x;
-		int y;
-	};
-
-#define VECTOR_RIGHT_X 1
-#define VECTOR_RIGHT_Y 1
-
-#define VECTOR_DOWN_RIGHT_X 1
-#define VECTOR_DOWN_RIGHT_Y 0
-
-#define VECTOR_DOWN_X 1
-#define VECTOR_DOWN_Y -1
-
-#define VECTOR_DOWN_LEFT_X 0
-#define VECTOR_DOWN_LEFT_Y -1
-
-#define VECTOR_LEFT_X -1
-#define VECTOR_LEFT_Y -1
-
-#define VECTOR_UP_LEFT_X -1
-#define VECTOR_UP_LEFT_Y 0
-
-#define VECTOR_UP_X -1
-#define VECTOR_UP_Y 1
-
-#define VECTOR_UP_RIGHT_X 0
-#define VECTOR_UP_RIGHT_Y 1
-
-	int8 OrientationTo(MapPoint&, MapPoint&);
+	for(size_t a = 0; a < m_grades.size(); ++a)
+		delete m_grades[a];
+	for(size_t a = 0; a < m_gradesStats.size(); ++a)
+		delete m_gradesStats[a];
 }
-
-#endif
+void Monster::Init(Field* fields)
+{
+	m_id = fields[0].GetInt32();
+	m_gfxId = fields[1].GetInt32();
+	m_race = fields[2].GetInt32();
+	Desperion::FastSplit<';'>(m_grades, std::string(fields[3].GetString()), &M);
+	m_look.Init(fields[4].GetString());
+	m_canPlay = fields[5].GetBool();
+	m_canTackle = fields[6].GetBool();
+	m_isBoss = fields[7].GetBool();
+	Desperion::FastSplit<';'>(m_gradesStats, std::string(fields[8].GetString()), &MS);
+	m_minRespawnTime = fields[9].GetInt64();
+}
