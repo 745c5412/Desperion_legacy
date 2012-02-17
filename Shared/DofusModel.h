@@ -24,7 +24,7 @@ class DofusModel
 public:
 	virtual uint16 GetProtocol() const = 0;
 
-	virtual void Serialize(ByteBuffer&) = 0;
+	virtual void Serialize(ByteBuffer&) const = 0;
 	virtual void Deserialize(ByteBuffer&) = 0;
 
 	DofusModel()

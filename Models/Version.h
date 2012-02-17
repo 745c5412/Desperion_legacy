@@ -40,7 +40,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<major<<minor<<release<<revision<<patch<<buildType;
 	}

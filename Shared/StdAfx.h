@@ -23,18 +23,17 @@
 #define PROTOCOL_REQUIRED_BUILD 1428
 
 #define SHARED_VERSION_MAJOR 0
-#define SHARED_VERSION_MINOR 0
-#define SHARED_VERSION_REVISION 4
+#define SHARED_VERSION_MINOR 1
+#define SHARED_VERSION_REVISION 0
 
 #define DOFUS_VERSION_MAJOR 2
 #define DOFUS_VERSION_MINOR 5
-#define DOFUS_VERSION_RELEASE 4
-#define DOFUS_VERSION_REVISION 54398
-#define DOFUS_VERSION_PATCH 1
+#define DOFUS_VERSION_RELEASE 5
+#define DOFUS_VERSION_REVISION 55487
+#define DOFUS_VERSION_PATCH 2
 #define DOFUS_VERSION_BUILD_TYPE 0
 
 #include "Common.h"
-
 #include "Singleton.h"
 #include "MersenneTwister.h"
 #include "Opcodes.h"
@@ -42,12 +41,13 @@
 #include "ByteBuffer.h"
 #include "BooleanByteWrapper.h"
 #include "Utils.inl"
-#include "Singleton.h"
 #include "Packet.h"
 #include "SocketListener.h"
 #include "Log.h"
 #include "QueryResult.h"
 #include "Database.h"
+#include "MySQLDatabase.h"
+#include "PostgreSQLDatabase.h"
 #include "Config.h"
 #include "Timer.h"
 #include "MersenneTwister.h"
@@ -55,5 +55,19 @@
 #include "DofusMessage.h"
 #include "DofusModel.h"
 #include "AbstractSession.h"
+#include "AbstractMaster.h"
+
+inline TypeErasureDatabase* ConstructDatabase(boost::asio::io_service& ios, int type, size_t size)
+{
+	switch(type)
+	{
+	case MYSQL_DATABASE:
+		return new MySQLDatabase(ios, size);
+	case POSTGRE_SQL_DATABASE:
+		return new PostgreSQLDatabase(ios, size);
+	default:
+		return NULL;
+	}
+}
 
 #endif

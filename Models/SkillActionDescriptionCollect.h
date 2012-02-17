@@ -36,7 +36,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		SkillActionDescriptionTimed::Serialize(data);
 		data<<min<<max;

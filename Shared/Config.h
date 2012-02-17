@@ -19,52 +19,48 @@
 #ifndef __CONFIG__
 #define __CONFIG__
 
-namespace Desperion
+class Config : public Singleton<Config>
 {
-	class Config : public Singleton<Config>
-	{
-	public:
-		void Init(std::string, std::vector<const char*>&);
-		Config();
-		void ParseAll();
+public:
+	void Init(std::string, std::vector<const char*>&);
+	Config();
+	void ParseAll();
 		
-		template<class T> T GetParam(std::string index, T def)
-		{
-			ConfigMap::iterator it = m_configMap.find(ToLowerCase(index));
-			if(it == m_configMap.end())
-				return def;
-			T value(def);
-			FromString(it->second, value);
-			return value;
-		}
-
-		const std::vector<const char*>& GetFiles() const
-		{ return m_files; }
-	private:
-		std::vector<const char*> m_files;
-		std::string m_path;
-		typedef std::tr1::unordered_map<std::string, std::string> ConfigMap;
-		ConfigMap m_configMap;
-
-		bool ParseFile(const char*);
-	};
-
-	template<> inline bool Config::GetParam(std::string index, bool def)
+	template<class T> T GetParam(const std::string& index, const T& def)
 	{
-		ConfigMap::iterator it = m_configMap.find(ToLowerCase(index));
-			if(it == m_configMap.end())
-				return def;
-		return ToLowerCase(it->second) != "false";
+		ConfigMap::iterator it = m_configMap.find(Desperion::ToLowerCase(index));
+		if(it == m_configMap.end())
+			return def;
+		T value(def);
+		Desperion::FromString(it->second, value);
+		return value;
 	}
 
-	template<> inline std::string Config::GetParam(std::string index, std::string def)
-	{
-		ConfigMap::iterator it = m_configMap.find(ToLowerCase(index));
-			if(it == m_configMap.end())
-				return def;
-		return it->second;
-	}
+	const std::vector<const char*>& GetFiles() const
+	{ return m_files; }
+private:
+	std::vector<const char*> m_files;
+	std::string m_path;
+	typedef std::tr1::unordered_map<std::string, std::string> ConfigMap;
+	ConfigMap m_configMap;
 
+	bool ParseFile(const char*);
+};
+
+template<> inline bool Config::GetParam(const std::string& index, const bool& def)
+{
+	ConfigMap::iterator it = m_configMap.find(Desperion::ToLowerCase(index));
+		if(it == m_configMap.end())
+			return def;
+	return Desperion::ToLowerCase(it->second) != "false";
+}
+
+template<> inline std::string Config::GetParam(const std::string& index, const std::string& def)
+{
+	ConfigMap::iterator it = m_configMap.find(Desperion::ToLowerCase(index));
+		if(it == m_configMap.end())
+			return def;
+	return it->second;
 }
 
 #endif

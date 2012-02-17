@@ -10,9 +10,6 @@
     <ClCompile Include="StdAfx.cpp">
       <Filter>Shared\CPP</Filter>
     </ClCompile>
-    <ClCompile Include="Database.cpp">
-      <Filter>Network\CPP</Filter>
-    </ClCompile>
     <ClCompile Include="MersenneTwister.cpp">
       <Filter>Utils\CPP</Filter>
     </ClCompile>
@@ -27,6 +24,12 @@
     </ClCompile>
     <ClCompile Include="ThreadPool.cpp">
       <Filter>Shared\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="PostgreSQLDatabase.cpp">
+      <Filter>Network\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="MySQLDatabase.cpp">
+      <Filter>Network\CPP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -88,6 +91,15 @@
       <Filter>Utils\H</Filter>
     </ClInclude>
     <ClInclude Include="ThreadPool.h">
+      <Filter>Shared\H</Filter>
+    </ClInclude>
+    <ClInclude Include="MySQLDatabase.h">
+      <Filter>Network\H</Filter>
+    </ClInclude>
+    <ClInclude Include="PostgreSQLDatabase.h">
+      <Filter>Network\H</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractMaster.h">
       <Filter>Shared\H</Filter>
     </ClInclude>
   </ItemGroup>

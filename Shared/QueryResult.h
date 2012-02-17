@@ -34,15 +34,16 @@ public:
 	inline int16 GetInt16() { return m_value ? static_cast<int16>(atol(m_value)) : 0; }
 	inline uint32 GetUInt32() { return m_value ? static_cast<uint32>(atol(m_value)) : 0; }
 	inline int32 GetInt32() { return m_value ? static_cast<int32>(atol(m_value)) : 0; }
+
 	uint64 GetUInt64() 
 	{
 		if(m_value)
 		{
 			uint64 value;
 #if !defined(WIN32) && defined(X64)
-			sscanf_s(m_value,I64FMTD,(long long unsigned int*)&value);
+			sscanf(m_value, I64FMTD, (long long unsigned int*)&value);
 #else
-			sscanf_s(m_value,I64FMTD,&value);
+			sscanf(m_value, I64FMTD, &value);
 #endif
 			return value;
 		}
@@ -56,9 +57,9 @@ public:
 		{
 			int64 value;
 #if !defined(WIN32) && defined(X64)
-			sscanf_s(m_value,I64FMTD,(long long int*)&value);
+			sscanf(m_value, I64FMTD, (long long int*) &value);
 #else
-			sscanf_s(m_value,SI64FMTD,&value);
+			sscanf(m_value, SI64FMTD, &value);
 #endif
 			return value;
 		}
@@ -73,11 +74,10 @@ private:
 class QueryResult
 {
 public:
-	QueryResult(MYSQL_RES *res, uint32 fields, uint32 rows);
+	QueryResult(MYSQL_RES*, uint32, uint32);
+	QueryResult(PGresult*, uint32, uint32);
 	~QueryResult();
-
 	bool NextRow();
-	void Delete() { delete this; }
 
 	inline Field* Fetch() { return m_currentRow; }
 	inline uint32 GetFieldCount() const { return m_fieldCount; }
@@ -86,8 +86,10 @@ public:
 protected:
 	uint32 m_fieldCount;
 	uint32 m_rowCount;
-    Field *m_currentRow;
-	MYSQL_RES *m_result;
+    Field* m_currentRow;
+	MYSQL_RES* m_mResult;
+	PGresult* m_pResult;
+	uint32 m_pRecord;
 };
 
 typedef boost::shared_ptr<QueryResult> ResultPtr;

@@ -26,25 +26,16 @@ void ThreadPool::BasicWorker()
 	m_service.run();
 	}catch(const std::exception& e)
 	{
-		Log::Instance().outError("UNHANDLED EXCEPTION: %s", e.what());
+		Log::Instance().OutError("UNHANDLED EXCEPTION: %s", e.what());
+		m_masterService.stop();
 	}
-}
-
-ThreadPool::ThreadPool() : m_work(m_service)
-{
-	SpawnWorkerThreads();
-}
-
-ThreadPool::~ThreadPool()
-{
-	ClearWorkerThreads();
 }
 
 void ThreadPool::SpawnWorkerThreads()
 {
 	uint32 count = boost::thread::hardware_concurrency();
-	if(count == 0)
-		count = 2;
+	if(count == 0) // information pas disponible
+		count = 1;
 	for(uint32 a = 0; a < count; ++a)
 		m_threads.push_back(new boost::thread(boost::bind(&ThreadPool::BasicWorker, this)));
 }
@@ -53,10 +44,12 @@ void ThreadPool::ClearWorkerThreads()
 {
 	if(!m_service.stopped())
 		m_service.stop();
-	m_service.reset();
 	for(std::list<boost::thread*>::iterator it = m_threads.begin(); it != m_threads.end(); ++it)
 	{
 		(*it)->interrupt();
+		(*it)->join();
 		delete *it;
 	}
+	m_threads.clear();
+	m_service.reset();
 }

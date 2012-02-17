@@ -101,7 +101,7 @@ namespace Desperion
 	}
 
 	template<char S>
-	inline void FastSplitString(std::vector<std::string>& vector, std::string& str, bool reserved = false)
+	inline void FastSplitString(std::vector<std::string>& vector, const std::string& str, bool reserved = false)
 	{
 		std::string temp = "";
 		for(uint16 a = 0; a < str.size(); ++a)
@@ -136,7 +136,7 @@ namespace Desperion
 	}
 
 	template<char S, class T, class V>
-	inline void FastSplit(std::vector<T>& vector, std::string& str, V callback, bool reserved = false)
+	inline void FastSplit(std::vector<T>& vector, const std::string& str, V callback, bool reserved = false)
 	{
 		std::string temp = "";
 		for(uint16 a = 0; a < str.size(); ++a)
@@ -161,7 +161,7 @@ namespace Desperion
 	}
 
 	template<char S, class T, class V>
-	inline void FastSplitSet(std::set<T>& set, std::string& str, V callback)
+	inline void FastSplitSet(std::set<T>& set, const std::string& str, V callback)
 	{
 		std::string temp = "";
 		for(uint16 a = 0; a < str.size(); ++a)
@@ -182,7 +182,7 @@ namespace Desperion
 	}
 
 	template<char S>
-	inline void FastSplitStringSet(std::set<std::string>& set, std::string& str)
+	inline void FastSplitStringSet(std::set<std::string>& set, const std::string& str)
 	{
 		std::string temp = "";
 		for(uint16 a = 0; a < str.size(); ++a)
@@ -202,29 +202,29 @@ namespace Desperion
 			set.insert(temp);
 	}
 
-	inline int IndexOf(std::string& c1, char c2)
+	inline int IndexOf(const std::string& c1, char c2)
 	{
 		for(uint32 a = 0; a < c1.size(); a++)
 		{
-			if(c1.at(a) == c2)
+			if(c1[a] == c2)
 				return a;
 		}
 		return -1;
 	}
 
-	inline std::string ToUpperCase(std::string& str)
+	inline std::string ToUpperCase(const std::string& str)
 	{
 		std::string buffer = "";
 		for(uint32 i = 0; i < str.size(); ++i)
-			buffer += std::toupper(str.at(i));
+			buffer += std::toupper(str[i]);
 		return buffer;
 	}
 
-	inline std::string ToLowerCase(std::string& str)
+	inline std::string ToLowerCase(const std::string& str)
 	{	
 		std::string buffer = "";
 		for(uint32 i = 0; i < str.size(); ++i)
-			buffer += std::tolower(str.at(i));
+			buffer += std::tolower(str[i]);
 		return buffer;
 	}
 
@@ -287,19 +287,32 @@ namespace Desperion
 		return std::string(buf);
 	}
 
+	inline boost::shared_array<const char> FormatString(const char* format, ...)
+	{
+		char sql[32768];
+		va_list vlist;
+		va_start(vlist, format);
+		vsnprintf(sql, 32768, format, vlist);
+		va_end(vlist);
+		size_t size = strlen(sql);
+		char* buf = new char[size + 1];
+		memcpy(buf, sql, size + 1);
+		return boost::shared_array<const char>(buf);
+	}
+
 	inline void SetApplicationTitle(const char* title, ...)
 	{
 		char buf[80];
 		va_list ap;
 		va_start(ap, title);
-		vsnprintf_s(buf, 80, title, ap);
+		vsnprintf(buf, 80, title, ap);
 		va_end(ap);
 
 #ifdef _WIN32
 		std::string command = "TITLE " + std::string(buf);
 		system(command.c_str());
 #else
-		// TODO
+		std::cout<<"\033]0;"<<titre.c_str()<<"\007";
 #endif
 	}
 }

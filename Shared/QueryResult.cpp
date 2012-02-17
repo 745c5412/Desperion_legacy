@@ -18,25 +18,46 @@
 
 #include "StdAfx.h"
 
-QueryResult::QueryResult(MYSQL_RES *res, uint32 fields, uint32 rows) : m_result(res), m_fieldCount(fields), m_rowCount(rows)
+// J'aurai pu faire plus propre avec le polymorphisme, mais flemme
+
+QueryResult::QueryResult(MYSQL_RES* res, uint32 fields, uint32 rows) : m_mResult(res), m_pResult(NULL), m_fieldCount(fields),
+	m_rowCount(rows), m_pRecord(0)
+{
+	m_currentRow = new Field[fields];
+}
+
+QueryResult::QueryResult(PGresult* res, uint32 fields, uint32 rows) : m_mResult(NULL), m_pResult(res), m_fieldCount(fields),
+	m_rowCount(rows), m_pRecord(0)
 {
 	m_currentRow = new Field[fields];
 }
 
 QueryResult::~QueryResult()
 {
-	mysql_free_result(m_result);
-	delete [] m_currentRow;
+	if(m_mResult != NULL)
+		mysql_free_result(m_mResult);
+	else if(m_pResult != NULL)
+		PQclear(m_pResult);
+	delete[] m_currentRow;
 }
 
 bool QueryResult::NextRow()
 {
-	MYSQL_ROW row = mysql_fetch_row(m_result);
-	if(row == NULL)
-		return false;
-
-	for(uint32 i = 0; i < m_fieldCount; ++i)
-		m_currentRow[i].SetValue(row[i]);
-
+	if(m_mResult != NULL)
+	{
+		MYSQL_ROW row = mysql_fetch_row(m_mResult);
+		if(row == NULL)
+			return false;
+		for(uint32 a = 0; a < m_fieldCount; ++a)
+			m_currentRow[a].SetValue(row[a]);
+	}
+	else if(m_pResult != NULL)
+	{
+		if(m_pRecord == m_rowCount)
+			return false;
+		for(uint32 a = 0; a < m_fieldCount; ++a)
+			m_currentRow[a].SetValue(PQgetvalue(m_pResult, m_pRecord, a));
+		++m_pRecord;
+	}
 	return true;
 }

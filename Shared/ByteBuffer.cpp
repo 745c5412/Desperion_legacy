@@ -18,4 +18,5 @@
 
 #include "StdAfx.h"
 
+// permet d'obtenir l'endianness de la machine au runtime
 Endianness ByteBuffer::ENDIANNESS = GetEndianness();

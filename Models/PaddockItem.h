@@ -35,7 +35,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		ObjectItemInRolePlay::Serialize(data);
 		durability->Serialize(data);

@@ -25,47 +25,46 @@ class SocketListener
 public:
 	typedef boost::shared_ptr<T> SessionPtr;
 private:
-	boost::asio::ip::tcp::acceptor* m_acceptor;
-	boost::asio::ip::tcp::socket* m_socket;
+	boost::asio::ip::tcp::acceptor m_acceptor;
+	boost::asio::io_service& m_service;
+	SessionPtr m_session;
 public:
-	SocketListener()
+	SocketListener(boost::asio::io_service& ios, uint16 port) : m_service(ios),
+		m_acceptor(ios, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v6(), port)),
+		m_session(new T(ios))
 	{
-	}
-
-	void Init(uint16 port)
-	{
-		m_acceptor = new boost::asio::ip::tcp::acceptor(ThreadPool::Instance().GetIoService(), 
-			boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v6(), port));
-		m_socket = new boost::asio::ip::tcp::socket(ThreadPool::Instance().GetIoService());
+		Run();
 	}
 
 	~SocketListener()
 	{
-		if(m_acceptor->is_open())
-			m_acceptor->close();
-		delete m_acceptor;
-		delete m_socket;
+		if(m_acceptor.is_open())
+			m_acceptor.close();
+	}
+
+	bool HandleError(const boost::system::error_code& error)
+	{
+		if(!error)
+			return false;
+		Log::Instance().OutError("SocketListener: [%u] %s", error.value(), error.message().c_str());
+		return true;
 	}
 
 	void HandleAcceptSocket(const boost::system::error_code& error)
 	{
-		if(error)
-			return;
-		SessionPtr session(new T);
-		session->Init(m_socket);
-		m_socket = new boost::asio::ip::tcp::socket(ThreadPool::Instance().GetIoService());
-		session->Start();
+		if(!HandleError(error))
+		{
+			m_session->GetSocket().set_option(boost::asio::ip::tcp::no_delay(true));
+			m_session->Start();
+			m_session.reset(new T(m_service));
+		}
 		Run();
 	}
 
 	void Run()
 	{
-		m_acceptor->async_accept(*m_socket, boost::bind(&SocketListener::HandleAcceptSocket, this, boost::asio::placeholders::error));
-	}
-
-	bool IsOpen()
-	{
-		return m_acceptor->is_open();
+		m_acceptor.async_accept(m_session->GetSocket(),
+			boost::bind(&SocketListener::HandleAcceptSocket, this, boost::asio::placeholders::error));
 	}
 };
 

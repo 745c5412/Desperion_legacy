@@ -35,7 +35,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		TaxCollectorInformations::Serialize(data);
 		waitingForHelpInfo->Serialize(data);

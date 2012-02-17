@@ -17,6 +17,7 @@
 */
 
 #include "StdAfx.h"
+#include <boost/filesystem.hpp>
 
 template <> Log * Singleton <Log>::m_singleton = NULL;
 
@@ -33,16 +34,14 @@ static const char* colorstrings[TBLUE+1] = {
 };
 #endif
 
-void Log::outColor(uint32 colorcode, const char * str, ...) // s'affiche obligatoirement à l'écran
+void Log::OutColor(uint32 colorcode, const char * str, ...) // s'affiche obligatoirement à l'écran
 {
 	if(!str) 
 		return;
-
-	boost::mutex::scoped_lock lock(m_lock);
 	va_list ap;
 	char buf[32768];
 	va_start(ap, str);
-	vsnprintf_s(buf, 32768, str, ap);
+	vsnprintf(buf, 32768, str, ap);
 	va_end(ap);
 
 #ifdef WIN32
@@ -56,24 +55,19 @@ void Log::outColor(uint32 colorcode, const char * str, ...) // s'affiche obligat
 #else
 	printf(colorstrings[TNORMAL]);
 #endif
-
-	if(m_file)
-		m_file<<buf<<std::endl;
 }
 
-void Log::outNotice(const char* source, const char* str, ...) // idem
+void Log::OutNotice(const std::string& source, const char* str, ...) // idem
 {
-	if(!source || !str)
+	if(!str)
 		return;
-
-	boost::mutex::scoped_lock lock(m_lock);
 	va_list ap;
 	char buf[32768];
 	va_start(ap, str);
-	vsnprintf_s(buf, 32768, str, ap);
+	vsnprintf(buf, 32768, str, ap);
 	va_end(ap);
 
-	printTime();
+	PrintTime();
 #ifdef WIN32
 	SetConsoleTextAttribute(stdout_handle, TWHITE);
 #else
@@ -86,77 +80,71 @@ void Log::outNotice(const char* source, const char* str, ...) // idem
 	printf(colorstrings[TNORMAL]);
 #endif
 	std::cout<<buf<<std::endl;
-
-	if(m_file)
-	{
-		outTime(m_file);
-		m_file<<"["<<source<<"] "<<buf<<std::endl;
-	}
 }
 
-void Log::outTime(std::ofstream& file)
+void Log::OutTime(std::ofstream& file)
 {
 	file<<Desperion::FormatTime("[%H:%M:%S] ");
 }
 
-void Log::printTime()
+void Log::PrintTime()
 {
 	std::cout<<Desperion::FormatTime("[%H:%M] ");
 }
 
-void Log::outString( const char * str, ... )
+void Log::_OutString(boost::shared_array<const char> str)
+{
+	OutTime(m_file);
+	m_file<<"[INFO] "<<str.get()<<std::endl;
+}
+
+void Log::OutString(const char * str, ...)
 {
 	if(!str)
 		return;
-	bool print = GET(m_flags, PRINT_STRING), out = GET(m_flags, OUT_STRING);
-	if(!print && !out)
+	if(!GET(m_flags, PRINT_STRING) && !GET(m_flags, OUT_STRING))
 		return;
-
-	boost::mutex::scoped_lock lock(m_lock);
 	va_list ap;
 	char buf[32768];
 	va_start(ap, str);
-	vsnprintf_s(buf, 32768, str, ap);
+	vsnprintf(buf, 32768, str, ap);
 	va_end(ap);
 
-	if(print)
+	if(GET(m_flags, PRINT_STRING))
 	{
-		printTime();
+		PrintTime();
 		std::cout<<buf<<std::endl;
 	}
-	if(m_file && out)
+	if(GET(m_flags, OUT_STRING))
 	{
-		outTime(m_file);
-		m_file<<buf<<std::endl;
+		size_t size = strlen(buf);
+		char* dynBuf = new char[size + 1];
+		memcpy(dynBuf, buf, size + 1);
+		m_service.post(boost::bind(&Log::_OutString, this, boost::shared_array<const char>(dynBuf)));
 	}
 }
 
-void Log::outFile(std::ofstream& file, std::string str)
+void Log::_OutError(boost::shared_array<const char> str)
 {
-	if(!file)
-		return;
-	outTime(file);
-	file<<str<<std::endl;
+	OutTime(m_file);
+	m_file<<"[ERROR] "<<str.get()<<std::endl;
 }
 
-void Log::outError(const char * err, ... )
+void Log::OutError(const char * err, ...)
 {
 	if(!err)
 		return;
-	bool print = GET(m_flags, PRINT_ERROR), out = GET(m_flags, OUT_ERROR);
-	if(!print && !out)
+	if(!GET(m_flags, PRINT_ERROR) && !GET(m_flags, OUT_ERROR))
 		return;
-
-	boost::mutex::scoped_lock lock(m_lock);
 	va_list ap;
 	char buf[32768];
 	va_start(ap, err);
-	vsnprintf_s(buf, 32768, err, ap);
+	vsnprintf(buf, 32768, err, ap);
 	va_end(ap);
 
-	if(print)
+	if(GET(m_flags, PRINT_ERROR))
 	{
-		printTime();
+		PrintTime();
 #ifdef WIN32
 		SetConsoleTextAttribute(stderr_handle, FOREGROUND_RED | FOREGROUND_INTENSITY);
 #else
@@ -169,31 +157,37 @@ void Log::outError(const char * err, ... )
 		puts(colorstrings[TNORMAL]);
 #endif
 	}
-	if(m_errorFile && out)
+	if(GET(m_flags, OUT_ERROR))
 	{
-		outTime(m_errorFile);
-		m_errorFile<<buf<<std::endl;
+		size_t size = strlen(buf);
+		char* dynBuf = new char[size + 1];
+		memcpy(dynBuf, buf, size + 1);
+		m_service.post(boost::bind(&Log::_OutError, this, boost::shared_array<const char>(dynBuf)));
 	}
 }
 
-void Log::outDebug( const char * str, ... )
+void Log::_OutDebug(boost::shared_array<const char> str)
+{
+	
+	OutTime(m_file);
+	m_file<<"[DEBUG] "<<str.get()<<std::endl;
+}
+
+void Log::OutDebug(const char * str, ...)
 {
 	if(!str)
 		return;
-	bool print = GET(m_flags, PRINT_DEBUG), out = GET(m_flags, OUT_DEBUG);
-	if(!print && !out)
+	if(!GET(m_flags, PRINT_DEBUG) && !GET(m_flags, OUT_DEBUG))
 		return;
-
-	boost::mutex::scoped_lock lock(m_lock);
 	va_list ap;
 	char buf[32768];
 	va_start(ap, str);
-	vsnprintf_s(buf, 32768, str, ap);
+	vsnprintf(buf, 32768, str, ap);
 	va_end(ap);
 
-	if(print)
+	if(GET(m_flags, PRINT_DEBUG))
 	{
-		printTime();
+		PrintTime();
 #ifdef WIN32
 		SetConsoleTextAttribute(stderr_handle, TYELLOW);
 #else
@@ -206,52 +200,48 @@ void Log::outDebug( const char * str, ... )
 		puts(colorstrings[TNORMAL]);
 #endif
 	}
-	if(m_debugFile && out)
-	{
-		outTime(m_debugFile);
-		m_debugFile<<buf<<std::endl;
-	}
-}
-
-Log::~Log()
-{
-}
-
-void Log::Init(std::string path, uint8 flags)
-{
-	m_path = path;
-	m_flags = flags;
-
-	std::string time = Desperion::FormatTime("%d-%m-%y_%H-%M-%S");
-	if (GET(m_flags, OUT_STRING))
-	{
-		
-		std::string filename = m_path + "/file_" + time + ".log";
-		m_file.open(filename.c_str());
-		if (m_file.fail())
-			std::cerr<<__FUNCTION__<<": Error opening '"<<filename<<"'"<<std::endl;
-		m_file.clear();
-	}
-
-	if(GET(m_flags, OUT_ERROR))
-	{
-		std::string filename = m_path + "/errors_" + time + ".log";
-		m_errorFile.open(filename.c_str());
-		if (m_errorFile.fail())
-			std::cerr<<__FUNCTION__<<": Error opening '"<<filename<<"'"<<std::endl;
-		m_errorFile.clear();
-	}
-
 	if(GET(m_flags, OUT_DEBUG))
 	{
-		std::string filename = m_path + "/debug_" + time + ".log";
-		m_debugFile.open(filename.c_str());
-		if (m_debugFile.fail())
-			std::cerr<<__FUNCTION__<<": Error opening '"<<filename<<"'"<<std::endl;
-		m_debugFile.clear();
+		size_t size = strlen(buf);
+		char* dynBuf = new char[size + 1];
+		memcpy(dynBuf, buf, size + 1);
+		m_service.post(boost::bind(&Log::_OutError, this, boost::shared_array<const char>(dynBuf)));
 	}
+}
 
-	// get error handle
+void Log::OutSession(std::ofstream& file, boost::shared_array<const char> str)
+{
+	OutTime(file);
+	file<<str.get()<<std::endl;
+}
+
+void CreateDirectoryIfNotExists(const char* path)
+{
+	boost::filesystem::path p(path);
+	if(!boost::filesystem::exists(p) || !boost::filesystem::is_directory(p))
+	{
+		boost::system::error_code ec;
+		boost::filesystem::create_directory(p, ec);
+		if(ec)
+			std::cerr<<"Error creating 'logs' directory: ["<<ec.value()<<"] "<<ec.message();
+	}
+}
+
+void Log::Init(const char* path, uint8 flags)
+{
+	CreateDirectoryIfNotExists(path);
+	CreateDirectoryIfNotExists("sessions");
+	m_flags = flags;
+	std::string time = Desperion::FormatTime("%d-%m-%y");
+	if (GET(m_flags, OUT_STRING) || GET(m_flags, OUT_ERROR) || GET(m_flags, OUT_DEBUG))
+	{
+		std::string strPath = std::string(path);
+		char end = strPath.size() > 0 ? strPath.at(strPath.size() - 1) : 0;
+		std::string filename = strPath + (end == '\\' || end == '/' ? "" : "/") + "file_" + time + ".log";
+		m_file.open(filename.c_str(), std::ios::app);
+		if (m_file.fail())
+			std::cerr<<__FUNCTION__<<": Error opening '"<<filename<<"'"<<std::endl;
+	}
 #ifdef WIN32
 	stderr_handle = GetStdHandle(STD_ERROR_HANDLE);
 	stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);

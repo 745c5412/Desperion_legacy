@@ -58,33 +58,33 @@ enum LogLevel
 class Log : public Singleton<Log>
 {
 public:
-	~Log();
+	Log(boost::asio::io_service& ios) : m_service(ios)
+	{
+	}
 
-	void outString(const char *, ...);
-	void outError(const char *, ...);
-	void outNotice(const char *, const char *, ...);
-	void outDebug(const char *, ...);
-	void outColor(uint32, const char *, ...);
-	void outFile(std::ofstream&, std::string);
-	void Init(std::string, uint8 flags = 0xff);
+	void OutString(const char *, ...);
+	void OutError(const char *, ...);
+	void OutNotice(const std::string&, const char *, ...);
+	void OutDebug(const char *, ...);
+	void OutColor(uint32, const char *, ...);
+	void OutSession(std::ofstream&, boost::shared_array<const char>);
+	void Init(const char*, uint8 flags = 0xff);
 
 private:
-	void outTime(std::ofstream&);
-	void printTime();
+	void OutTime(std::ofstream&);
+	void PrintTime();
+	void _OutString(boost::shared_array<const char>);
+	void _OutError(boost::shared_array<const char>);
+	void _OutDebug(boost::shared_array<const char>);
 
 #ifdef _WIN32
 	HANDLE stderr_handle;
 	HANDLE stdout_handle;
 #endif
-	uint8 m_fileLogLevel;
-	uint8 m_screenLogLevel;
-	uint8 m_flags;
 
-	std::string m_path;
+	uint8 m_flags;
 	std::ofstream m_file;
-	std::ofstream m_errorFile;
-	std::ofstream m_debugFile;
-	boost::mutex m_lock;
+	boost::asio::io_service& m_service;
 };
 
 #endif

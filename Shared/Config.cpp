@@ -18,58 +18,54 @@
 
 #include "StdAfx.h"
 
-template<> Desperion::Config* Singleton<Desperion::Config>::m_singleton = NULL;
+template<> Config* Singleton<Config>::m_singleton = NULL;
 
-namespace Desperion
+Config::Config() : m_path("./")
 {
-	Config::Config() : m_path("./")
+}
+
+void Config::Init(std::string path, std::vector<const char*>& files)
+{
+	m_path = path;
+	m_files = files;
+	ParseAll();
+}
+
+void Config::ParseAll()
+{
+	for(std::vector<const char*>::iterator it = m_files.begin(); it != m_files.end(); ++it)
 	{
+		if(!ParseFile(*it))
+			std::cerr<<"Parsing failed: "<<*it<<std::endl;
 	}
+}
 
-	void Config::Init(std::string path, std::vector<const char*>& files)
+bool Config::ParseFile(const char* fileName)
+{
+	std::string file = m_path + "/" + fileName;
+	std::ifstream config(file.c_str(), std::ios::in);
+	if(config.fail())
+		return false;
+	std::string line = "";
+
+	while(getline(config, line))
 	{
-		m_path = path;
-		m_files = files;
-		ParseAll();
+		if(line.find("#") != std::string::npos)
+			continue;
+
+		std::vector<std::string> table;
+
+		Desperion::FastSplitString<'='>(table, line, true);
+		if(table.size() == 0 || table[0].empty())
+			continue;
+
+		std::string index = table[0];
+		std::string value = (table.size() == 1 ? "" : table[1]);
+
+		boost::trim(index);
+		boost::trim(value);
+
+		m_configMap[Desperion::ToLowerCase(index)] = value;
 	}
-
-	void Config::ParseAll()
-	{
-		for(std::vector<const char*>::iterator it = m_files.begin(); it != m_files.end(); ++it)
-		{
-			if(!ParseFile(*it))
-				std::cerr<<"Parsing failed: "<<*it<<std::endl;
-		}
-	}
-
-	bool Config::ParseFile(const char* fileName)
-	{
-		std::string file = m_path + "/" + fileName;
-		std::ifstream config(file.c_str(), std::ios::in);
-		if(config.fail())
-			return false;
-		std::string line = "";
-
-		while(getline(config, line))
-		{
-			if(line.find("#") != std::string::npos)
-				continue;
-
-			std::vector<std::string> table;
-
-			FastSplitString<'='>(table, line, true);
-			if(table.size() == 0 || table[0].empty())
-				continue;
-
-			std::string index = table[0];
-			std::string value = (table.size() == 1 ? "" : table[1]);
-
-			boost::trim(index);
-			boost::trim(value);
-
-			m_configMap[ToLowerCase(index)] = value;
-		}
-		config.close ();
-		return true;
-	}
+	return true;
 }

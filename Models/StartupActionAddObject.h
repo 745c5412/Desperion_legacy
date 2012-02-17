@@ -40,7 +40,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<uid<<title<<text<<descUrl<<pictureUrl;
 		uint16 size = items.size();

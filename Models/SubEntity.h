@@ -37,7 +37,7 @@ public:
 
 	SubEntity(int8 bindingPointCategory, int8 bindingPointIndex, EntityLook* look);
 
-	void Serialize(ByteBuffer& data);
+	void Serialize(ByteBuffer& data) const;
 
 	void Deserialize(ByteBuffer& data);
 

@@ -37,7 +37,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		ObjectEffect::Serialize(data);
 		data<<mountId<<date<<modelId;

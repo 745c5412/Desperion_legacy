@@ -38,11 +38,11 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		int8 b = 0;
-		Desperion::BooleanByteWrapper::SetFlag(b, 0, isEntered);
-		Desperion::BooleanByteWrapper::SetFlag(b, 1, isInRoom);
+		BooleanByteWrapper::SetFlag(b, 0, isEntered);
+		BooleanByteWrapper::SetFlag(b, 1, isInRoom);
 		data<<b<<areaId<<areaAlignment;
 	}
 
@@ -50,8 +50,8 @@ public:
 	{
 		int8 b;
 		data>>b;
-		isEntered = Desperion::BooleanByteWrapper::GetFlag(b, 0);
-		isInRoom = Desperion::BooleanByteWrapper::GetFlag(b, 1);
+		isEntered = BooleanByteWrapper::GetFlag(b, 0);
+		isInRoom = BooleanByteWrapper::GetFlag(b, 1);
 		data>>areaId>>areaAlignment;
 	}
 };

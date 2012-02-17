@@ -19,9 +19,11 @@
 #ifndef __PACKET__
 #define __PACKET__
 
+// directement tiré du client Dofus
+
 namespace Packet
 {
-	static uint8 ComputeTypeLen(size_t size)
+	inline uint8 ComputeTypeLen(size_t size)
 	{
 		if(size > 0xffff)
 			return 3;
@@ -33,7 +35,7 @@ namespace Packet
 			return 0;
 	}
 
-	static void Pack(uint16 opcode, ByteBuffer& dest, ByteBuffer& src)
+	static void Pack(uint16 opcode, ByteBuffer& dest, const ByteBuffer& src)
 	{
 		size_t size = src.Size();
 		uint8 compute = ComputeTypeLen(size);
@@ -49,7 +51,7 @@ namespace Packet
 			break;
 		case 3:
 			uint8 num2 = (size >> 0x10) & 0xff;
-            uint16 num3 = size & 0xffff;
+			uint16 num3 = size & 0xffff;
 			dest<<num2<<num3;
 			break;
 		}

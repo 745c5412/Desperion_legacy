@@ -48,6 +48,7 @@
 #include <fstream>
 #include <iostream>
 #include <mysql/mysql.h>
+#include <libpq/libpq-fe.h>
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <crypto/rng.h>
@@ -61,12 +62,11 @@
 #include <crypto/osrng.h>
 #include <crypto/md5.h>
 #include <boost/bimap.hpp>
-#include <tbb/concurrent_unordered_map.h>
 #include <tbb/concurrent_vector.h>
 #include <tbb/atomic.h>
 #include <tbb/parallel_while.h>
 #include <tbb/concurrent_unordered_set.h>
-
+#include <tbb/concurrent_queue.h>
 
 // for Session => boost::bimap (friends / ennemies / ignored) [Game]
 struct ci_char_traits : public std::char_traits<char>
@@ -109,7 +109,6 @@ namespace std
 #define I64FMT "%016I64X"
 #define I64FMTD "%I64u"
 #define SI64FMTD "%I64d"
-#define snprintf _snprintf
 #define atoll __atoi64
 
 #include <CrashHandler.h>
@@ -125,8 +124,6 @@ inline bool CheckForDebugger()
 
 #else
 
-#define stricmp strcasecmp
-#define strnicmp strncasecmp
 #define I64FMT "%016llX"
 #define I64FMTD "%llu"
 #define SI64FMTD "%lld"

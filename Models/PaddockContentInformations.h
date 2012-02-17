@@ -41,7 +41,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		PaddockInformations::Serialize(data);
 		data<<paddockId<<worldX<<worldY<<mapId<<subAreaId<<abandonned;

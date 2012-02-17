@@ -19,11 +19,14 @@
 #ifndef __THREAD_POOL__
 #define __THREAD_POOL__
 
+typedef boost::shared_ptr<boost::asio::io_service> ServicePtr;
+
 class ThreadPool : public Singleton<ThreadPool>
 {
 private:
 	std::list<boost::thread*> m_threads;
 	boost::asio::io_service m_service;
+	boost::asio::io_service& m_masterService;
 	boost::asio::io_service::work m_work;
 
 	void TimedScheduleCallback(boost::function<void()> task, boost::shared_ptr<boost::asio::deadline_timer> timer,
@@ -31,7 +34,7 @@ private:
 	{
 		if(error)
 			return;
-		Schedule(task);
+		m_service.post(task);
 	}
 
 	void PeriodicScheduleCallback(boost::function<void()> task, boost::shared_ptr<boost::asio::deadline_timer> timer,
@@ -39,24 +42,24 @@ private:
 	{
 		if(error)
 			return;
-		Schedule(task);
+		m_service.post(task);
 		timer->expires_from_now(delay);
 		timer->async_wait(boost::bind(&ThreadPool::PeriodicScheduleCallback, this, task, timer, delay,
 			boost::asio::placeholders::error));
 	}
 
-public:
-	ThreadPool();
-	virtual ~ThreadPool();
-	void SpawnWorkerThreads();
-	void ClearWorkerThreads();
 	void BasicWorker();
 
-	boost::asio::io_service& GetIoService()
-	{ return m_service; }
+public:
+	ThreadPool(boost::asio::io_service& ios) : m_masterService(ios), m_work(m_service)
+	{
+	}
 
-	void Schedule(boost::function<void()> task)
-	{ m_service.post(task); }
+	void SpawnWorkerThreads();
+	void ClearWorkerThreads();
+
+	boost::asio::io_service& GetService()
+	{ return m_service; }
 
 	boost::shared_ptr<boost::asio::deadline_timer>
 	TimedSchedule(boost::function<void()> task, const boost::asio::deadline_timer::duration_type& delay)
@@ -70,7 +73,7 @@ public:
 	boost::shared_ptr<boost::asio::deadline_timer> PeriodicSchedule(boost::function<void()> task,
 		const boost::asio::deadline_timer::duration_type& delay)
 	{
-		Schedule(task);
+		m_service.post(task);
 		boost::shared_ptr<boost::asio::deadline_timer> timer(new boost::asio::deadline_timer(m_service, delay));
 		timer->async_wait(boost::bind(&ThreadPool::PeriodicScheduleCallback, this, task, timer, delay,
 			boost::asio::placeholders::error));

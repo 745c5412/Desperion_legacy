@@ -24,7 +24,7 @@ class DofusMessage
 public:
 	virtual uint16 GetOpcode() const = 0;
 
-	virtual void Serialize(ByteBuffer&) = 0;
+	virtual void Serialize(ByteBuffer&) const = 0;
 	virtual void Deserialize(ByteBuffer&) = 0;
 
 	DofusMessage()

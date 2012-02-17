@@ -13,9 +13,10 @@
   <ItemGroup>
     <ClCompile Include="ByteBuffer.cpp" />
     <ClCompile Include="Config.cpp" />
-    <ClCompile Include="Database.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="MersenneTwister.cpp" />
+    <ClCompile Include="MySQLDatabase.cpp" />
+    <ClCompile Include="PostgreSQLDatabase.cpp" />
     <ClCompile Include="ProgressBar.cpp" />
     <ClCompile Include="QueryResult.cpp" />
     <ClCompile Include="StdAfx.cpp">
@@ -25,6 +26,7 @@
     <ClCompile Include="ThreadPool.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AbstractMaster.h" />
     <ClInclude Include="AbstractSession.h" />
     <ClInclude Include="BooleanByteWrapper.h" />
     <ClInclude Include="ByteBuffer.h" />
@@ -35,8 +37,10 @@
     <ClInclude Include="DofusModel.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="MersenneTwister.h" />
+    <ClInclude Include="MySQLDatabase.h" />
     <ClInclude Include="Opcodes.h" />
     <ClInclude Include="Packet.h" />
+    <ClInclude Include="PostgreSQLDatabase.h" />
     <ClInclude Include="ProgressBar.h" />
     <ClInclude Include="QueryResult.h" />
     <ClInclude Include="Singleton.h" />
@@ -88,6 +92,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <AdditionalOptions>/Zm110 %(AdditionalOptions)</AdditionalOptions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -100,6 +105,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PrecompiledHeader>Use</PrecompiledHeader>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

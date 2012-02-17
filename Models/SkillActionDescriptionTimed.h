@@ -35,7 +35,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		SkillActionDescription::Serialize(data);
 		data<<time;

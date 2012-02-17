@@ -38,7 +38,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<kamas<<experience<<pods<<itemsValue;
 	}

@@ -1,7 +1,7 @@
 Bienvenue sur le repository de Desperion!
 
 Desperion est un émulateur pour le MMORPG Dofus 2.0 écrit en C++, actuellement compatible avec la version:
-2.5.4.54398.1
+2.5.5.55487.2
 
 L'équipe de développement de Desperion est composée de:
 - LittleScaraby AKA Alexandre Martin, fondateur du projet et développeur en chef
@@ -12,6 +12,7 @@ De par leur quantité, les fichiers utilisés par l'émulateur relatifs à boost ne 
 <http://www.boost.org/>
 
 Les tables contenant les fichiers de cache du client (.D2O) sont mises à jour régulièrement pour assurer une parfaite concordance de contenu avec le serveur officiel.
+Pour faire fonctionner l'émulateur, vous devez sélectionner les DLL se situant dans le répertoire "Libs/bin/" et les copier dans ce répertoire: "C:/Windows/System32/".
 
 Contact:
 Mail -> <martin.alex32@hotmail.fr>
