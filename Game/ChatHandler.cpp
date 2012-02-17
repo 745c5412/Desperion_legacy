@@ -68,7 +68,7 @@ void Session::HandleMultiMessage(ChatClientMultiMessage* data)
 		return;
 
 	time_t* last = &m_lastTradingChatRequest;
-	time_t interval = Desperion::Config::Instance().GetParam(TRADING_FLOOD_INTERVAL_STRING, TRADING_FLOOD_INTERVAL_DEFAULT);
+	time_t interval = Config::Instance().GetParam(TRADING_FLOOD_INTERVAL_STRING, TRADING_FLOOD_INTERVAL_DEFAULT);
 	switch(data->channel)
 	{
 	case MULTI_CHANNEL_GLOBAL:
@@ -76,7 +76,7 @@ void Session::HandleMultiMessage(ChatClientMultiMessage* data)
 		break;
 	case MULTI_CHANNEL_SEEK:
 		last = &m_lastRecruitmentChatRequest;
-		interval = Desperion::Config::Instance().GetParam(RECRUITMENT_FLOOD_INTERVAL_STRING, RECRUITMENT_FLOOD_INTERVAL_DEFAULT);
+		interval = Config::Instance().GetParam(RECRUITMENT_FLOOD_INTERVAL_STRING, RECRUITMENT_FLOOD_INTERVAL_DEFAULT);
 	case MULTI_CHANNEL_SALES:
 		{
 			time_t now = time(NULL);

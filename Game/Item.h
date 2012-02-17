@@ -19,88 +19,6 @@
 #ifndef __ITEM__
 #define __ITEM__
 
-typedef boost::shared_ptr<PlayerItemEffect> PlayerItemEffectPtr;
-
-struct EffectInstance
-{
-	EffectInstance()
-	{
-	}
-
-	EffectInstance(int effectId, int targetId, int duration, int random, bool hidden, int zoneSize, int zoneShape)
-		: effectId(effectId), targetId(targetId), duration(duration), random(random), hidden(hidden), zoneSize(zoneSize),
-		zoneShape(zoneShape)
-	{
-	}
-
-	virtual PlayerItemEffectPtr ToPlayerItemEffect() const
-	{ return PlayerItemEffectPtr(new PlayerItemEffect(effectId)); }
-
-	virtual bool IsDice() const
-	{ return false; }
-
-	virtual bool IsInteger() const
-	{ return false; }
-
-	int effectId;
-	int targetId;
-	int duration;
-	int random;
-	bool hidden;
-	int zoneSize;
-	int zoneShape;
-};
-
-struct EffectInstanceInteger : public EffectInstance
-{
-	int value;
-
-	EffectInstanceInteger()
-	{
-	}
-
-	EffectInstanceInteger(int effectId, int targetId, int duration, int random, bool hidden, int zoneSize, int zoneShape, int value)
-		: EffectInstance(effectId, targetId, duration, random, hidden, zoneSize, zoneShape), value(value)
-	{
-	}
-
-	virtual PlayerItemEffectPtr ToPlayerItemEffect() const
-	{ return PlayerItemEffectPtr(new PlayerItemEffectInteger(effectId, value)); }
-
-	bool IsInteger() const
-	{ return true; }
-};
-
-struct EffectInstanceDice : public EffectInstanceInteger
-{
-	int diceNum;
-	int diceSide;
-
-	EffectInstanceDice()
-	{
-	}
-
-	EffectInstanceDice(int effectId, int targetId, int duration, int random, bool hidden, int zoneSize, int zoneShape, int value,
-		int diceNum, int diceSide) : EffectInstanceInteger(effectId, targetId, duration, random, hidden, zoneSize, zoneShape,
-		value), diceNum(diceNum), diceSide(diceSide)
-	{
-	}
-
-	virtual PlayerItemEffectPtr ToPlayerItemEffect() const
-	{ return PlayerItemEffectPtr(new PlayerItemEffectDice(effectId, diceNum, diceSide, 0)); }
-
-	bool IsDice() const
-	{ return true; }
-};
-
-inline EffectInstance* F(std::string& str)
-{
-	std::vector<int> table;
-	Desperion::FastSplit<','>(table, str, Desperion::SplitInt);
-	return new EffectInstanceDice(table[3], table[1], table[7], table[8], table[0] == 1, table[4],
-		table[9], table[5], table[6], table[2]);
-}
-
 class PlayerItem;
 class Character;
 
@@ -121,7 +39,7 @@ protected:
 	int m_itemSetId;
 	std::string m_criteria;
 	int m_appearanceId;
-	std::vector<EffectInstance*> m_possibleEffects;
+	std::vector<PlayerItemEffect*> m_possibleEffects;
 	std::vector<int> m_favoriteSubAreas;
 	int m_favoriteSubAreaBonus;
 public:

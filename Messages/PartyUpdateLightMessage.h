@@ -39,7 +39,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		AbstractPartyEventMessage::Serialize(data);
 		data<<id<<lifePoints<<maxLifePoints<<prospecting<<regenRate;

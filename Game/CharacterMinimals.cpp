@@ -26,11 +26,11 @@ EntityLook* CharacterMinimals::GetLook() const
 	l->indexedColors = look.indexedColors;
 	l->scales = look.scales;
 
-	ResultPtr QR = Desperion::sDatabase.Query("SELECT * FROM character_items WHERE (pos=%d OR pos=%d OR pos=%d OR pos=%d OR pos=%d) AND owner=%u;",
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT * FROM character_items WHERE (pos=%d OR pos=%d OR pos=%d OR pos=%d OR pos=%d) AND owner=%u;",
 			ACCESSORY_POSITION_CAPE, ACCESSORY_POSITION_HAT, ACCESSORY_POSITION_WEAPON, ACCESSORY_POSITION_PETS, ACCESSORY_POSITION_SHIELD, id);
 	if(QR)
 	{
-		do
+		while(QR->NextRow())
 		{
 			Field* fields = QR->Fetch();
 			PlayerItem item;
@@ -66,7 +66,7 @@ EntityLook* CharacterMinimals::GetLook() const
 						l->subentities.push_back(SubEntityPtr(new SubEntity(1, 0, ent)));
 				}
 			}
-		}while(QR->NextRow());
+		}
 	}
 	return l;
 }

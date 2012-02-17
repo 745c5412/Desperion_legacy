@@ -36,7 +36,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		ExchangeStartOkCraftMessage::Serialize(data);
 		data<<nbCase<<skillId;

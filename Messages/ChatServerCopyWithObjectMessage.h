@@ -35,7 +35,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		ChatServerCopyMessage::Serialize(data);
 		uint16 size = objects.size();

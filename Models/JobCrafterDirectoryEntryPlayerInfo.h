@@ -44,7 +44,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<playerId<<playerName<<alignmentSide<<breed<<sex<<isInWorkshop<<worldX<<worldY<<mapId<<subAreaId;
 	}

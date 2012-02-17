@@ -38,7 +38,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<summonerId<<slaveId;
 		uint16 size = slaveSpells.size();

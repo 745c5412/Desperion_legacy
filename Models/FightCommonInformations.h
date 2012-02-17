@@ -24,7 +24,7 @@ public:
 	{
 	}
 	
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<fightId<<fightType;
 		uint16 size = fightTeams.size();

@@ -55,7 +55,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<lifePoints<<maxLifePoints<<baseMaxLifePoints<<permanentDamagePercent<<shieldPoints<<actionPoints<<maxActionPoints<<movementPoints<<maxMovementPoints<<summoner<<summoned<<neutralElementResistPercent<<earthElementResistPercent<<waterElementResistPercent<<airElementResistPercent<<fireElementResistPercent<<dodgePALostProbability<<dodgePMLostProbability<<tackleBlock<<tackleEvade<<invisibilityState;
 	}

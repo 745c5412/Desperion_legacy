@@ -40,7 +40,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		AbstractPartyMessage::Serialize(data);
 		data<<partyType<<partyLeaderId<<maxParticipants;

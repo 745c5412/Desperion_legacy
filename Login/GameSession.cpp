@@ -51,7 +51,8 @@ void GameSession::HandlePlayersMessage(ByteBuffer& packet)
 	uint16 players;
 	packet>>players;
 	m_server->SetPlayers(players);
-	World::Instance().RefreshGameServer(m_server);
+	Desperion::Master::Instance().GetService().post(
+			boost::bind(&World::RefreshGameServer, World::InstancePtr(), m_server));
 }
 
 void GameSession::HandleConnectMessage(ByteBuffer& packet)
@@ -63,7 +64,7 @@ void GameSession::HandleConnectMessage(ByteBuffer& packet)
 	GameServer* G = World::Instance().GetGameServer(id);
 	if(G == NULL || G->GetKey() != key || World::Instance().GetGameSession(id) != NULL)
 	{
-		m_socket->close();
+		CloseSocket();
 		return;
 	}
 
@@ -76,7 +77,8 @@ GameSession::~GameSession()
 	if(m_server != NULL)
 	{
 		m_server->SetState(OFFLINE);
-		World::Instance().RefreshGameServer(m_server);
+		Desperion::Master::Instance().GetService().post(
+			boost::bind(&World::RefreshGameServer, World::InstancePtr(), m_server));
 		World::Instance().DeleteGameSession(m_server->GetID());
 	}
 }

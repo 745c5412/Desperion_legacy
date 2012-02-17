@@ -23,14 +23,37 @@ void OnCrash()
 	std::cout<<"********* FATAL ERROR *********"<<std::endl;
 	if(World::InstancePtr() != NULL)
 	{
-		std::cout<<"CrashHandler: Desperion will try to save all players data. It can take a lot of time."<<std::endl;
+		std::cout<<"CrashHandler: Desperion will try to save all players data. It can take very long time,";
+		std::cout<<" and will necessarily abort if an error occurs."<<std::endl;
 		World::Instance().SaveAll();
 		std::cout<<"Save finished."<<std::endl;
-		Desperion::sDatabase.Execute("DELETE FROM character_items WHERE owner=-1;");
+		Desperion::sDatabase->Execute("DELETE FROM \"character_items\" WHERE \"owner\"=-1;");
 	}
 	std::cout<<"Press [ENTER] for termination."<<std::endl;
 	std::getchar();
 }
+
+struct foo
+{
+	std::vector<int> a;
+
+	foo()
+	{ }
+
+	foo(const std::vector<int>& a) : a(a)
+	{ }
+};
+
+struct foo2
+{
+	std::vector<int> a;
+
+	foo2()
+	{ }
+
+	foo2(std::vector<int>&& a) : a(a)
+	{ }
+};
 
 int main(int argc, char **argv)
 {
@@ -41,16 +64,13 @@ int main(int argc, char **argv)
 		rde::CrashHandler::SetCrashHandler(&OnCrash);
 	}
 #endif
-
-	new Desperion::Master;
-	if(Desperion::Master::Instance().Run(argc, argv))
-		Log::Instance().outString("Desperion is shutting down...");
-	else
-		Log::Instance().outError("Abnormal Desperion termination!");
-	delete Desperion::Master::InstancePtr();
-	delete ThreadPool::InstancePtr();
-	delete World::InstancePtr();
-
+	ShutDownType s = SHUTDOWN_REBOOT;
+	while(s == SHUTDOWN_REBOOT)
+	{
+		new Desperion::Master;
+		s = Desperion::Master::Instance().Run(argc, argv);
+		delete Desperion::Master::InstancePtr();
+	}
 	std::cout<<"Press [ENTER] to continue!"<<std::endl;
 	std::getchar();
 	return 0;

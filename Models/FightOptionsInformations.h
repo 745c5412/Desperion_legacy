@@ -38,23 +38,23 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		int8 b = 0;
-		Desperion::BooleanByteWrapper::SetFlag(b, 0, isSecret);
-		Desperion::BooleanByteWrapper::SetFlag(b, 1, isRestrictedToPartyOnly);
-		Desperion::BooleanByteWrapper::SetFlag(b, 2, isClosed);
-		Desperion::BooleanByteWrapper::SetFlag(b, 3, isAskingForHelp);
+		BooleanByteWrapper::SetFlag(b, 0, isSecret);
+		BooleanByteWrapper::SetFlag(b, 1, isRestrictedToPartyOnly);
+		BooleanByteWrapper::SetFlag(b, 2, isClosed);
+		BooleanByteWrapper::SetFlag(b, 3, isAskingForHelp);
 	}
 
 	void Deserialize(ByteBuffer& data)
 	{
 		int8 b;
 		data>>b;
-		isSecret = Desperion::BooleanByteWrapper::GetFlag(b, 0);
-		isRestrictedToPartyOnly = Desperion::BooleanByteWrapper::GetFlag(b, 1);
-		isClosed = Desperion::BooleanByteWrapper::GetFlag(b, 2);
-		isAskingForHelp = Desperion::BooleanByteWrapper::GetFlag(b, 3);
+		isSecret = BooleanByteWrapper::GetFlag(b, 0);
+		isRestrictedToPartyOnly = BooleanByteWrapper::GetFlag(b, 1);
+		isClosed = BooleanByteWrapper::GetFlag(b, 2);
+		isAskingForHelp = BooleanByteWrapper::GetFlag(b, 3);
 	}
 };
 

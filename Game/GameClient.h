@@ -52,12 +52,13 @@ public:
 	bool IsAllowed(uint8 flag)
 	{ return true; }
 
-	GameClient() : AbstractSession(false), m_state(3)
+	GameClient(boost::asio::io_service& ios) : AbstractSession<ComPacketHandler>(ios, false),
+		m_state(3)
 	{
 		m_handlers[SMSG_DISCONNECT_PLAYER].Handler = &GameClient::HandleDisconnectPlayerMessage;
 	}
 
-	void HandleError()
+	void GameClientError()
 	{ Launch(); }
 
 	void Launch();

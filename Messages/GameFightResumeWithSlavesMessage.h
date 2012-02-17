@@ -35,7 +35,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		GameFightResumeMessage::Serialize(data);
 		uint16 size = slavesInfo.size();

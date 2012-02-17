@@ -35,7 +35,7 @@ void Session::HandlePartyInvitationRequestMessage(ByteBuffer& packet)
 		Send(PartyCannotJoinErrorMessage(0, 1));
 		return;
 	}
-	else if(m_party != NULL && m_party->m_players.size() + m_party->m_guests.size() >= 8)
+	else if(m_party != NULL && m_party->PlayersSize() + m_party->GuestsSize() >= 8)
 	{
 		Send(PartyCannotJoinErrorMessage(0, 3));
 		return;
@@ -62,7 +62,7 @@ void Session::HandlePartyInvitationRequestMessage(ByteBuffer& packet)
 	if(!lock)
 		PARTY_LOCK(m_party)
 	S->m_partyInvitations[m_party->GetPartyId()] = this;
-	m_party->Push(&Party::m_guests, S);
+	m_party->GuestPush(S);
 	m_party->SetGuestHost(S->GetCharacter()->GetGuid(), m_char->GetGuid());
 	m_party->Send(PartyNewGuestMessage(m_party->GetPartyId(), S->GetCharacter()->GetPartyGuestInformations(m_data[FLAG_GUID].intValue)));
 	S->Send(PartyInvitationMessage(m_party->GetPartyId(), 0, 8, m_char->GetGuid(), m_char->GetName(), S->GetCharacter()->GetGuid()));
@@ -84,7 +84,7 @@ void Session::HandlePartyRefuseInvitationMessage(ByteBuffer& packet)
 		return;
 	PARTY_LOCK(S->m_party)
 	Send(PartyInvitationCancelledForGuestMessage(S->m_party->GetPartyId(), m_char->GetGuid()));
-	S->m_party->Delete(&Party::m_guests, m_char->GetGuid());
+	S->m_party->GuestDelete(m_char->GetGuid());
 	S->m_party->IntegrityCheck(lock);
 }
 
@@ -94,16 +94,13 @@ void Session::HandlePartyCancelInvitationMessage(ByteBuffer& packet)
 	PartyCancelInvitationMessage data;
 	data.Deserialize(packet);
 
-	if(m_party == NULL)
-		return;
-		
 	PARTY_LOCK(m_party)
-	std::list<Session*>::iterator it = m_party->Get(&Party::m_guests, data.guestId);
-	if(it == m_party->End(&Party::m_guests))
+	std::list<Session*>::iterator it = m_party->GuestGet(data.guestId);
+	if(it == m_party->GuestsEnd())
 		return;
 	(*it)->Send(PartyInvitationCancelledForGuestMessage(m_party->GetPartyId(), m_char->GetGuid()));
 	(*it)->m_partyInvitations.erase((*it)->m_partyInvitations.find(data.partyId));
-	m_party->Delete(&Party::m_guests, (*it)->GetCharacter()->GetGuid(), true);
+	m_party->GuestDelete((*it)->GetCharacter()->GetGuid(), true);
 	m_party->Send(PartyCancelInvitationNotificationMessage(m_party->GetPartyId(), m_char->GetGuid(), data.guestId));
 	m_party->IntegrityCheck(lock);
 }
@@ -123,7 +120,7 @@ void Session::HandlePartyAcceptInvitationMessage(ByteBuffer& packet)
 	{
 		INIT_PARTY_LOCK
 		PARTY_LOCK(m_party)
-		m_party->Delete(&Party::m_players, m_char->GetGuid());
+		m_party->PlayerDelete(m_char->GetGuid());
 		Send(PartyLeaveMessage(m_party->GetPartyId()));
 		m_party->IntegrityCheck(lock);
 		m_party = NULL;
@@ -131,8 +128,8 @@ void Session::HandlePartyAcceptInvitationMessage(ByteBuffer& packet)
 	m_party = S->m_party;
 	INIT_PARTY_LOCK
 	PARTY_LOCK(m_party)
-	m_party->Push(&Party::m_players, this);
-	m_party->Delete(&Party::m_guests, m_char->GetGuid(), true);
+	m_party->PlayerPush(this);
+	m_party->GuestDelete(m_char->GetGuid(), true);
 	std::vector<PartyMemberInformationsPtr> members;
 	std::vector<PartyGuestInformationsPtr> guests;
 	m_party->FillMembers(members), m_party->FillGuests(guests);
@@ -146,16 +143,13 @@ void Session::HandlePartyKickRequestMessage(ByteBuffer& packet)
 	PartyKickRequestMessage data;
 	data.Deserialize(packet);
 
-	if(m_party == NULL)
-		return;
-
 	PARTY_LOCK(m_party)
-	std::list<Session*>::iterator it = m_party->Get(&Party::m_players, data.playerId);
-	if(it == m_party->End(&Party::m_players))
+	std::list<Session*>::iterator it = m_party->PlayerGet( data.playerId);
+	if(it == m_party->PlayersEnd())
 		return;
 	(*it)->Send(PartyKickedByMessage(m_party->GetPartyId(), m_char->GetGuid()));
 	(*it)->m_party = NULL;
-	m_party->Delete(&Party::m_players, (*it)->GetCharacter()->GetGuid());
+	m_party->PlayerDelete((*it)->GetCharacter()->GetGuid());
 	m_party->IntegrityCheck(lock);
 }
 
@@ -184,12 +178,9 @@ void Session::HandlePartyLeaveRequestMessage(ByteBuffer& packet)
 	INIT_PARTY_LOCK
 	PartyLeaveRequestMessage data;
 	data.Deserialize(packet);
-
-	if(m_party == NULL)
-		return;
 		
 	PARTY_LOCK(m_party)
-	m_party->Delete(&Party::m_players, m_char->GetGuid());
+	m_party->PlayerDelete(m_char->GetGuid());
 	Send(PartyLeaveMessage(m_party->GetPartyId()));
 	m_party->IntegrityCheck(lock);
 	m_party = NULL;
@@ -201,16 +192,16 @@ void Session::HandlePartyAbdicateThroneMessage(ByteBuffer& packet)
 	PartyAbdicateThroneMessage data;
 	data.Deserialize(packet);
 
-	if(m_party == NULL || data.playerId == m_char->GetGuid())
+	if(data.playerId == m_char->GetGuid())
 		return;
 	PARTY_LOCK(m_party)
 	if(m_party->GetLeader()->GetData(FLAG_GUID).intValue != m_data[FLAG_GUID].intValue)
 		return;
-	std::list<Session*>::iterator it = m_party->Get(&Party::m_players, data.playerId);
-	if(it == m_party->End(&Party::m_players))
+	std::list<Session*>::iterator it = m_party->PlayerGet(data.playerId);
+	if(it == m_party->PlayersEnd())
 		return;
 	m_party->SetLeader(*it);
-	m_party->Erase(&Party::m_players, it);
-	m_party->Push(&Party::m_players, this);
+	m_party->PlayerErase(it);
+	m_party->PlayerPush(this);
 	m_party->Send(PartyLeaderUpdateMessage(m_party->GetPartyId(), m_party->GetLeader()->GetCharacter()->GetGuid()));
 }

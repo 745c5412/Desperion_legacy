@@ -47,17 +47,17 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		FightResultAdditionalData::Serialize(data);
 		int8 b = 0;
-		Desperion::BooleanByteWrapper::SetFlag(b, 0, showExperience);
-		Desperion::BooleanByteWrapper::SetFlag(b, 1, showExperienceLevelFloor);
-		Desperion::BooleanByteWrapper::SetFlag(b, 2, showExperienceNextLevelFloor);
-		Desperion::BooleanByteWrapper::SetFlag(b, 3, showExperienceFightDelta);
-		Desperion::BooleanByteWrapper::SetFlag(b, 4, showExperienceForGuild);
-		Desperion::BooleanByteWrapper::SetFlag(b, 5, showExperienceForMount);
-		Desperion::BooleanByteWrapper::SetFlag(b, 6, isIncarnationExperience);
+		BooleanByteWrapper::SetFlag(b, 0, showExperience);
+		BooleanByteWrapper::SetFlag(b, 1, showExperienceLevelFloor);
+		BooleanByteWrapper::SetFlag(b, 2, showExperienceNextLevelFloor);
+		BooleanByteWrapper::SetFlag(b, 3, showExperienceFightDelta);
+		BooleanByteWrapper::SetFlag(b, 4, showExperienceForGuild);
+		BooleanByteWrapper::SetFlag(b, 5, showExperienceForMount);
+		BooleanByteWrapper::SetFlag(b, 6, isIncarnationExperience);
 		data<<b<<experience<<experienceLevelFloor<<experienceNextLevelFloor<<experienceFightDelta<<experienceForGuild<<experienceForMount;
 	}
 
@@ -66,13 +66,13 @@ public:
 		FightResultAdditionalData::Deserialize(data);
 		int8 b;
 		data>>b;
-		showExperience = Desperion::BooleanByteWrapper::GetFlag(b, 0);
-		showExperienceLevelFloor = Desperion::BooleanByteWrapper::GetFlag(b, 1);
-		showExperienceNextLevelFloor = Desperion::BooleanByteWrapper::GetFlag(b, 2);
-		showExperienceFightDelta = Desperion::BooleanByteWrapper::GetFlag(b, 3);
-		showExperienceForGuild = Desperion::BooleanByteWrapper::GetFlag(b, 4);
-		showExperienceForMount = Desperion::BooleanByteWrapper::GetFlag(b, 5);
-		isIncarnationExperience = Desperion::BooleanByteWrapper::GetFlag(b, 6);
+		showExperience = BooleanByteWrapper::GetFlag(b, 0);
+		showExperienceLevelFloor = BooleanByteWrapper::GetFlag(b, 1);
+		showExperienceNextLevelFloor = BooleanByteWrapper::GetFlag(b, 2);
+		showExperienceFightDelta = BooleanByteWrapper::GetFlag(b, 3);
+		showExperienceForGuild = BooleanByteWrapper::GetFlag(b, 4);
+		showExperienceForMount = BooleanByteWrapper::GetFlag(b, 5);
+		isIncarnationExperience = BooleanByteWrapper::GetFlag(b, 6);
 		data>>experience>>experienceLevelFloor>>experienceNextLevelFloor>>experienceFightDelta>>experienceForGuild>>experienceForMount;
 	}
 };

@@ -17,6 +17,7 @@
 */
 
 #include "StdAfx.h"
+#include <boost/filesystem.hpp>
 
 void OnCrash()
 {
@@ -34,16 +35,13 @@ int main(int argc, char *argv[])
 		rde::CrashHandler::SetCrashHandler(&OnCrash);
 	}
 #endif
-
-	new Desperion::Master;
-	if(Desperion::Master::Instance().Run(argc, argv))
-		Log::Instance().outString("Desperion is shutting down...");
-	else
-		Log::Instance().outError("Abnormal Desperion termination!");
-	delete Desperion::Master::InstancePtr();
-	delete ThreadPool::InstancePtr();
-	delete World::InstancePtr();
-
+	ShutDownType s = SHUTDOWN_REBOOT;
+	while(s == SHUTDOWN_REBOOT)
+	{
+		new Desperion::Master;
+		s = Desperion::Master::Instance().Run(argc, argv);
+		delete Desperion::Master::InstancePtr();
+	}
 	std::cout<<"Press [ENTER] to continue!"<<std::endl;
 	std::getchar();
 	return 0;

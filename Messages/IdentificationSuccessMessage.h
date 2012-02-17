@@ -42,11 +42,11 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		int8 b = 0;
-		Desperion::BooleanByteWrapper::SetFlag(b, 0, hasRights);
-		Desperion::BooleanByteWrapper::SetFlag(b, 1, wasAlreadyConnected);
+		BooleanByteWrapper::SetFlag(b, 0, hasRights);
+		BooleanByteWrapper::SetFlag(b, 1, wasAlreadyConnected);
 		data<<b<<login<<nickname<<accountId<<communityId<<secretQuestion<<subscriptionEndDate;
 	}
 
@@ -54,8 +54,8 @@ public:
 	{
 		int8 b;
 		data>>b;
-		hasRights = Desperion::BooleanByteWrapper::GetFlag(b, 0);
-		wasAlreadyConnected = Desperion::BooleanByteWrapper::GetFlag(b, 1);
+		hasRights = BooleanByteWrapper::GetFlag(b, 0);
+		wasAlreadyConnected = BooleanByteWrapper::GetFlag(b, 1);
 		data>>login>>nickname>>accountId>>communityId>>secretQuestion>>subscriptionEndDate;
 	}
 };

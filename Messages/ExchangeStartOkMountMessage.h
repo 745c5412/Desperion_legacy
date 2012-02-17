@@ -35,7 +35,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		ExchangeStartOkMountWithOutPaddockMessage::Serialize(data);
 		uint16 size = paddockedMountsDescription.size();

@@ -60,7 +60,8 @@ public:
 		return true;
 	}
 
-	GameSession() : m_server(NULL)
+	GameSession(boost::asio::io_service& ios) : AbstractSession<GamePacketHandler>(ios),
+		m_server(NULL)
 	{
 	}
 

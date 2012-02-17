@@ -36,7 +36,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		FightResultFighterListEntry::Serialize(data);
 		data<<level;

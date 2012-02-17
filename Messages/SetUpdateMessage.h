@@ -33,17 +33,17 @@ public:
 	{
 	}
 
-	SetUpdateMessage(int16 setId, std::vector<int16>& setObjects, const std::vector<EffectInstance*>& setEffects)
+	SetUpdateMessage(int16 setId, std::vector<int16>& setObjects, const std::vector<PlayerItemEffect*>& setEffects)
 		: setId(setId), setObjects(setObjects)
 	{
-		for(std::vector<EffectInstance*>::const_iterator it = setEffects.begin(); it != setEffects.end(); ++it)
+		for(std::vector<PlayerItemEffect*>::const_iterator it = setEffects.begin(); it != setEffects.end(); ++it)
 		{
-			ObjectEffectPtr obj((*it)->ToPlayerItemEffect()->ToObjectEffect());
+			ObjectEffectPtr obj((*it)->ToObjectEffect());
 			this->setEffects.push_back(obj);
 		}
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<setId;
 		uint16 size = setObjects.size();

@@ -31,7 +31,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		uint16 size = cells.size();
 		data<<size;

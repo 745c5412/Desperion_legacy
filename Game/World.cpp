@@ -20,7 +20,7 @@
 
 template<> World * Singleton<World>::m_singleton = NULL;
 
-void World::Send(DofusMessage& data, bool admin)
+void World::Send(const DofusMessage& data, bool admin)
 {
 	boost::shared_lock<boost::shared_mutex> lock(SessionsMutex);
 	for(SessionMap::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
@@ -28,16 +28,18 @@ void World::Send(DofusMessage& data, bool admin)
 			it->second->Send(data);
 }
 
-void World::SaveAll()
+void World::SaveAll() // à n'utiliser qu'en cas de crash
 {
-	boost::shared_lock<boost::shared_mutex> lock(SessionsMutex);
 	for(SessionMap::iterator it = Sessions.begin(); it != Sessions.end(); ++it)
 	{
 		if(it->second->GetData(FLAG_GUID).intValue != 0)
 		{
 			it->second->Save();
-			if(it->second->GetCharacter() != NULL)
-				it->second->GetCharacter()->Save();
+			if(it->second->GetData(FLAG_GUID).intValue != 0)
+			{
+				Desperion::eDatabase->Execute("UPDATE accounts SET logged=0 WHERE guid=%u;",
+					it->second->GetData(FLAG_GUID).intValue);
+			}
 		}
 	}
 }
@@ -75,7 +77,7 @@ World::~World()
 		delete it->second;
 	Monsters.clear();
 
-	Desperion::sDatabase.Execute("DELETE FROM character_items WHERE owner=-1;");
+	Desperion::sDatabase->Execute("DELETE FROM \"character_items\" WHERE \"owner\"=-1;");
 }
 
 /*void ReadData(D2oFile* file, std::string name)
@@ -88,7 +90,7 @@ World::~World()
 		{
 			if(QR->Fetch()[0].GetInt32() > 0)
 			{
-				Log::Instance().outDebug("Count not null %s, continuing ...", it->second.GetName().c_str());
+				Log::Instance().OutDebug("Count not null %s, continuing ...", it->second.GetName().c_str());
 				
 				return;
 			}
@@ -100,7 +102,7 @@ World::~World()
 	Result result = file->ReadAllData();
 
 	try{
-		Log::Instance().outDebug("Loading file '%s'", name.c_str());
+		Log::Instance().OutDebug("Loading file '%s'", name.c_str());
 		for(Result::iterator it = result.begin(); it != result.end(); ++it)
 		{
 			std::string insert = it->first.GetSQLInsert(D2oClassDefinition::FormatName(it->first.GetName()), it->second);
@@ -108,10 +110,10 @@ World::~World()
 		}
 	}catch(const std::exception& e)
 	{
-		Log::Instance().outError("Error %s while loading %s", e.what(), name.c_str());
+		Log::Instance().OutError("Error %s while loading %s", e.what(), name.c_str());
 		return;
 	}
-	Log::Instance().outDebug("Loaded file '%s'", name.c_str());
+	Log::Instance().OutDebug("Loaded file '%s'", name.c_str());
 }
 
 void CreateSchema()
@@ -136,7 +138,7 @@ void CreateSchema()
 			std::string name = D2oClassDefinition::FormatName(it2->second.GetName());
 			std::string schema = it2->second.GetSQLSchema(name);
 			Desperion::sDatabase->Execute(schema.c_str());
-			Log::Instance().outDebug("Created schema %s", name.c_str());
+			Log::Instance().OutDebug("Created schema %s", name.c_str());
 		}
 	}
 
@@ -152,7 +154,7 @@ void CreateSchema()
 void World::Init()
 {
 	boost::threadpool::pool tp(boost::thread::hardware_concurrency());
-	Log::Instance().outNotice("World", "Loading world...");
+	Log::Instance().OutNotice("World", "Loading world...");
 	tp.schedule(boost::bind(&World::LoadSubAreas, this));
 	tp.wait();
 	tp.schedule(boost::bind(&World::LoadCharacterMinimals, this));
@@ -162,7 +164,15 @@ void World::Init()
 	tp.schedule(boost::bind(&World::LoadMonsters, this));
 	tp.wait();
 	SpawnMonsters();
-	Log::Instance().outNotice("World", "World loaded!\n\n");
+
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT \"guid\" FROM \"character_items\" ORDER BY \"guid\" DESC LIMIT 1;");
+	if(QR)
+	{
+		QR->NextRow();
+		m_hiCharacterGuid = (QR->Fetch()[0].GetInt32()) + 1;
+	}
+
+	Log::Instance().OutNotice("World", "World loaded!\n\n");
 
 	Session::InitHandlersTable();
 	Session::InitCommandsTable();
@@ -170,7 +180,7 @@ void World::Init()
 
 void World::SpawnMonsters()
 {
-	Log::Instance().outNotice("World", "Spawning monsters...");
+	Log::Instance().OutNotice("World", "Spawning monsters...");
 	uint32 time = getMSTime();
 
 	struct stream
@@ -214,105 +224,105 @@ void World::SpawnMonsters()
 	stream s;
 	apply a;
 	w.run(s, a);
-	Log::Instance().outNotice("World", "Monsters spawned in %ums!", getMSTime() - time);
+	Log::Instance().OutNotice("World", "Monsters spawned in %ums!", getMSTime() - time);
 }
 
 void World::LoadMonsters()
 {
 	uint32 time = getMSTime();
-	ResultPtr QR = Desperion::sDatabase.Query("SELECT id, gfxId, race, grades, look, canPlay, canTackle, isBoss, monster_stats.stats, \
-												monster_stats.minRespawnTime FROM d2o_monster JOIN monster_stats ON \
-												d2o_monster.id=monster_stats.monsterId;");
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT \"id\", \"gfxId\", \"race\", \"grades\", \"look\", \"canPlay\", \"canTackle\", \
+											   \"isBoss\", \"monster_stats\".\"stats\", \"monster_stats\".\"minRespawnTime\" FROM \
+											   \"d2o_monster\" JOIN \"monster_stats\" ON \"d2o_monster\".\"id\"=\"monster_stats\".\"monsterId\";");
 	if(!QR)
 		return;
-	do
+	while(QR->NextRow())
 	{
 		Field* fields = QR->Fetch();
 		Monster* m = new Monster;
 		std::tr1::unordered_map<int, std::string>::value_type;
 		m->Init(fields);
 		Monsters[m->GetId()] = m;
-	}while(QR->NextRow());
+	}
 
-	Log::Instance().outNotice("World", "%u monsters loaded in %ums!", Monsters.size(), getMSTime() - time);
+	Log::Instance().OutNotice("World", "%u monsters loaded in %ums!", Monsters.size(), getMSTime() - time);
 }
 
 void World::LoadSubAreas()
 {
 	uint32 time = getMSTime();
-	ResultPtr QR = Desperion::sDatabase.Query("SELECT d2o_sub_area.id, areaId, mapIds, sub_area_spawns.spawns FROM d2o_sub_area \
-											   JOIN sub_area_spawns ON d2o_sub_area.id=sub_area_spawns.id;");
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT \"d2o_sub_area\".\"id\", \"areaId\", \"sub_area_spawns\".\"spawns\" \
+											   FROM \"d2o_sub_area\" JOIN \"sub_area_spawns\" ON \"d2o_sub_area\".\"id\"=\"sub_area_spawns\".\"id\";");
 	if(!QR)
 		return;
-	do
+	while(QR->NextRow())
 	{
 		Field* fields = QR->Fetch();
 		SubArea* s = new SubArea;
 		s->Init(fields);
 		SubAreas[s->GetId()] = s;
-	}while(QR->NextRow());
+	}
 
-	Log::Instance().outNotice("World", "%u subareas loaded in %ums!", SubAreas.size(), getMSTime() - time);
+	Log::Instance().OutNotice("World", "%u subareas loaded in %ums!", SubAreas.size(), getMSTime() - time);
 }
 
 void World::LoadItems()
 {
 	uint32 time = getMSTime();
-	ResultPtr QR = Desperion::sDatabase.Query("SELECT id, typeId, level, realWeight, cursed, useAnimationId, usable, targetable, price, \
-											  twoHanded, etheral, itemSetId, criteria, appearanceId, possibleEffects, favoriteSubAreas, \
-											  favoriteSubAreasBonus FROM d2o_item;");
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT \"id\", \"typeId\", \"level\", \"realWeight\", \"cursed\", \"useAnimationId\", \"usable\", \"targetable\", \"price\", \
+											  \"twoHanded\", \"etheral\", \"itemSetId\", \"criteria\", \"appearanceId\", \"possibleEffects\", \"favoriteSubAreas\", \
+											  \"favoriteSubAreasBonus\" FROM \"d2o_item\";");
 	if(!QR)
 		return;
-	do
+	while(QR->NextRow())
 	{
 		Field* fields = QR->Fetch();
 		Item* i = new Item;
 		i->Init(fields);
 		Items[i->GetId()] = i;
-	}while(QR->NextRow());
+	}
 	
-	QR = Desperion::sDatabase.Query("SELECT id, typeId, level, realWeight, cursed, useAnimationId, usable, targetable, price, twoHanded, \
-									etheral, itemSetId, criteria, appearanceId, possibleEffects, favoriteSubAreas, favoriteSubAreasBonus, \
-									`range`, criticalHitBonus, minRange, castTestLos, criticalFailureProbability, criticalHitProbability, \
-									apCost, castInLine FROM d2o_weapon;");
+	QR = Desperion::sDatabase->Query("SELECT \"id\", \"typeId\", \"level\", \"realWeight\", \"cursed\", \"useAnimationId\", \"usable\", \"targetable\", \"price\", \"twoHanded\", \
+									\"etheral\", \"itemSetId\", \"criteria\", \"appearanceId\", \"possibleEffects\", \"favoriteSubAreas\", \"favoriteSubAreasBonus\", \
+									\"range\", \"criticalHitBonus\", \"minRange\", \"castTestLos\", \"criticalFailureProbability\", \"criticalHitProbability\", \
+									\"apCost\", \"castInLine\" FROM \"d2o_weapon\";");
 	if(!QR)
 		return;
-	do
+	while(QR->NextRow())
 	{
 		Field* fields = QR->Fetch();
 		Weapon* w = new Weapon;
 		w->Init(fields);
 		Items[w->GetId()] = w;
-	}while(QR->NextRow());
+	}
 
-	Log::Instance().outNotice("World", "%u items loaded in %ums!", Items.size(), getMSTime() - time);
+	Log::Instance().OutNotice("World", "%u items loaded in %ums!", Items.size(), getMSTime() - time);
 }
 
 void World::LoadItemSets()
 {
 	uint32 time = getMSTime();
-	ResultPtr QR = Desperion::sDatabase.Query("SELECT id, effects FROM d2o_item_set;");
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT \"id\", \"effects\" FROM \"d2o_item_set\";");
 	if(!QR)
 		return;
-	do
+	while(QR->NextRow())
 	{
 		Field* fields = QR->Fetch();
 		ItemSet* i = new ItemSet;
 		i->Init(fields);
 		ItemSets[i->GetId()] = i;
-	}while(QR->NextRow());
+	}
 	
-	Log::Instance().outNotice("World", "%u item sets loaded in %ums!", ItemSets.size(), getMSTime() - time);
+	Log::Instance().OutNotice("World", "%u item sets loaded in %ums!", ItemSets.size(), getMSTime() - time);
 }
 
 void World::LoadMaps()
 {
 	uint32 time = getMSTime();
-	ResultPtr QR = Desperion::sDatabase.Query("SELECT maps.*, posX, posY, capabilities, subAreaId FROM maps JOIN d2o_map_position \
-											  ON maps.id = d2o_map_position.id;");
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT \"maps\".*, \"posX\", \"posY\", \"capabilities\", \"subAreaId\" FROM \"maps\" \
+											   JOIN \"d2o_map_position\" ON \"maps\".\"id\" = \"d2o_map_position\".\"id\";");
 	if(!QR)
 		return;
-	do
+	while(QR->NextRow())
 	{
 		Field* fields = QR->Fetch();
 		Map* map = new Map;
@@ -320,28 +330,28 @@ void World::LoadMaps()
 		Maps[map->GetId()] = map;
 		if(map->GetSubAreaId() > 0)
 			SubAreas[map->GetSubAreaId()]->AddMap(map);
-	}while(QR->NextRow());
+	}
 	
-	Log::Instance().outNotice("World", "%u maps loaded in %ums!", Maps.size(), getMSTime() - time);
+	Log::Instance().OutNotice("World", "%u maps loaded in %ums!", Maps.size(), getMSTime() - time);
 }
 
 void World::LoadCharacterMinimals()
 {
 	uint32 time = getMSTime();
-	ResultPtr QR = Desperion::sDatabase.Query("SELECT * FROM character_minimals ORDER BY id DESC;");
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT * FROM \"character_minimals\" ORDER BY \"id\" DESC;");
 	if(!QR)
 		return;
-	do
+	while(QR->NextRow())
 	{
 		Field* fields = QR->Fetch();
 		CharacterMinimals* ch = new CharacterMinimals;
 		ch->Init(fields);
 		Characters[ch->id] = ch;
-	}while(QR->NextRow());
+	}
 	
 	m_hiCharacterGuid = Characters.begin()->second->id;
 
-	Log::Instance().outNotice("World", "%u character minimals loaded in %ums!", Characters.size(), getMSTime() - time);
+	Log::Instance().OutNotice("World", "%u character minimals loaded in %ums!", Characters.size(), getMSTime() - time);
 }
 
 Map* World::GetMap(int id)

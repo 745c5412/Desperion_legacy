@@ -21,6 +21,7 @@
 
 class Session;
 class PlayerItem;
+class Fight;
 
 enum Direction
 {
@@ -34,7 +35,7 @@ enum Direction
 	DIRECTION_NORTH_EAST = 7,
 };
 
-enum Breed
+enum BreedEnum
 {
 	UNDEFINED = 0,
 	Feca = 1,
@@ -94,6 +95,7 @@ private:
 	std::list<PlayerItem*> m_items;
 	int8 m_context;
 	int8 m_smileyId;
+	Fight* m_fight;
 
 	void InitItems();
 public:
@@ -108,14 +110,20 @@ public:
 	PlayerItem* GetSimilarItem(PlayerItem*);
 	PlayerItem* GetItem(int);
 	PlayerItem* GetItemByPos(uint8);
-	bool HasEquiped(int16);
-	//bool ApplyUsableEffect();
-	bool ApplyEffect(double StatsRow::*, EffectInstanceInteger&, bool);
+	bool HasEquiped(int16) const;
+	bool ApplyEffect(double StatsRow::*, PlayerItemEffect*, bool);
 	bool ApplyEffect(double StatsRow::*, int, int, bool);
-	std::vector<int16> GetItemsFromSet(int16);
-	std::tr1::unordered_map<int16, std::vector<int16> > GetTotalItemSets();
+	void GetItemsFromSet(std::vector<int16>&, int16) const;
+	void GetTotalItemSets(std::tr1::unordered_map<int16, std::vector<int16> >&) const;
 	void UpdateItemSet(int16, boost::function<void()>);
 	EntityLook* GetLook() const;
+	void Save(CharacterMinimals*) const;
+
+	Fight* GetFight()
+	{ return m_fight; }
+
+	void SetFight(Fight* f)
+	{ m_fight = f; }
 
 	int8 GetSmileyId() const
 	{ return m_smileyId; }
@@ -189,29 +197,32 @@ public:
 		return currentLife;
 	}
 
-	PartyGuestInformations* GetPartyGuestInformations(int hostId)
+	PartyGuestInformations* GetPartyGuestInformations(int hostId) const
 	{ return new PartyGuestInformations(m_guid, hostId, m_name, GetLook()); }
 
-	PartyMemberInformations* GetPartyMemberInformations()
+	PartyMemberInformations* GetPartyMemberInformations() const
 	{
 		return new PartyMemberInformations(m_guid, m_level, m_name, GetLook(), GetCurrentLife(), GetMaxLife(),
 			m_stats.prospecting.Total(), 0, m_stats.initiative.Total(), m_stats.IsPvpEnabled(), m_stats.GetAlignmentSide());
 	}
 
-	PartyInvitationMemberInformations* GetPartyInvitationMemberInformations()
+	PartyInvitationMemberInformations* GetPartyInvitationMemberInformations() const
 	{
 		return new PartyInvitationMemberInformations(m_guid, m_level, m_name, GetLook(), m_breed, m_sex,
 			m_map->GetPosX(), m_map->GetPosY(), m_map->GetId(), m_map->GetSubAreaId());
 	}
 
-	virtual GameRolePlayActorInformations* ToActor()
-	{ 
-		return new GameRolePlayCharacterInformations(m_guid, GetLook(), new EntityDispositionInformations(m_cell, m_direction), m_name,
-			GetHumanInfos(), new ActorAlignmentInformations(m_stats.GetAlignmentSide(), m_stats.GetAlignmentValue(),
-			m_stats.GetAlignmentGrade(), m_stats.GetDishonor(), m_level)); 
+	ActorAlignmentInformations* GetActorAlignmentInformations() const
+	{
+		return new ActorAlignmentInformations(m_stats.GetAlignmentSide(), m_stats.GetAlignmentValue(),
+			m_stats.GetAlignmentGrade(), m_stats.GetDishonor(), m_level);
 	}
 
-	void Save();
+	virtual GameRolePlayActorInformations* ToActor() const
+	{ 
+		return new GameRolePlayCharacterInformations(m_guid, GetLook(), new EntityDispositionInformations(m_cell, m_direction), m_name,
+			GetHumanInfos(), GetActorAlignmentInformations()); 
+	}
 };
 
 #endif

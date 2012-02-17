@@ -35,7 +35,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		EmotePlayAbstractMessage::Serialize(data);
 		uint16 size = actorIds.size();

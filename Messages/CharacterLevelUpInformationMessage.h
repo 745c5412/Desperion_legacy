@@ -37,7 +37,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		CharacterLevelUpMessage::Serialize(data);
 		data<<name<<id<<relationType;

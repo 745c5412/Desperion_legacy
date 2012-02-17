@@ -38,7 +38,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		ActorAlignmentInformations::Serialize(data);
 		data<<honor<<honorGradeFloor<<honorNextGradeFloor<<pvpEnabled;

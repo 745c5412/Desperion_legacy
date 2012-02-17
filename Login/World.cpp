@@ -20,6 +20,7 @@
 
 template <> World * Singleton<World>::m_singleton = NULL;
 
+// A poster dans l'io_service du Master, car c'est une méthode assez lourde
 void World::RefreshGameServer(GameServer* G)
 {
 	struct Count
@@ -29,14 +30,14 @@ void World::RefreshGameServer(GameServer* G)
 		{ count = 0; }
 	};
 	std::tr1::unordered_map<int, Count> counts;
-	ResultPtr QR = Desperion::sDatabase.Query("SELECT accountGuid FROM character_counts WHERE serverID=%u;", G->GetID());
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT \"accountGuid\" FROM \"character_counts\" WHERE \"serverId\"=%u;", G->GetID());
 	if(QR)
 	{
-		do
+		while(QR->NextRow())
 		{
 			Field* fields = QR->Fetch();
 			++counts[fields[0].GetInt32()].count;
-		}while(QR->NextRow());
+		}
 	}
 
 	boost::shared_lock<boost::shared_mutex> lock(SessionsMutex);
@@ -60,28 +61,28 @@ World::~World()
 void World::LoadGameServers()
 {
 	uint32 time = getMSTime();
-	ResultPtr QR = Desperion::sDatabase.Query("SELECT * FROM game_servers;");
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT * FROM \"game_servers\";");
 	if(!QR)
 		return;
-	do
+	while(QR->NextRow())
 	{
 		Field * fields = QR->Fetch();
 		uint16 id = fields[0].GetUInt16();
 		GameServer* g = new GameServer;
 		g->Init(id, fields[1].GetString(), fields[2].GetUInt16(), fields[3].GetUInt8(), fields[5].GetString(), fields[4].GetUInt16(), fields[6].GetUInt8());
 		GameServers[id] = g;
-	}while(QR->NextRow());
+	}
 	
-	Log::Instance().outNotice("World", "%u game servers loaded in %ums!", GameServers.size(), getMSTime() - time);
+	Log::Instance().OutNotice("World", "%u game servers loaded in %ums!", GameServers.size(), getMSTime() - time);
 }
 
 void World::Init()
 {
-	Log::Instance().outNotice("World", "Loading world...");
+	Log::Instance().OutNotice("World", "Loading world...");
 	LoadGameServers();
 	Session::InitHandlersTable();
 	GameSession::InitHandlersTable();
-	Log::Instance().outNotice("World", "World loaded!\n\n");
+	Log::Instance().OutNotice("World", "World loaded!\n\n");
 }
 
 void World::AddSession(Session* s)

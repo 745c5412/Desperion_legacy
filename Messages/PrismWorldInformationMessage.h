@@ -41,7 +41,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<nbSubOwned<<subTotal<<maxSub;
 		uint16 size = subAreasInformation.size();

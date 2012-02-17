@@ -43,7 +43,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		TaxCollectorDialogQuestionBasicMessage::Serialize(data);
 		data<<maxPods<<prospecting<<wisdom<<taxCollectorsCount<<taxCollectorAttack<<kamas<<experience<<pods<<itemsValue;

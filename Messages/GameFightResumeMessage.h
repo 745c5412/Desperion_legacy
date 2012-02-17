@@ -37,7 +37,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		GameFightSpectateMessage::Serialize(data);
 		uint16 size = spellCooldowns.size();

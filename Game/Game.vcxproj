@@ -55,10 +55,11 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <AdditionalOptions>/Zm179 %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Shared.lib;libmySQL.lib;debug-d.lib;cryptlib-d.lib;CacheDataExploiter.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Shared.lib;libmySQL.lib;debug-d.lib;cryptlib-d.lib;libpq.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -69,12 +70,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <AdditionalOptions>/Zm164 %(AdditionalOptions)</AdditionalOptions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Shared.lib;libmySQL.lib;debug.lib;cryptlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Shared.lib;libmySQL.lib;debug.lib;cryptlib.lib;libpq.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -88,6 +90,8 @@
     <ClCompile Include="ContextHandler.cpp" />
     <ClCompile Include="DofusUtils.cpp" />
     <ClCompile Include="Entity.cpp" />
+    <ClCompile Include="Fight.cpp" />
+    <ClCompile Include="FightHandler.cpp" />
     <ClCompile Include="GameClient.cpp" />
     <ClCompile Include="InventoryHandler.cpp" />
     <ClCompile Include="Item.cpp" />
@@ -120,6 +124,7 @@
     <ClInclude Include="ConfigDefaults.h" />
     <ClInclude Include="DofusUtils.h" />
     <ClInclude Include="Entity.h" />
+    <ClInclude Include="Fight.h" />
     <ClInclude Include="GameClient.h" />
     <ClInclude Include="Item.h" />
     <ClInclude Include="ItemSet.h" />

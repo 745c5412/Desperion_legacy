@@ -42,12 +42,12 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		int8 b = 0;
-		Desperion::BooleanByteWrapper::SetFlag(b, 0, autoconnect);
-		Desperion::BooleanByteWrapper::SetFlag(b, 1, useCertificate);
-		Desperion::BooleanByteWrapper::SetFlag(b, 2, useLoginToken);
+		BooleanByteWrapper::SetFlag(b, 0, autoconnect);
+		BooleanByteWrapper::SetFlag(b, 1, useCertificate);
+		BooleanByteWrapper::SetFlag(b, 2, useLoginToken);
 		data<<b;
 		version->Serialize(data);
 		data<<lang<<login;
@@ -62,9 +62,9 @@ public:
 	{
 		int8 b;
 		data>>b;
-		autoconnect = Desperion::BooleanByteWrapper::GetFlag(b, 0);
-		useCertificate = Desperion::BooleanByteWrapper::GetFlag(b, 1);
-		useLoginToken = Desperion::BooleanByteWrapper::GetFlag(b, 2);
+		autoconnect = BooleanByteWrapper::GetFlag(b, 0);
+		useCertificate = BooleanByteWrapper::GetFlag(b, 1);
+		useLoginToken = BooleanByteWrapper::GetFlag(b, 2);
 		version.reset(new Version);
 		version->Deserialize(data);
 		data>>lang>>login;

@@ -40,7 +40,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<bonesId;
 		uint16 size = skins.size();

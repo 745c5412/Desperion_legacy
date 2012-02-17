@@ -30,7 +30,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		ExchangeObjectMovePricedMessage::Serialize(data);
 	}

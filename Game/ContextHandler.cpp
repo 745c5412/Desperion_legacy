@@ -132,6 +132,19 @@ void Session::HandleGameMapMovementConfirmMessage(ByteBuffer& packet)
 		m_char->GetMap()->DeleteItem(m_char->GetCell());
 		m_char->MoveItemFromMap(i);
 	}
+	DisplayableEntity* ent = m_char->GetMap()->GetEntityOnCell(m_char->GetCell());
+	if(ent != NULL && ent->IsMonsterGroup())
+	{
+		Fight* f = new Fight;
+		std::list<Fighter*> team1, team2;
+		team1.push_back(new PlayerFighter(TEAM1, m_char, m_char->GetCurrentLife()));
+		MonsterGroup* group = (MonsterGroup*) ent;
+		for(std::vector<MonsterGrade*>::iterator it = group->monsters.begin(); it != group->monsters.end(); ++it)
+			team2.push_back(new MonsterFighter(TEAM2, *it));
+		team2.push_back(new MonsterFighter(TEAM2, group->mainMonster));
+		f->Init(team1, team2, PVM, m_char->GetMap());
+		m_char->SetFight(f);
+	}
 	Send(BasicNoOperationMessage());
 }
 

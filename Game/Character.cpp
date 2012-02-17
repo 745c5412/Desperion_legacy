@@ -76,9 +76,9 @@ PlayerItem* Character::GetItem(int guid)
 	return NULL;
 }
 
-bool Character::HasEquiped(int16 id)
+bool Character::HasEquiped(int16 id) const
 {
-	for(std::list<PlayerItem*>::iterator it = m_items.begin(); it != m_items.end(); ++it)
+	for(std::list<PlayerItem*>::const_iterator it = m_items.begin(); it != m_items.end(); ++it)
 		if((*it)->GetPos() != INVENTORY_POSITION_NOT_EQUIPED && (*it)->GetItem()->GetId() == id)
 			return true;
 	return false;
@@ -98,20 +98,21 @@ void Character::UpdateItemSet(int16 set, boost::function<void()> bind)
 {
 	std::vector<int16> old_items;
 	if(set != -1)
-		old_items = GetItemsFromSet(set);
+		GetItemsFromSet(old_items, set);
 	bind();
 
 	if(set != -1)
 	{
-		std::vector<int16> new_items = GetItemsFromSet(set);
+		std::vector<int16> new_items;
+		GetItemsFromSet(new_items, set);
 		if(old_items.size() != new_items.size())
 		{
 			ItemSet* IS = World::Instance().GetItemSet(set);
 			if(IS != NULL)
 			{
-				const std::vector<EffectInstance*>& e1 = IS->GetEffect(old_items.size());
+				const std::vector<PlayerItemEffect*>& e1 = IS->GetEffect(old_items.size());
 				ItemSet::ApplyEffects(this, e1, false);
-				const std::vector<EffectInstance*>& e2 = IS->GetEffect(new_items.size());
+				const std::vector<PlayerItemEffect*>& e2 = IS->GetEffect(new_items.size());
 				ItemSet::ApplyEffects(this, e2, true);
 				m_session->Send(SetUpdateMessage(IS->GetId(), new_items, e2));
 			}
@@ -153,25 +154,20 @@ PlayerItem* Character::GetSimilarItem(PlayerItem* i)
 	return NULL;
 }
 
-std::vector<int16> Character::GetItemsFromSet(int16 id)
+void Character::GetItemsFromSet(std::vector<int16>& items, int16 id) const
 {
-	std::vector<int16> items;
-	for(std::list<PlayerItem*>::iterator it = m_items.begin(); it != m_items.end(); ++it)
+	for(std::list<PlayerItem*>::const_iterator it = m_items.begin(); it != m_items.end(); ++it)
 		if((*it)->GetPos() != INVENTORY_POSITION_NOT_EQUIPED && (*it)->GetItem()->GetItemSetId() == id)
 			items.push_back((*it)->GetItem()->GetId());
-	return items;
 }
 
-std::tr1::unordered_map<int16, std::vector<int16> > Character::GetTotalItemSets()
+void Character::GetTotalItemSets(std::tr1::unordered_map<int16, std::vector<int16> >& sets) const
 {
-	std::tr1::unordered_map<int16, std::vector<int16> > sets;
-
-	for(std::list<PlayerItem*>::iterator it = m_items.begin(); it != m_items.end(); ++it)
+	for(std::list<PlayerItem*>::const_iterator it = m_items.begin(); it != m_items.end(); ++it)
 	{
 		if((*it)->GetPos() != INVENTORY_POSITION_NOT_EQUIPED && (*it)->GetItem()->GetItemSetId() != -1)
 			sets[(*it)->GetItem()->GetItemSetId()].push_back((*it)->GetItem()->GetId());
 	}
-	return sets;
 }
 
 void Character::MoveItem(PlayerItem* item, uint8 pos, bool create)
@@ -192,7 +188,8 @@ void Character::MoveItem(PlayerItem* item, uint8 pos, bool create)
 		if(item->GetQuantity() > 1 && !create)
 		{
 			PlayerItem* newItem = new PlayerItem;
-			newItem->Init(PlayerItem::GetNextItemGuid(), item->GetItem(), 1, INVENTORY_POSITION_NOT_EQUIPED, item->GetEffects(), this);
+			newItem->Init(World::Instance().GetNextItemGuid(), item->GetItem(), 1, INVENTORY_POSITION_NOT_EQUIPED, item->GetEffects(),
+				this);
 			item->SetQuantity(item->GetQuantity() - 1);
 			AddItem(newItem);
 			newItem->SetPos(pos);
@@ -231,14 +228,17 @@ void Character::MoveItemFromMap(PlayerItem* item)
 		AddItem(item);
 
 		m_session->Send(ObjectAddedMessage(item->ToObjectItem()));
-		item->Save();
+		std::vector<boost::shared_array<const char> > queries;
+		item->Save(queries);
+		Desperion::sDatabase->AsyncExecute(queries);
 	}
 }
 
-void Character::Save()
+void Character::Save(CharacterMinimals* cm) const
 {
-	for(std::list<PlayerItem*>::iterator it = m_items.begin(); it != m_items.end(); ++it)
-		(*it)->Save();
+	std::vector<boost::shared_array<const char> > queries;
+	for(std::list<PlayerItem*>::const_iterator it = m_items.begin(); it != m_items.end(); ++it)
+		(*it)->Save(queries);
 
 	std::ostringstream zaaps, emotes;
 	for(size_t a = 0; a < m_zaaps.size(); ++a)
@@ -253,14 +253,15 @@ void Character::Save()
 			emotes<<",";
 		emotes<<uint16(m_emotes.at(a));
 	}
-	Desperion::sDatabase.Execute("UPDATE characters SET zaaps='%s', currentMap=%u, currentCell=%u, spells='%s', saveMap=%u, \
-								  saveCell=%u, jobs='%s', mountXp=%u, mountId=%d, isDead=%u, title=%u, isMerchant=%u, emotes='%s' \
-								  WHERE guid=%u LIMIT 1;", zaaps.str().c_str(), m_map->GetId(), m_cell, "", m_saveMap, m_saveCell,
-								  "", m_mountXp, -1, 0, m_title, 0, emotes.str().c_str(), m_guid);
-	Desperion::sDatabase.Execute("UPDATE character_minimals SET level=%u, name='%s', entityLook='%s', breed=%u, sex=%u \
-								  WHERE id=%u LIMIT 1;", m_level, m_name.c_str(), m_look.ToString().c_str(), m_breed, 
-								  m_sex ? 1 : 0, m_guid);
+	queries.push_back(Desperion::FormatString("UPDATE \"characters\" SET \"zaaps\"='%s', \"currentMap\"=%u, \"currentCell\"=%u, \"spells\"='%s', \"saveMap\"=%u, \
+								  \"saveCell\"=%u, \"jobs\"='%s', \"mountXp\"=%u, \"mountId\"=%d, \"isDead\"=%u, \"title\"=%u, \"isMerchant\"=%u, \"emotes\"='%s' \
+								  WHERE \"guid\"=%u;", zaaps.str().c_str(), m_map->GetId(), m_cell, "", m_saveMap, m_saveCell,
+								  "", m_mountXp, -1, 0, m_title, 0, emotes.str().c_str(), m_guid));
+	queries.push_back(Desperion::FormatString("UPDATE \"character_minimals\" SET \"level\"=%u, \"name\"='%s', \"entityLook\"='%s', \"breed\"=%u, \"sex\"=%u \
+								  \"lastConnectionDate\"=%llu, WHERE \"id\"=%u;", m_level, m_name.c_str(), m_look.ToString().c_str(),
+								  m_breed, m_sex ? 1 : 0, cm->lastConnectionDate, m_guid));
 	// TODO: update stats
+	Desperion::sDatabase->AsyncExecute(queries);
 }
 
 Character::~Character()
@@ -274,7 +275,7 @@ Character::~Character()
 }
 
 Character::Character() : m_smileyId(-1), m_nextCell(-1), m_nextDirection(-1),
-	m_context(ROLE_PLAY)
+	m_context(ROLE_PLAY), m_fight(NULL)
 {
 }
 
@@ -322,12 +323,18 @@ void Character::Init(Field* fields, CharacterMinimals* ch, Session* session)
 	// TODO: timer de regen
 }
 
+bool Character::ApplyEffect(double StatsRow::*stat, int effect, int val, bool add)
+{
+	PlayerItemEffectInteger e(effect, val);
+	return ApplyEffect(stat, &e, add);
+}
+
 void Character::InitItems()
 {
-	ResultPtr QR = Desperion::sDatabase.Query("SELECT * FROM character_items WHERE owner=%u;", m_guid);
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT * FROM \"character_items\" WHERE \"owner\"=%u;", m_guid);
 	if(!QR)
 		return;
-	do
+	while(QR->NextRow())
 	{
 		Field* fields = QR->Fetch();
 		PlayerItem* it = new PlayerItem;
@@ -378,28 +385,21 @@ void Character::InitItems()
 		}
 
 		m_items.push_back(it);
-	}while(QR->NextRow());
-	
+	}
 }
 
-bool Character::ApplyEffect(double StatsRow::*stat, int id, int val, bool add)
-{
-	EffectInstanceInteger e;
-	e.value = val;
-	e.effectId = id;
-	return ApplyEffect(stat, e, add);
-}
-
-bool Character::ApplyEffect(double StatsRow::*stat, EffectInstanceInteger& e, bool add)
+bool Character::ApplyEffect(double StatsRow::*stat, PlayerItemEffect* e, bool add)
 {
 	// TODO: stats speciales telles que "Debloque le titre X", "Change l'apparence"... etc
-
 	double v;
-	if(add)
-		v = e.value;
-	else
-		v = -e.value;
-	switch(e.effectId)
+	if(e->IsInteger())
+	{
+		if(add)
+			v = ((PlayerItemEffectInteger*)e)->value;
+		else
+			v = -((PlayerItemEffectInteger*)e)->value;
+	}
+	switch(e->actionId)
 	{
 	case 1076: // +resistance % all (bond par exemple, mais je doute que cette stat soit utilisee dans les effets d'items)
 		m_stats.neutralElementResistPercent.*stat += v;

@@ -45,7 +45,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<modelId<<ownerName<<ownerConnected<<worldX<<worldY<<subAreaId<<nbRoom<<nbChest;
 		uint16 size = skillListIds.size();

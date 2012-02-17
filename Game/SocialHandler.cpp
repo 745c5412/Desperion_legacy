@@ -29,19 +29,21 @@ int GetLastConnectionDate(std::list<CharacterMinimals*>& chars)
 
 std::istring GetOfflineCharacter(int guid)
 {
-	ResultPtr QR = Desperion::eDatabase.Query("SELECT pseudo FROM accounts WHERE guid=%u LIMIT 1;", guid);
+	ResultPtr QR = Desperion::eDatabase->Query("SELECT pseudo FROM accounts WHERE guid=%u LIMIT 1;", guid);
 	if(!QR)
 		return "";
+	QR->NextRow();
 	Field* fields = QR->Fetch();
 	return fields[0].GetString();
 }
 
 std::pair<int, std::istring> GetOfflineAccount(std::istring pseudo)
 {
-	ResultPtr QR = Desperion::eDatabase.Query("SELECT guid, pseudo FROM accounts WHERE LOWER(pseudo)='%s' LIMIT 1;",
-		Desperion::ToLowerCase(Desperion::sDatabase.EscapeString(std::string(pseudo.c_str()))).c_str());
+	ResultPtr QR = Desperion::eDatabase->Query("SELECT guid, pseudo FROM accounts WHERE LOWER(pseudo)='%s' LIMIT 1;",
+		Desperion::ToLowerCase(Desperion::sDatabase->EscapeString(std::string(pseudo.c_str()))).c_str());
 	if(!QR)
 		return std::make_pair(0, "");
+	QR->NextRow();
 	Field* fields = QR->Fetch();
 	return std::make_pair(fields[0].GetInt32(), std::istring(fields[1].GetString()));
 }

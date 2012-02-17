@@ -22,103 +22,51 @@ PlayerItem* Item::Create(int qua, bool max, Character* owner)
 {
 	PlayerItem* item = new PlayerItem;
 	std::vector<PlayerItemEffect*> effects;
-	for(std::vector<EffectInstance*>::iterator it = m_possibleEffects.begin(); it != m_possibleEffects.end(); ++it)
+	time_t t = time(NULL);
+	for(std::vector<PlayerItemEffect*>::iterator it = m_possibleEffects.begin(); it != m_possibleEffects.end(); ++it)
 	{
-		if((*it)->IsDice()) // en theorie toujours des Dice dans d2o_item
+		if((*it)->IsMinMax())
 		{
-			EffectInstanceDice* effect = (EffectInstanceDice*)(*it);
-			bool random;
-			switch(effect->effectId)
-			{
-			case 98:
-			case 81:
-			case 82:
-			case 84:
-			case 91:
-			case 92:
-			case 93:
-			case 94:
-			case 95:
-			case 96:
-			case 97:
-			case 99:
-			case 100:
-			case 101:
-			case 108:
-			case 130:
-			case 670:
-			case 671:
-			case 672:
-			case 440:
-			case 1012:
-			case 1013:
-			case 1014:
-			case 1015:
-			case 1016:
-			case 1063:
-			case 1064:
-			case 1065:
-			case 1066:
-			case 1067:
-			case 1068:
-			case 1069:
-			case 1070:
-			case 1071:
-				random = false;
-				break;
-			default:
-				random = true;
-				break;
-			}
-			if(random)
-			{
-				int value;
-				if(effect->diceNum > effect->diceSide)
-					value = effect->diceNum;
-				else
-				{
-					if(max)
-						value = effect->diceSide;
-					else
-						value = RandomUInt(effect->diceNum, effect->diceSide);
-				}
-				effects.push_back(new PlayerItemEffectInteger(effect->effectId, value));
-			}
+			int value;
+			PlayerItemEffectMinMax* effect = (PlayerItemEffectMinMax*)(*it);
+			if(effect->min)
+				value = effect->min;
 			else
-				effects.push_back(new PlayerItemEffectDice(effect->effectId, effect->diceNum, effect->diceSide, 0));
-		}
-	}
-	
-	ResultPtr QR = Desperion::sDatabase.Query("SELECT effects FROM item_additional_effects WHERE id=%u LIMIT 1;", m_id);
-	if(QR)
-	{
-		Field* fields = QR->Fetch();
-		std::vector<PlayerItemEffect*> addEffects;
-		Desperion::FastSplit<';'>(addEffects, std::string(fields[0].GetString()), G, true);
-		time_t t = time(NULL);
-		for(std::vector<PlayerItemEffect*>::iterator it = addEffects.begin(); it != addEffects.end(); ++it)
-		{
-			if((*it)->IsDate())
 			{
-				PlayerItemEffectDate* date = (PlayerItemEffectDate*)(*it);
-				struct tm* tm = localtime(&t);
-				date->year = tm->tm_year; // 0 = 1900
-				date->month += tm->tm_mon; // 0-11
-				date->day = tm->tm_mday; // 1-31
-				date->hour = tm->tm_hour; // 0-23
-				date->minute = tm->tm_min; // 0-59
-				while(date->month > 11)
-				{
-					date->month -= 11;
-					++date->year;
-				}
+				if(max)
+					value = effect->max;
+				else
+					value = RandomUInt(effect->min, effect->max);
 			}
-			effects.push_back(*it);
+			effects.push_back(new PlayerItemEffectInteger(effect->actionId, value));
 		}
+		else if((*it)->IsDice() && ((PlayerItemEffectDice*)(*it))->diceConst != 0)
+		{
+			PlayerItemEffectDice* effect = (PlayerItemEffectDice*)(*it);
+			effects.push_back(new PlayerItemEffectMinMax(effect->actionId, effect->diceNum, effect->diceSide));
+		}
+		else if((*it)->IsDate())
+		{
+			PlayerItemEffectDate* date = (PlayerItemEffectDate*)(*it);
+			date->actionId = (*it)->actionId;
+			struct tm* tm = localtime(&t);
+			date->year = tm->tm_year; // 0 = 1900
+			date->month += tm->tm_mon; // 0-11
+			date->day = tm->tm_mday; // 1-31
+			date->hour = tm->tm_hour; // 0-23
+			date->minute = tm->tm_min; // 0-59
+			while(date->month > 11)
+			{
+				date->month -= 11;
+				++date->year;
+			}
+			effects.push_back(date->Clone());
+		}
+		else
+			effects.push_back((*it)->Clone());
 	}
 	
-	
-	item->Init(PlayerItem::GetNextItemGuid(), this, qua, INVENTORY_POSITION_NOT_EQUIPED, effects, owner);
+	item->Init(World::Instance().GetNextItemGuid(), this, qua, INVENTORY_POSITION_NOT_EQUIPED, effects, owner);
 	for(std::vector<PlayerItemEffect*>::iterator it = effects.begin(); it != effects.end(); ++it)
 		delete *it;
 	return item;
@@ -126,7 +74,7 @@ PlayerItem* Item::Create(int qua, bool max, Character* owner)
 
 Item::~Item()
 {
-	for(std::vector<EffectInstance*>::iterator it = m_possibleEffects.begin(); it != m_possibleEffects.end(); ++it)
+	for(std::vector<PlayerItemEffect*>::iterator it = m_possibleEffects.begin(); it != m_possibleEffects.end(); ++it)
 		delete *it;
 }
 
@@ -146,7 +94,7 @@ void Item::Init(Field* fields)
 	m_itemSetId = fields[11].GetInt32();
 	m_criteria = fields[12].GetString();
 	m_appearanceId = fields[13].GetInt32();
-	Desperion::FastSplit<';'>(m_possibleEffects, std::string(fields[14].GetString()), F);
+	Desperion::FastSplit<';'>(m_possibleEffects, std::string(fields[14].GetString()), G);
 	Desperion::FastSplit<','>(m_favoriteSubAreas, std::string(fields[15].GetString()), Desperion::SplitInt);
 	m_favoriteSubAreaBonus = fields[16].GetInt32();
 }

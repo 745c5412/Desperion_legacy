@@ -36,7 +36,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		ChatAbstractServerMessage::Serialize(data);
 		data<<receiverId<<receiverName;

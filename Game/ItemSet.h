@@ -19,34 +19,34 @@
 #ifndef __ITEM_SET__
 #define __ITEM_SET__
 
-inline EffectInstanceInteger* I(std::string& str)
+/*inline EffectInstanceInteger* I(std::string& str)
 {
 	std::vector<int> table;
 	Desperion::FastSplit<','>(table, str, Desperion::SplitInt);
 	return new EffectInstanceInteger(table[2], table[0], table[3], table[4], table[1] == 1,
 		table[5], table[7], table[6]);
-}
+}*/
 
-inline std::vector<EffectInstance*> H(std::string& str)
+inline std::vector<PlayerItemEffect*> H(std::string& str)
 {
-	std::vector<EffectInstance*> table;
-	Desperion::FastSplit<';'>(table, str, I);
+	std::vector<PlayerItemEffect*> table;
+	Desperion::FastSplit<';'>(table, str, G);
 	return table;
 }
 
 class ItemSet
 {
 public:
-	typedef std::vector<std::vector<EffectInstance*> > SetEffectsMap;
+	typedef std::vector<std::vector<PlayerItemEffect*> > SetEffectsMap;
 private:
 	int16 m_id;
 	SetEffectsMap m_effects;
-	std::vector<EffectInstance*> m_empty; // pour la reference constante de GetEffect (cf implementation)
+	std::vector<PlayerItemEffect*> m_empty; // pour la reference constante de GetEffect (cf implementation)
 public:
 	void Init(Field*);
 	~ItemSet();
-	const std::vector<EffectInstance*>& GetEffect(uint8) const;
-	static void ApplyEffects(Character*, const std::vector<EffectInstance*>&, bool);
+	const std::vector<PlayerItemEffect*>& GetEffect(uint8) const;
+	static void ApplyEffects(Character*, const std::vector<PlayerItemEffect*>&, bool);
 
 	int16 GetId() const
 	{ return m_id; }

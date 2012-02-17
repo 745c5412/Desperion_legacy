@@ -40,7 +40,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		ExchangeStartedMessage::Serialize(data);
 		data<<firstCharacterId<<firstCharacterCurrentWeight<<firstCharacterMaxWeight<<secondCharacterId<<secondCharacterCurrentWeight<<secondCharacterMaxWeight;

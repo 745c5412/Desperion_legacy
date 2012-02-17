@@ -38,7 +38,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		AbstractFightDispellableEffect::Serialize(data);
 		data<<param1<<param2<<param3<<delay;

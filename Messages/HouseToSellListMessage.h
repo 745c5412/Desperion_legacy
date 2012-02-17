@@ -37,7 +37,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<pageIndex<<totalPage;
 		uint16 size = houseList.size();

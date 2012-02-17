@@ -37,7 +37,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		GameFightAIInformations::Serialize(data);
 		data<<firstNameId<<lastNameId<<level;

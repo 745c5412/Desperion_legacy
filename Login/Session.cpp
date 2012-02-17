@@ -19,18 +19,20 @@
 #include "StdAfx.h"
 
 template <> Session::HandlerStorageMap AbstractSession<LoginPacketHandler>::m_handlers;
+template <> DofusQueue* Singleton<DofusQueue>::m_singleton = NULL;
 
 bool IsIpBanned(std::string address)
 {
-	ResultPtr QR = Desperion::sDatabase.Query("SELECT banEnd FROM ip_bans WHERE IP='%s' LIMIT 1;", address.c_str());
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT \"banEnd\" FROM \"ip_bans\" WHERE \"ip\"='%s' LIMIT 1;", address.c_str());
 	if(!QR)
 		return false;
+	QR->NextRow();
 	Field* fields = QR->Fetch();
 	time_t banEnd = fields[0].GetInt64();
 
 	if(banEnd < time(NULL))
 	{
-		Desperion::sDatabase.Execute("DELETE FROM ip_bans WHERE IP='%s' LIMIT 1;", address.c_str());
+		Desperion::sDatabase->AsyncExecute("DELETE FROM \"ip_bans\" WHERE \"ip\"='%s';", address.c_str());
 		return false;
 	}
 	else
@@ -41,21 +43,21 @@ void Session::LOG(const char* str, ...)
 {
 	if(m_data[FLAG_GUID].intValue == 0 || !str)
 		return;
-
 	if(!m_logs)
 	{
 		std::ostringstream fileName;
 		fileName<<"sessions/"<<m_data[FLAG_GUID].intValue<<".log";
 		m_logs.open(fileName.str().c_str(), std::ios::app);
 	}
-
 	va_list ap;
 	char buf[32768];
 	va_start(ap, str);
-	vsnprintf_s(buf, 32768, str, ap);
+	vsnprintf(buf, 32768, str, ap);
 	va_end(ap);
-
-	Log::Instance().outFile(m_logs, std::string(buf));
+	size_t size = strlen(buf);
+	char* dynBuf = new char[size + 1];
+	memcpy(dynBuf, buf, size + 1);
+	Log::Instance().OutSession(m_logs, boost::shared_array<const char>(dynBuf));
 }
 
 void Session::HandleAcquaintanceSearchMessage(ByteBuffer& packet)
@@ -63,24 +65,22 @@ void Session::HandleAcquaintanceSearchMessage(ByteBuffer& packet)
 	AcquaintanceSearchMessage data;
 	data.Deserialize(packet);
 
-	const char* query = "SELECT serverID FROM character_counts INNER JOIN accounts ON accounts.guid = character_counts.accountGuid "\
-		"WHERE LOWER(accounts.pseudo)='%s';";
-	ResultPtr QR = Desperion::sDatabase.Query(query,
-		Desperion::ToLowerCase(Desperion::sDatabase.EscapeString(data.nickname)).c_str());
+	const char* query = "SELECT \"serverId\" FROM \"character_counts\" INNER JOIN \"accounts\" ON \"accounts\".\"guid\" = \"character_counts\".\"accountGuid\" \
+		WHERE LOWER(\"accounts\".\"pseudo\")='%s';";
+	ResultPtr QR = Desperion::sDatabase->Query(query,
+		Desperion::ToLowerCase(Desperion::sDatabase->EscapeString(data.nickname)).c_str());
 	if(!QR)
 	{
 		Send(AcquaintanceSearchErrorMessage(2));
 		return;
 	}
-
 	std::vector<int16> results;
-	do
+	while(QR->NextRow())
 	{
 		Field* fields = QR->Fetch();
 		int16 id = fields[0].GetInt16();
 		results.push_back(id);
-	}while(QR->NextRow());
-	
+	}
 	Send(AcquaintanceServerListMessage(results));
 }
 
@@ -113,15 +113,9 @@ bool Session::HandleServerSelection(GameServer* G, bool quiet)
 	//todo: restriction de communauté et de géolocalisation
 	
 	std::string ticket = GenerateRandomKey();
-	if(!Desperion::sDatabase.Execute("UPDATE accounts SET ticket='%s' WHERE guid=%u LIMIT 1;", ticket.c_str(), m_data[FLAG_GUID].intValue))
-	{
-		if(!quiet)
-			Send(SelectedServerRefusedMessage(G->GetID(), SERVER_CONNECTION_ERROR_NO_REASON, state));
-		return false;
-	}
-
+	Desperion::sDatabase->Execute("UPDATE \"accounts\" SET \"ticket\"='%s' WHERE \"guid\"=%u;", ticket.c_str(), m_data[FLAG_GUID].intValue);
 	Send(SelectedServerDataMessage(G->GetID(), G->GetIP(), G->GetPort(), true, ticket));
-	m_socket->close();
+	CloseSocket();
 	return true;
 }
 
@@ -142,25 +136,24 @@ GameServerInformations* Session::GetServerStatusMessage(const GameServer* G, uin
 
 void Session::SendServersList()
 {
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT \"serverId\" FROM \"character_counts\" WHERE \"accountGuid\"=%u;",
+		m_data[FLAG_GUID].intValue);
 	struct Count
 	{
 		uint8 count;
 		Count()
 		{ count = 0; }
 	};
-
 	std::tr1::unordered_map<uint16, Count> counts;
-	ResultPtr QR = Desperion::sDatabase.Query("SELECT serverID FROM character_counts WHERE accountGuid=%u;", m_data[FLAG_GUID].intValue);
+
 	if(QR)
 	{
-		do
+		while(QR->NextRow())
 		{
 			Field* fields = QR->Fetch();
 			++counts[fields[0].GetUInt16()].count;
-		}while(QR->NextRow());
+		}
 	}
-	
-
 	const World::GameServerMap& servers = World::Instance().GetGameServers();
 	std::vector<GameServerInformationsPtr> infos;
 	for(World::GameServerMap::const_iterator it = servers.begin(); it != servers.end(); ++it)
@@ -168,91 +161,82 @@ void Session::SendServersList()
 	Send(ServersListMessage(infos));
 }
 
-void Session::HandleIdentificationMessage(ByteBuffer& packet)
+void Session::HandleIdentification(boost::shared_ptr<IdentificationMessage> data)
 {
-	IdentificationMessage data;
-	data.Deserialize(packet);
+	struct raii
+	{
+		~raii()
+		{
+			ThreadPool::Instance().GetService().post(boost::bind(&DofusQueue::Next, DofusQueue::InstancePtr()));
+		}
+	};
+	raii r;
 
-	if(Desperion::Config::Instance().GetParam(SERVER_MAINTENANCE_STRING, SERVER_MAINTENANCE_DEFAULT))
+	ResultPtr QR = Desperion::sDatabase->Query("SELECT \"banEnd\" FROM \"ip_bans\" WHERE \"ip\"='%s' LIMIT 1;",
+		m_socket.remote_endpoint().address().to_string().c_str());
+	if(QR)
 	{
-		Send(IdentificationFailedMessage(IN_MAINTENANCE));
-		m_socket->close();
-		return;
-	}
-	else if(IsIpBanned(m_socket->remote_endpoint().address().to_string()))
-	{
-		Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
-		m_socket->close();
-		return;
-	}
-	else if(!VerifyVersion(*(data.version)))
-	{
-		Send(IdentificationFailedForBadVersionMessage(BAD_VERSION, new Version(DOFUS_VERSION_MAJOR, DOFUS_VERSION_MINOR, DOFUS_VERSION_RELEASE,
-			DOFUS_VERSION_REVISION, DOFUS_VERSION_PATCH, DOFUS_VERSION_BUILD_TYPE)));
-		m_socket->close();
-		return;
+		QR->NextRow();
+		Field* fields = QR->Fetch();
+		time_t banEnd = fields[0].GetInt64();
+
+		if(banEnd < time(NULL))
+		{
+			Desperion::sDatabase->AsyncExecute("DELETE FROM \"ip_bans\" WHERE \"ip\"='%s';",
+				m_socket.remote_endpoint().address().to_string().c_str());
+		}
+		else
+		{
+			Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
+			CloseSocket();
+			return;
+		}
 	}
 
-	const char* query = "SELECT password, guid, question, pseudo, logged, level, lastServer, subscriptionEnd, banEnd FROM accounts \
-						WHERE LOWER(account)='%s' LIMIT 1;";
-	ResultPtr QR = Desperion::sDatabase.Query(query, Desperion::ToLowerCase(Desperion::sDatabase.EscapeString(data.login)).c_str());
-	
+	const char* query = "SELECT \"password\", \"guid\", \"question\", \"pseudo\", \"logged\", \"level\", \"lastServer\", \"subscriptionEnd\", \"banEnd\" FROM \"accounts\" \
+						WHERE LOWER(\"account\")='%s' LIMIT 1;";
+	QR = Desperion::sDatabase->Query(query, Desperion::ToLowerCase(Desperion::sDatabase->EscapeString(data->login)).c_str());
 	if(!QR)
 	{
 		Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
-		m_socket->close();
+		CloseSocket();
 		return;
 	}
-
 	std::string result;
-	try
-	{
-		CryptoPP::ByteQueue queue;
-		CryptoPP::FileSource file(Desperion::Config::Instance().GetParam<std::string>(PRIV_FILE_PATH_STRING, PRIV_FILE_PATH_DEFAULT).c_str(),
-			true);
-		file.TransferTo(queue);
-		queue.MessageEnd();
-		CryptoPP::RSA::PrivateKey privateKey;
-		privateKey.Load(queue);
-		CryptoPP::RSAES_PKCS1v15_Decryptor d(privateKey);
-		CryptoPP::AutoSeededRandomPool rng;
-		CryptoPP::StringSource((uint8*)&data.credentials[0], data.credentials.size(), true,
-			new CryptoPP::PK_DecryptorFilter(rng, d, new CryptoPP::StringSink(result)));
-		result = data.useCertificate ? result.substr(m_salt.size() + 2 + 66) : result.substr(m_salt.size());
-	}
-	catch(...)
-	{
-		Send(IdentificationFailedMessage(UNKNOWN_AUTH_ERROR));
-		m_socket->close();
-		return;
-	}
-
+	CryptoPP::RSAES_PKCS1v15_Decryptor d(Desperion::Master::Instance().PrivateKey);
+	CryptoPP::AutoSeededRandomPool rng;
+	CryptoPP::StringSource((uint8*)&data->credentials[0], data->credentials.size(), true,
+		new CryptoPP::PK_DecryptorFilter(rng, d, new CryptoPP::StringSink(result)));
+	result = data->useCertificate ? result.substr(m_salt.size() + 2 + 66) : result.substr(m_salt.size());
+	
+	QR->NextRow();
 	Field* fields = QR->Fetch();
 	if(std::istring(fields[0].GetString()) != Desperion::ComputeMD5Digest(result))
 	{
 		Send(IdentificationFailedMessage(WRONG_CREDENTIALS));
-		m_socket->close();
+		CloseSocket();
 		return;
 	}
-	
 	int guid = fields[1].GetUInt32();
 	time_t banEnd = fields[8].GetUInt64();
-	if(banEnd < time(NULL))
-		Desperion::sDatabase.Execute("UPDATE accounts SET banEnd=0 WHERE guid=%u LIMIT 1;", guid);
-	else
+	if(banEnd > 0)
 	{
-		Send(IdentificationFailedBannedMessage(BANNED, banEnd));
-		m_socket->close();
-		return;
+		if(banEnd < time(NULL))
+			Desperion::sDatabase->AsyncExecute("UPDATE \"accounts\" SET \"banEnd\"=0 WHERE \"guid\"=%u;", guid);
+		else
+		{
+			Send(IdentificationFailedBannedMessage(BANNED, banEnd));
+			CloseSocket();
+			return;
+		}
 	}
-
 	uint16 logged = fields[4].GetUInt16();
 	bool alreadyConnected = false;
 	Session* S = World::Instance().GetSession(guid);
 	if(S != NULL)
 	{
 		alreadyConnected = true;
-		S->GetSocket()->close();
+		S->CloseSocket();
 	}
 	else if(logged != 0)
 	{
@@ -268,43 +252,82 @@ void Session::HandleIdentificationMessage(ByteBuffer& packet)
 			return;
 		}
 	}
-
 	m_subscriptionEnd = fields[7].GetUInt64();
 	m_data[FLAG_LAST_SERVER].intValue = fields[6].GetUInt16();
 	m_data[FLAG_PSEUDO].stringValue = fields[3].GetString();
 	m_data[FLAG_GUID].intValue = guid;
 	m_data[FLAG_LEVEL].intValue = fields[5].GetUInt8();
 	m_data[FLAG_QUESTION].stringValue = fields[2].GetString();
-	m_data[FLAG_ACCOUNT].stringValue = data.login;
-	
+	m_data[FLAG_ACCOUNT].stringValue = data->login;
 
 	World::Instance().AddSession(this);
-	LOG("***** Connection with IP address %s {%s} *****", m_socket->remote_endpoint().address().to_string().c_str(),
+
+	/* Explications: pour une raison toujours inconnue à ce jour, le premier appel à la
+	méthode LOG n'a aucun effet. C'est pourquoi je fait un premier appel LOG("salut")
+	pour pallier à ce problème, le temps de trouver une solution. */
+	LOG("salut");
+	LOG("***** Connection with IP address %s {%s} *****", m_socket.remote_endpoint().address().to_string().c_str(),
 		Desperion::FormatTime("%x").c_str());
 
-	Send(IdentificationSuccessMessage(m_data[FLAG_LEVEL].intValue > 0, alreadyConnected, data.login, m_data[FLAG_PSEUDO].stringValue,
+	Send(IdentificationSuccessMessage(m_data[FLAG_LEVEL].intValue > 0, alreadyConnected, data->login, m_data[FLAG_PSEUDO].stringValue,
 		m_data[FLAG_GUID].intValue, 0, m_data[FLAG_QUESTION].stringValue, m_subscriptionEnd));
 	
-	if(data.autoconnect)
+	if(data->autoconnect)
 	{
 		if(HandleServerSelection(World::Instance().GetGameServer(m_data[FLAG_LAST_SERVER].intValue), true))
 			return;
 	}
-	else if(data.serverId > 0)
+	else if(data->serverId > 0)
 	{
-		if(HandleServerSelection(World::Instance().GetGameServer(data.serverId), true))
+		if(HandleServerSelection(World::Instance().GetGameServer(data->serverId), true))
 			return;
 	}
 	SendServersList();
+	m_isInQueue = false;
+	m_counter = 0;
+	m_queueSize = 0;
+	if(m_queueTimer)
+		m_queueTimer->cancel();
+}
 
+void Session::HandleIdentificationMessage(ByteBuffer& packet)
+{
+	boost::shared_ptr<IdentificationMessage> data(new IdentificationMessage);
+	data->Deserialize(packet);
+
+	if(Config::Instance().GetParam(SERVER_MAINTENANCE_STRING, SERVER_MAINTENANCE_DEFAULT))
+	{
+		Send(IdentificationFailedMessage(IN_MAINTENANCE));
+		CloseSocket();
+		return;
+	}
+	else if(!VerifyVersion(data->version))
+	{
+		Send(IdentificationFailedForBadVersionMessage(BAD_VERSION, new Version(DOFUS_VERSION_MAJOR, DOFUS_VERSION_MINOR, DOFUS_VERSION_RELEASE,
+			DOFUS_VERSION_REVISION, DOFUS_VERSION_PATCH, DOFUS_VERSION_BUILD_TYPE)));
+		CloseSocket();
+		return;
+	}
+	std::pair<boost::weak_ptr<Session>, boost::shared_ptr<IdentificationMessage> >
+		p(boost::weak_ptr<Session>(boost::static_pointer_cast<Session>(shared_from_this())), data);
+	m_counter = DofusQueue::Instance().Push(p, m_queueSize);
+	if(m_queueSize > 1)
+	{
+		m_queueTimer = ThreadPool::Instance().PeriodicSchedule(boost::bind(&Session::SendQueueStatus, this),
+			boost::posix_time::seconds(3));
+	}
+}
+
+void Session::SendQueueStatus()
+{
+	Send(LoginQueueStatusMessage(m_queueSize - (DofusQueue::Instance().GetCounter() - m_counter),
+		DofusQueue::Instance().GetSize()));
 }
 
 void Session::InitHandlersTable()
 {
 	m_handlers[CMSG_IDENTIFICATION].Handler = &Session::HandleIdentificationMessage;
 	m_handlers[CMSG_IDENTIFICATION].Flag = FLAG_NOT_CONNECTED;
-
-	// TODO: file d'attente
 
 	m_handlers[CMSG_SERVER_SELECTION].Handler = &Session::HandleServerSelectionMessage;
 	m_handlers[CMSG_SERVER_SELECTION].Flag = FLAG_OUT_OF_QUEUE;
@@ -320,24 +343,16 @@ Session::~Session()
 		World::Instance().DeleteSession(m_data[FLAG_GUID].intValue);
 		LOG("***** Disconnection *****");
 	}
+	if(m_queueTimer)
+		m_queueTimer->cancel();
+	if(m_idleTimer)
+		m_idleTimer->cancel();
 }
 
 void Session::Start()
 {
 	Send(ProtocolRequired(PROTOCOL_BUILD, PROTOCOL_REQUIRED_BUILD));
-
-	std::ifstream file(Desperion::Config::Instance().GetParam<std::string>(PUB_FILE_PATH_STRING, PUB_FILE_PATH_DEFAULT).c_str(),
-		std::ios::binary);
-
-	if(!file)
-		throw std::runtime_error("*** ERROR: PUBLIC KEY FILE DOESN'T EXIST! ***");
-	
-	std::vector<int8> bytes;
-	char c;
-	while(file.get(c))
-		bytes.push_back(c);
 	m_salt = GenerateRandomKey();
-	Send(HelloConnectMessage(m_salt, bytes));
-	
+	Send(HelloConnectMessage(m_salt, Desperion::Master::Instance().PublicKey));
 	Run();
 }

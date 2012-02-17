@@ -20,12 +20,12 @@
 #define __STDAFX__
 
 #define LOGIN_VERSION_MAJOR 0
-#define LOGIN_VERSION_MINOR 6
+#define LOGIN_VERSION_MINOR 7
 #define LOGIN_VERSION_REVISION 0
 
 #define REQUIRED_SHARED_VERSION_MAJOR 0
-#define REQUIRED_SHARED_VERSION_MINOR 0
-#define REQUIRED_SHARED_VERSION_REVISION 4
+#define REQUIRED_SHARED_VERSION_MINOR 1
+#define REQUIRED_SHARED_VERSION_REVISION 0
 
 #include "../Shared/StdAfx.h"
 
@@ -53,6 +53,7 @@
 #include "../Messages/AcquaintanceServerListMessage.h"
 #include "../Messages/IdentificationFailedForBadVersionMessage.h"
 #include "../Messages/IdentificationFailedBannedMessage.h"
+#include "../Messages/LoginQueueStatusMessage.h"
 
 #include "ConfigDefaults.h"
 #include "World.h"

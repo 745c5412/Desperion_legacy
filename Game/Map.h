@@ -38,6 +38,9 @@ struct MonsterGroup : DisplayableEntity
 	std::vector<MonsterGrade*> monsters;
 	virtual GameRolePlayActorInformations* ToActor();
 	int16 GetAgeBonus() const;
+
+	virtual bool IsMonsterGroup() const
+	{ return true; }
 };
 
 class Map
@@ -52,7 +55,7 @@ public:
 	DisplayableEntity* GetActor(int);
 	void AddActor(DisplayableEntity*);
 	void RemoveActor(int);
-	void Send(DofusMessage&, int guid = -1);
+	void Send(const DofusMessage&, int guid = -1);
 	PlayerItem* GetItem(int16);
 	void AddItem(PlayerItem*, int16);
 	void DeleteItem(int16);

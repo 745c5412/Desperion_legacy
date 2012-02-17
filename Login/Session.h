@@ -57,14 +57,14 @@ struct LoginPacketHandler
 	}
 };
 
-inline static bool VerifyVersion(Version& v)
+inline static bool VerifyVersion(VersionPtr v)
 {
-	return v.major == DOFUS_VERSION_MAJOR
-		&& v.minor == DOFUS_VERSION_MINOR
-		&& v.release == DOFUS_VERSION_RELEASE
-		&& v.revision == DOFUS_VERSION_REVISION
-		&& v.patch == DOFUS_VERSION_PATCH
-		&& v.buildType == DOFUS_VERSION_BUILD_TYPE;
+	return v->major == DOFUS_VERSION_MAJOR
+		&& v->minor == DOFUS_VERSION_MINOR
+		&& v->release == DOFUS_VERSION_RELEASE
+		&& v->revision == DOFUS_VERSION_REVISION
+		&& v->patch == DOFUS_VERSION_PATCH
+		&& v->buildType == DOFUS_VERSION_BUILD_TYPE;
 }
 
 inline static std::string GenerateRandomKey()
@@ -79,16 +79,21 @@ inline static std::string GenerateRandomKey()
 
 class Session : public AbstractSession<LoginPacketHandler>
 {
+	friend class DofusQueue;
 private:
 	AccountData m_data[FLAGS_NUMBER];
 	std::string m_salt;
 	time_t m_subscriptionEnd;
 	std::ofstream m_logs;
-	boost::shared_ptr<boost::asio::deadline_timer> m_timer;
+	boost::shared_ptr<boost::asio::deadline_timer> m_idleTimer, m_queueTimer;
+	bool m_isInQueue;
+	int m_counter;
+	int m_queueSize;
 
-	void HandleIdentification(IdentificationMessage*);
+	void HandleIdentification(boost::shared_ptr<IdentificationMessage>);
 	bool HandleServerSelection(GameServer*, bool);
 	void SendServersList();
+	void SendQueueStatus();
 
 	void HandleIdentificationMessage(ByteBuffer&);
 	void HandleServerSelectionMessage(ByteBuffer&);
@@ -100,9 +105,15 @@ public:
 
 	void HandleData(LoginPacketHandler* hdl, ByteBuffer& packet)
 	{
-		m_timer->expires_from_now(boost::posix_time::minutes(Desperion::Config::Instance().GetParam(MAX_IDLE_TIME_STRING,
-			MAX_IDLE_TIME_DEFAULT)));
+		UpdateIdleTimer();
 		(this->*hdl->Handler)(packet);
+	}
+	
+	void UpdateIdleTimer()
+	{
+		m_idleTimer = ThreadPool::Instance().TimedSchedule(boost::bind(&Session::CloseSocket, this),
+			boost::posix_time::minutes(Config::Instance().GetParam(MAX_IDLE_TIME_STRING,
+			MAX_IDLE_TIME_DEFAULT)));
 	}
 
 	bool IsSubscriber() const
@@ -117,7 +128,7 @@ public:
 		case FLAG_CONNECTED:
 			return m_data[FLAG_GUID].intValue != 0;
 		case FLAG_OUT_OF_QUEUE:
-			return true; // todo
+			return !m_isInQueue;
 		}
 		return true;
 	}
@@ -143,9 +154,8 @@ public:
 		}
 	}
 
-	Session() : m_timer(ThreadPool::Instance().TimedSchedule(boost::bind(&boost::asio::ip::tcp::socket::close,
-		m_socket), boost::posix_time::minutes(Desperion::Config::Instance().GetParam(MAX_IDLE_TIME_STRING,
-		MAX_IDLE_TIME_DEFAULT))))
+	Session(boost::asio::io_service& ios) : AbstractSession<LoginPacketHandler>(ios),
+		m_isInQueue(true), m_counter(0), m_queueSize(0)
 	{
 		m_data[FLAG_GUID].intValue = 0;
 	}
@@ -162,6 +172,56 @@ public:
 	{ return m_subscriptionEnd; }
 
 	GameServerInformations* GetServerStatusMessage(const GameServer*, uint8);
+};
+
+class DofusQueue : public Singleton<DofusQueue>
+{
+private:
+	tbb::concurrent_queue<std::pair<boost::weak_ptr<Session>, boost::shared_ptr<IdentificationMessage> > >
+		m_queue;
+	tbb::atomic<int> m_counter;
+
+public:
+	DofusQueue()
+	{
+		m_counter = 0;
+	}
+
+	int Push(std::pair<boost::weak_ptr<Session>, boost::shared_ptr<IdentificationMessage> >& p, int& size)
+	{
+		bool empty = m_queue.empty();
+		m_queue.push(p);
+		if(empty)
+			ThreadPool::Instance().GetService().post(boost::bind(&DofusQueue::Next, this));
+		size = m_queue.unsafe_size();
+		return m_counter;
+	}
+
+	int GetCounter() const
+	{ return m_counter; }
+
+	int GetSize() const
+	{ return m_queue.unsafe_size(); }
+
+	void Next()
+	{
+		std::pair<boost::weak_ptr<Session>, boost::shared_ptr<IdentificationMessage> > p;
+		while(true)
+		{
+			if(m_queue.empty())
+				break;
+			if(!m_queue.try_pop(p))
+				continue;
+			++m_counter;
+			try
+			{
+				boost::shared_ptr<Session> S(p.first);
+				S->HandleIdentification(p.second);
+			}catch(const boost::bad_weak_ptr&) { continue; }
+			catch(...) { }
+			break;
+		}
+	}
 };
 
 #endif

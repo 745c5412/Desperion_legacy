@@ -37,7 +37,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		IgnoredInformations::Serialize(data);
 		data<<playerName<<breed<<sex;

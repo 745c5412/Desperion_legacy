@@ -43,7 +43,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<subAreaId<<mapId<<subareaAlignmentSide;
 		uint16 size = houses.size();

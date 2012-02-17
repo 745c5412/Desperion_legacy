@@ -39,7 +39,7 @@ struct DEntityLook
 		Desperion::FastSplit<','>(scales, table[3], Desperion::SplitInt, true);
 	}
 
-	std::string ToString()
+	std::string ToString() const
 	{
 		std::ostringstream str;
 		str<<bonesId<<";";

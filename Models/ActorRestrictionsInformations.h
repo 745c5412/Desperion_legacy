@@ -55,34 +55,34 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		int8 b = 0;
-		Desperion::BooleanByteWrapper::SetFlag(b, 0, cantBeAggressed);
-		Desperion::BooleanByteWrapper::SetFlag(b, 1, cantBeChallenged);
-		Desperion::BooleanByteWrapper::SetFlag(b, 2, cantTrade);
-		Desperion::BooleanByteWrapper::SetFlag(b, 3, cantBeAttackedByMutant);
-		Desperion::BooleanByteWrapper::SetFlag(b, 4, cantRun);
-		Desperion::BooleanByteWrapper::SetFlag(b, 5, forceSlowWalk);
-		Desperion::BooleanByteWrapper::SetFlag(b, 6, cantMinimize);
-		Desperion::BooleanByteWrapper::SetFlag(b, 7, cantMove);
+		BooleanByteWrapper::SetFlag(b, 0, cantBeAggressed);
+		BooleanByteWrapper::SetFlag(b, 1, cantBeChallenged);
+		BooleanByteWrapper::SetFlag(b, 2, cantTrade);
+		BooleanByteWrapper::SetFlag(b, 3, cantBeAttackedByMutant);
+		BooleanByteWrapper::SetFlag(b, 4, cantRun);
+		BooleanByteWrapper::SetFlag(b, 5, forceSlowWalk);
+		BooleanByteWrapper::SetFlag(b, 6, cantMinimize);
+		BooleanByteWrapper::SetFlag(b, 7, cantMove);
 		data<<b;
 		b = 0;
-		Desperion::BooleanByteWrapper::SetFlag(b, 0, cantAggress);
-		Desperion::BooleanByteWrapper::SetFlag(b, 1, cantChallenge);
-		Desperion::BooleanByteWrapper::SetFlag(b, 2, cantExchange);
-		Desperion::BooleanByteWrapper::SetFlag(b, 3, cantAttack);
-		Desperion::BooleanByteWrapper::SetFlag(b, 4, cantChat);
-		Desperion::BooleanByteWrapper::SetFlag(b, 5, cantBeMerchant);
-		Desperion::BooleanByteWrapper::SetFlag(b, 6, cantUseObject);
-		Desperion::BooleanByteWrapper::SetFlag(b, 7, cantUseTaxCollector);
+		BooleanByteWrapper::SetFlag(b, 0, cantAggress);
+		BooleanByteWrapper::SetFlag(b, 1, cantChallenge);
+		BooleanByteWrapper::SetFlag(b, 2, cantExchange);
+		BooleanByteWrapper::SetFlag(b, 3, cantAttack);
+		BooleanByteWrapper::SetFlag(b, 4, cantChat);
+		BooleanByteWrapper::SetFlag(b, 5, cantBeMerchant);
+		BooleanByteWrapper::SetFlag(b, 6, cantUseObject);
+		BooleanByteWrapper::SetFlag(b, 7, cantUseTaxCollector);
 		data<<b;
 		b = 0;
-		Desperion::BooleanByteWrapper::SetFlag(b, 0, cantUseInteractive);
-		Desperion::BooleanByteWrapper::SetFlag(b, 1, cantSpeakToNPC);
-		Desperion::BooleanByteWrapper::SetFlag(b, 2, cantChangeZone);
-		Desperion::BooleanByteWrapper::SetFlag(b, 3, cantAttackMonster);
-		Desperion::BooleanByteWrapper::SetFlag(b, 4, cantWalk8Directions);
+		BooleanByteWrapper::SetFlag(b, 0, cantUseInteractive);
+		BooleanByteWrapper::SetFlag(b, 1, cantSpeakToNPC);
+		BooleanByteWrapper::SetFlag(b, 2, cantChangeZone);
+		BooleanByteWrapper::SetFlag(b, 3, cantAttackMonster);
+		BooleanByteWrapper::SetFlag(b, 4, cantWalk8Directions);
 		data<<b;
 	}
 
@@ -90,29 +90,29 @@ public:
 	{
 		int8 b;
 		data>>b;
-		cantBeAggressed = Desperion::BooleanByteWrapper::GetFlag(b, 0);
-		cantBeChallenged = Desperion::BooleanByteWrapper::GetFlag(b, 1);
-		cantTrade = Desperion::BooleanByteWrapper::GetFlag(b, 2);
-		cantBeAttackedByMutant = Desperion::BooleanByteWrapper::GetFlag(b, 3);
-		cantRun = Desperion::BooleanByteWrapper::GetFlag(b, 4);
-		forceSlowWalk = Desperion::BooleanByteWrapper::GetFlag(b, 5);
-		cantMinimize = Desperion::BooleanByteWrapper::GetFlag(b, 6);
-		cantMove = Desperion::BooleanByteWrapper::GetFlag(b, 7);
+		cantBeAggressed = BooleanByteWrapper::GetFlag(b, 0);
+		cantBeChallenged = BooleanByteWrapper::GetFlag(b, 1);
+		cantTrade = BooleanByteWrapper::GetFlag(b, 2);
+		cantBeAttackedByMutant = BooleanByteWrapper::GetFlag(b, 3);
+		cantRun = BooleanByteWrapper::GetFlag(b, 4);
+		forceSlowWalk = BooleanByteWrapper::GetFlag(b, 5);
+		cantMinimize = BooleanByteWrapper::GetFlag(b, 6);
+		cantMove = BooleanByteWrapper::GetFlag(b, 7);
 		data>>b;
-		cantAggress = Desperion::BooleanByteWrapper::GetFlag(b, 0);
-		cantChallenge = Desperion::BooleanByteWrapper::GetFlag(b, 1);
-		cantExchange = Desperion::BooleanByteWrapper::GetFlag(b, 2);
-		cantAttack = Desperion::BooleanByteWrapper::GetFlag(b, 3);
-		cantChat = Desperion::BooleanByteWrapper::GetFlag(b, 4);
-		cantBeMerchant = Desperion::BooleanByteWrapper::GetFlag(b, 5);
-		cantUseObject = Desperion::BooleanByteWrapper::GetFlag(b, 6);
-		cantUseTaxCollector = Desperion::BooleanByteWrapper::GetFlag(b, 7);
+		cantAggress = BooleanByteWrapper::GetFlag(b, 0);
+		cantChallenge = BooleanByteWrapper::GetFlag(b, 1);
+		cantExchange = BooleanByteWrapper::GetFlag(b, 2);
+		cantAttack = BooleanByteWrapper::GetFlag(b, 3);
+		cantChat = BooleanByteWrapper::GetFlag(b, 4);
+		cantBeMerchant = BooleanByteWrapper::GetFlag(b, 5);
+		cantUseObject = BooleanByteWrapper::GetFlag(b, 6);
+		cantUseTaxCollector = BooleanByteWrapper::GetFlag(b, 7);
 		data>>b;
-		cantUseInteractive = Desperion::BooleanByteWrapper::GetFlag(b, 0);
-		cantSpeakToNPC = Desperion::BooleanByteWrapper::GetFlag(b, 1);
-		cantChangeZone = Desperion::BooleanByteWrapper::GetFlag(b, 2);
-		cantAttackMonster = Desperion::BooleanByteWrapper::GetFlag(b, 3);
-		cantWalk8Directions = Desperion::BooleanByteWrapper::GetFlag(b, 4);
+		cantUseInteractive = BooleanByteWrapper::GetFlag(b, 0);
+		cantSpeakToNPC = BooleanByteWrapper::GetFlag(b, 1);
+		cantChangeZone = BooleanByteWrapper::GetFlag(b, 2);
+		cantAttackMonster = BooleanByteWrapper::GetFlag(b, 3);
+		cantWalk8Directions = BooleanByteWrapper::GetFlag(b, 4);
 		data>>b;
 	}
 };

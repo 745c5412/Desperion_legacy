@@ -41,7 +41,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		FightResultAdditionalData::Serialize(data);
 		data<<grade<<minHonorForGrade<<maxHonorForGrade<<honor<<honorDelta<<dishonor<<dishonorDelta;

@@ -37,11 +37,11 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		int8 b = 0;
-		Desperion::BooleanByteWrapper::SetFlag(b, 0, success);
-		Desperion::BooleanByteWrapper::SetFlag(b, 1, session);
+		BooleanByteWrapper::SetFlag(b, 0, success);
+		BooleanByteWrapper::SetFlag(b, 1, session);
 		data<<b<<name;
 	}
 
@@ -49,8 +49,8 @@ public:
 	{
 		int8 b;
 		data>>b;
-		success = Desperion::BooleanByteWrapper::GetFlag(b, 0);
-		session = Desperion::BooleanByteWrapper::GetFlag(b, 1);
+		success = BooleanByteWrapper::GetFlag(b, 0);
+		session = BooleanByteWrapper::GetFlag(b, 1);
 		data>>name;
 	}
 };

@@ -21,27 +21,22 @@
 
 namespace Desperion
 {
-	extern Database sDatabase;
+	extern TypeErasureDatabase* sDatabase;
 
-	class Master : public Singleton<Master>
+	class Master : public AbstractMaster, public Singleton<Master>
 	{
 	public:
-		SocketListener<Session> sListener;
-		SocketListener<GameSession> eListener;
-		boost::condition MasterCondition;
+		CryptoPP::RSA::PrivateKey PrivateKey;
+		std::vector<int8> PublicKey;
 
 		Master();
-		bool Run(int, char **);
+		ShutDownType Run(int, char **);
 		~Master();
 
-		uint32 GetUpTime() const
-		{ return getMSTime() - m_startTime; }
-
 	private:
-		uint32 m_startTime;
-		boost::mutex m_mutex;
-
 		bool StartUpDatabase();
+		bool LoadRSAPublicKey();
+		bool LoadRSAPrivateKey();
 	};
 };
 

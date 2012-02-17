@@ -40,13 +40,13 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		int8 b = 0;
-		Desperion::BooleanByteWrapper::SetFlag(b, 0, canBeCancelled);
-		Desperion::BooleanByteWrapper::SetFlag(b, 1, canSayReady);
-		Desperion::BooleanByteWrapper::SetFlag(b, 2, isSpectator);
-		Desperion::BooleanByteWrapper::SetFlag(b, 3, isFightStarted);
+		BooleanByteWrapper::SetFlag(b, 0, canBeCancelled);
+		BooleanByteWrapper::SetFlag(b, 1, canSayReady);
+		BooleanByteWrapper::SetFlag(b, 2, isSpectator);
+		BooleanByteWrapper::SetFlag(b, 3, isFightStarted);
 		data<<b<<timeMaxBeforeFightStart<<fightType;
 	}
 
@@ -54,10 +54,10 @@ public:
 	{
 		int8 b;
 		data>>b;
-		canBeCancelled = Desperion::BooleanByteWrapper::GetFlag(b, 0);
-		canSayReady = Desperion::BooleanByteWrapper::GetFlag(b, 1);
-		isSpectator = Desperion::BooleanByteWrapper::GetFlag(b, 2);
-		isFightStarted = Desperion::BooleanByteWrapper::GetFlag(b, 3);
+		canBeCancelled = BooleanByteWrapper::GetFlag(b, 0);
+		canSayReady = BooleanByteWrapper::GetFlag(b, 1);
+		isSpectator = BooleanByteWrapper::GetFlag(b, 2);
+		isFightStarted = BooleanByteWrapper::GetFlag(b, 3);
 		data>>timeMaxBeforeFightStart>>fightType;
 	}
 };

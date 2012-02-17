@@ -71,21 +71,21 @@ void Session::LOG(const char* str, ...)
 {
 	if(m_data[FLAG_GUID].intValue == 0 || !str)
 		return;
-
 	if(!m_logs)
 	{
 		std::ostringstream fileName;
 		fileName<<"sessions/"<<m_data[FLAG_GUID].intValue<<".log";
 		m_logs.open(fileName.str().c_str(), std::ios::app);
 	}
-
 	va_list ap;
 	char buf[32768];
 	va_start(ap, str);
-	vsnprintf_s(buf, 32768, str, ap);
+	vsnprintf(buf, 32768, str, ap);
 	va_end(ap);
-
-	Log::Instance().outFile(m_logs, std::string(buf));
+	size_t size = strlen(buf);
+	char* dynBuf = new char[size + 1];
+	memcpy(dynBuf, buf, size + 1);
+	Log::Instance().OutSession(m_logs, boost::shared_array<const char>(dynBuf));
 }
 
 void Session::InitHandlersTable()
@@ -147,22 +147,30 @@ void Session::InitHandlersTable()
 	m_handlers[CMSG_PARTY_REFUSE_INVITATION].Handler = &Session::HandlePartyRefuseInvitationMessage;
 	m_handlers[CMSG_PARTY_ACCEPT_INVITATION].Handler = &Session::HandlePartyAcceptInvitationMessage;
 	m_handlers[CMSG_PARTY_KICK_REQUEST].Handler = &Session::HandlePartyKickRequestMessage;
+	m_handlers[CMSG_PARTY_KICK_REQUEST].Flag = FLAG_HAS_PARTY;
 	m_handlers[CMSG_PARTY_INVITATION_DETAILS_REQUEST].Handler = &Session::HandlePartyInvitationDetailsRequestMessage;
 	m_handlers[CMSG_PARTY_LEAVE_REQUEST].Handler = &Session::HandlePartyLeaveRequestMessage;
+	m_handlers[CMSG_PARTY_LEAVE_REQUEST].Flag = FLAG_HAS_PARTY;
 	m_handlers[CMSG_PARTY_ABDICATE_THRONE].Handler = &Session::HandlePartyAbdicateThroneMessage;
+	m_handlers[CMSG_PARTY_ABDICATE_THRONE].Flag = FLAG_HAS_PARTY;
 	m_handlers[CMSG_PARTY_CANCEL_INVITATION].Handler = &Session::HandlePartyCancelInvitationMessage;
+	m_handlers[CMSG_PARTY_CANCEL_INVITATION].Flag = FLAG_HAS_PARTY;
+
+	m_handlers[CMSG_GAME_FIGHT_PLACEMENT_POSITION_REQUEST].Handler = &Session::HandleGameFightPlacementPositionRequestMessage;
+	m_handlers[CMSG_GAME_FIGHT_PLACEMENT_POSITION_REQUEST].Flag = FLAG_IN_FIGHT;
 }
 
 void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 {
-	AuthenticationTicketMessage data;
-	data.Deserialize(packet);
+	AuthenticationTicketMessage* data = new AuthenticationTicketMessage;
+	data->Deserialize(packet);
 
-	const char* query = "SELECT guid, answer, pseudo, level, lastIP, lastConnectionDate, subscriptionEnd, channels, disallowed FROM accounts \
-						WHERE ticket='%s' LIMIT 1;";
-	ResultPtr QR = Desperion::eDatabase.Query(query, data.ticket.c_str());
+	const char* query = "SELECT \"guid\", \"answer\", \"pseudo\", \"level\", \"lastIp\", \"lastConnectionDate\", \"subscriptionEnd\", \
+						\"channels\", \"disallowed\" FROM accounts WHERE ticket='%s' LIMIT 1;";
+	ResultPtr QR = Desperion::eDatabase->Query(query, Desperion::sDatabase->EscapeString(data->ticket).c_str());
 	if(QR)
 	{
+		QR->NextRow();
 		Field* fields = QR->Fetch();
 		m_data[FLAG_GUID].intValue = fields[0].GetUInt32();
 		m_data[FLAG_PSEUDO].stringValue = fields[2].GetString();
@@ -177,13 +185,15 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	else
 	{
 		Send(AuthenticationTicketRefusedMessage());
-		m_socket->close();
+		CloseSocket();
 		return;
 	}
 
-	QR = Desperion::eDatabase.Query("SELECT * FROM account_social WHERE guid=%u LIMIT 1;", m_data[FLAG_GUID].intValue);
+	QR = Desperion::eDatabase->Query("SELECT * FROM \"account_social\" WHERE \"guid\"=%u LIMIT 1;", m_data[FLAG_GUID].intValue);
+	std::vector<boost::shared_array<const char> > queries;
 	if(QR)
 	{
+		QR->NextRow();
 		Field* fields = QR->Fetch();
 		std::vector<std::string> friends, ennemies;
 		Desperion::FastSplitString<';'>(friends, std::string(fields[1].GetString()), true);
@@ -208,20 +218,21 @@ void Session::HandleAuthenticationTicketMessage(ByteBuffer& packet)
 	}
 	else
 	{
-		Desperion::eDatabase.AsyncExecute("INSERT INTO account_social VALUES(%u, '', '', 0, 0, 0);", m_data[FLAG_GUID].intValue);
+		queries.push_back(Desperion::FormatString("INSERT INTO \"account_social\" VALUES(%u, '', '', 0, 0, 0);", m_data[FLAG_GUID].intValue));
 		m_booleanValues[BOOL_FRIEND_WARN_ON_CONNECTION] = false;
 		m_booleanValues[BOOL_FRIEND_WARN_ON_LEVEL_GAIN] = false;
 		m_booleanValues[BOOL_GUILD_MEMBER_WARN_ON_CONNECTION] = false;
 	}
-	
-
-	uint16 servID = Desperion::Config::Instance().GetParam(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT);
-	Desperion::eDatabase.AsyncExecute("UPDATE accounts SET ticket='', logged=%u, lastServer=%u, lastIP='%s', lastConnectionDate=%llu WHERE guid=%u \
-								 LIMIT 1;", servID, servID, m_socket->remote_endpoint().address().to_string().c_str(), time(NULL),
-								 m_data[FLAG_GUID].intValue);
+	uint16 servID = Config::Instance().GetParam(LOCAL_SERVER_ID_STRING, LOCAL_SERVER_ID_DEFAULT);
+	queries.push_back(Desperion::FormatString("UPDATE \"accounts\" SET \"ticket\"='', \"logged\"=%u, \"lastServer\"=%u, \"lastIp\"='%s', \
+											  \"lastConnectionDate\"=%llu WHERE \"guid\"=%u;", servID, servID,
+											  m_socket.remote_endpoint().address().to_string().c_str(), time(NULL),
+											  m_data[FLAG_GUID].intValue));
+	Desperion::eDatabase->AsyncExecute(queries);
 
 	World::Instance().AddSession(this);
-	LOG("***** Connection with IP address %s {%s} *****", m_socket->remote_endpoint().address().to_string().c_str(),
+	LOG("salut");
+	LOG("***** Connection with IP address %s {%s} *****", m_socket.remote_endpoint().address().to_string().c_str(),
 		Desperion::FormatTime("%x").c_str());
 
 	Send(AuthenticationTicketAcceptedMessage());
@@ -252,8 +263,9 @@ void Session::Save()
 				disallowed<<",";
 			disallowed<<int16(*it);
 		}
-		Desperion::eDatabase.Execute("UPDATE accounts SET logged=0, channels='%s', disallowed='%s' WHERE guid=%u LIMIT 1;",
-			channels.str().c_str(), disallowed.str().c_str(), m_data[FLAG_GUID].intValue);
+		std::vector<boost::shared_array<const char> > queries;
+		queries.push_back(Desperion::FormatString("UPDATE \"accounts\" SET \"logged\"=0, \"channels\"='%s', \"disallowed\"='%s' WHERE \"guid\"=%u;",
+			channels.str().c_str(), disallowed.str().c_str(), m_data[FLAG_GUID].intValue));
 
 		std::ostringstream friends, ennemies;
 		for(boost::bimap<int, std::istring>::iterator it = m_friends.begin(); it != m_friends.end(); ++it)
@@ -268,18 +280,17 @@ void Session::Save()
 				ennemies<<";";
 			ennemies<<it->get_left()<<","<<it->get_right().c_str();
 		}
-		Desperion::eDatabase.AsyncExecute("UPDATE account_social SET friends='%s', ennemies='%s', friendWarnOnConnection=%u, \
-									  friendWarnOnLevelGain=%u, guildMemberWarnOnConnection=%u WHERE guid=%u LIMIT 1;",
+		queries.push_back(Desperion::FormatString("UPDATE \"account_social\" SET \"friends\"='%s', \"ennemies\"='%s', \"friendWarnOnConnection\"=%u, \
+									  \"friendWarnOnLevelGain\"=%u, \"guildMemberWarnOnConnection\"=%u WHERE \"guid\"=%u;",
 									  friends.str().c_str(), ennemies.str().c_str(), m_booleanValues[BOOL_FRIEND_WARN_ON_CONNECTION],
 									  m_booleanValues[BOOL_FRIEND_WARN_ON_LEVEL_GAIN], m_booleanValues[BOOL_GUILD_MEMBER_WARN_ON_CONNECTION],
-									  m_data[FLAG_GUID].intValue);
+									  m_data[FLAG_GUID].intValue));
+		Desperion::eDatabase->AsyncExecute(queries);
 
 		if(m_char != NULL)
 		{
-			m_char->Save();
 			CharacterMinimals* cm = World::Instance().GetCharacterMinimals(m_char->GetGuid());
-			Desperion::sDatabase.AsyncExecute("UPDATE character_minimals SET lastConnectionDate=%llu WHERE id=%u LIMIT 1;",
-				cm->lastConnectionDate, cm->id);
+			m_char->Save(cm);
 		}
 	}
 }
@@ -297,7 +308,7 @@ Session::~Session()
 			{
 				INIT_PARTY_LOCK
 				PARTY_LOCK(m_party)
-				m_party->Delete(&Party::m_players, m_char->GetGuid());
+				m_party->PlayerDelete(m_char->GetGuid());
 				m_party->IntegrityCheck(lock);
 			}
 			for(std::map<int, Session*>::iterator it = m_partyInvitations.begin(); it != m_partyInvitations.end(); ++it)
@@ -307,7 +318,7 @@ Session::~Session()
 					continue; // ne devrait pas arriver non plus
 				INIT_PARTY_LOCK
 				PARTY_LOCK(it->second->m_party)
-				it->second->m_party->Delete(&Party::m_guests, m_char->GetGuid());
+				it->second->m_party->GuestDelete(m_char->GetGuid());
 				it->second->m_party->IntegrityCheck(lock);
 			}
 
@@ -315,12 +326,13 @@ Session::~Session()
 			delete m_char;
 		}
 	}
+	if(m_idleTimer)
+		m_idleTimer->cancel();
 }
 
 void Session::Start()
 {
 	Send(ProtocolRequired(PROTOCOL_BUILD, PROTOCOL_REQUIRED_BUILD));
 	Send(HelloGameMessage());
-
 	Run();
 }

@@ -36,11 +36,11 @@ public:
 	{
 	}
 
-	HumanInformations(std::vector<EntityLookPtr>& followingCharactersLook, int8 emoteId, int64 emoteStartTime, ActorRestrictionsInformations* restrictions, int16 titleId, std::string titleParam) : followingCharactersLook(followingCharactersLook), emoteId(emoteId), emoteStartTime(emoteStartTime), restrictions(restrictions), titleId(titleId), titleParam(titleParam)
+	HumanInformations(const std::vector<EntityLookPtr>& followingCharactersLook, int8 emoteId, int64 emoteStartTime, ActorRestrictionsInformations* restrictions, int16 titleId, std::string titleParam) : followingCharactersLook(followingCharactersLook), emoteId(emoteId), emoteStartTime(emoteStartTime), restrictions(restrictions), titleId(titleId), titleParam(titleParam)
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		uint16 size = followingCharactersLook.size();
 		data<<size;

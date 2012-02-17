@@ -37,7 +37,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<mainCreatureGenericId<<mainCreatureGrade;
 		uint16 size = underlings.size();

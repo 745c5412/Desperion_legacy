@@ -83,7 +83,7 @@ namespace DofusUtils
 			xp -= Truncate(xp * guildRatio / 100);
 
 		// on oublie pas de multiplier par le facteur d'xp de la config :)
-		return static_cast<int64>(Desperion::Config::Instance().GetParam(EXPERIENCE_FACTOR_STRING, EXPERIENCE_FACTOR_DEFAULT) * xp);
+		return static_cast<int64>(Config::Instance().GetParam(EXPERIENCE_FACTOR_STRING, EXPERIENCE_FACTOR_DEFAULT) * xp);
 	}
 
 	bool CheckName(std::string name)

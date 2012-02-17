@@ -25,6 +25,8 @@ enum ReqFlag
 	FLAG_CONNECTED,
 	FLAG_OUT_OF_QUEUE,
 	FLAG_CHARACTER,
+	FLAG_IN_FIGHT,
+	FLAG_HAS_PARTY,
 };
 
 enum AccountFlag
@@ -97,7 +99,7 @@ private:
 	std::ofstream m_logs;
 	Party* m_party;
 	std::map<int, Session*> m_partyInvitations;
-	boost::shared_ptr<boost::asio::deadline_timer> m_timer;
+	boost::shared_ptr<boost::asio::deadline_timer> m_idleTimer;
 
 	// AdminHandler.cpp
 	void HandleAdminCommand(std::string&, bool);
@@ -109,6 +111,7 @@ private:
 	void HandleListCommand(std::vector<std::string>&, bool);
 	void HandleNameAnnounceCommand(std::vector<std::string>&, bool);
 	void HandleInfoMessageCommand(std::vector<std::string>&, bool);
+	void HandleShutDownMessageCommand(std::vector<std::string>&, bool);
 
 	// CharacterHandler.cpp
 	void SendCharacterSelectedSuccess(CharacterMinimals*);
@@ -172,6 +175,9 @@ private:
 	void HandlePartyAbdicateThroneMessage(ByteBuffer&);
 	void HandlePartyCancelInvitationMessage(ByteBuffer&);
 
+	// FightHandler.cpp
+	void HandleGameFightPlacementPositionRequestMessage(ByteBuffer&);
+
 	// Session.cpp
 	void HandleAuthenticationTicketMessage(ByteBuffer&);
 
@@ -186,9 +192,15 @@ public:
 
 	void HandleData(GamePacketHandler* hdl, ByteBuffer& packet)
 	{
-		m_timer->expires_from_now(boost::posix_time::minutes(Desperion::Config::Instance().GetParam(MAX_IDLE_TIME_STRING,
-			MAX_IDLE_TIME_DEFAULT)));
+		UpdateIdleTimer();
 		(this->*hdl->Handler)(packet);
+	}
+	
+	void UpdateIdleTimer()
+	{
+		m_idleTimer = ThreadPool::Instance().TimedSchedule(boost::bind(&Session::CloseSocket, this),
+			boost::posix_time::minutes(Config::Instance().GetParam(MAX_IDLE_TIME_STRING,
+			MAX_IDLE_TIME_DEFAULT)));
 	}
 
 	bool IsSubscriber() const
@@ -206,15 +218,17 @@ public:
 			return true; // todo
 		case FLAG_CHARACTER:
 			return m_char != NULL;
+		case FLAG_IN_FIGHT:
+			return m_char->GetFight() != NULL;
+		case FLAG_HAS_PARTY:
+			return m_party != NULL;
 		}
 		return true;
 	}
 
-	Session() : m_char(NULL), m_party(NULL), m_lastNameSuggestionRequest(0),
-		m_lastTradingChatRequest(0), m_lastRecruitmentChatRequest(0),
-		m_timer(ThreadPool::Instance().TimedSchedule(boost::bind(&boost::asio::ip::tcp::socket::close,
-		m_socket), boost::posix_time::minutes(Desperion::Config::Instance().GetParam(MAX_IDLE_TIME_STRING,
-		MAX_IDLE_TIME_DEFAULT))))
+	Session(boost::asio::io_service& ios) : AbstractSession<GamePacketHandler>(ios),
+		m_char(NULL), m_party(NULL), m_lastNameSuggestionRequest(0),
+		m_lastTradingChatRequest(0), m_lastRecruitmentChatRequest(0)
 	{
 		m_data[FLAG_GUID].intValue = 0;
 		m_booleanValues[BOOL_INVISIBLE] = false;

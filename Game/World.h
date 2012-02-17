@@ -29,6 +29,14 @@ class Monster;
 
 typedef boost::mutex Mutex;
 
+struct Breed
+{
+	int8 id;
+	int16 skin;
+	int16 scale;
+	std::vector<int> indexedColors;
+};
+
 class World : public Singleton<World>
 {
 public:
@@ -45,6 +53,7 @@ public:
 		// pas de constructeur atomique
 		m_maxPlayers = 0;
 		m_hiCharacterGuid = 0;
+		m_hiItemGuid = 0;
 	}
 
 	~World();
@@ -63,7 +72,7 @@ public:
 	void DeleteSession(int);
 	Session* GetSession(int);
 	Session* GetSession(std::string);
-	void Send(DofusMessage&, bool admin = false);
+	void Send(const DofusMessage&, bool admin = false);
 
 	Map* GetMap(int);
 	Map* GetMap(int16, int16);
@@ -78,6 +87,9 @@ public:
 
 	int GetNextCharacterGuid()
 	{ return ++m_hiCharacterGuid; }
+
+	int GetNextItemGuid()
+	{ return ++m_hiItemGuid; }
 
 	Item* GetItem(int);
 	ItemSet* GetItemSet(int16);
@@ -101,6 +113,7 @@ private:
 	MonsterMap Monsters;
 
 	tbb::atomic<uint16> m_maxPlayers;
+	tbb::atomic<int> m_hiItemGuid;
 	tbb::atomic<int> m_hiCharacterGuid;
 	boost::shared_mutex SessionsMutex;
 	boost::shared_mutex CharactersMutex;

@@ -40,7 +40,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		GameRolePlayActorInformations::Serialize(data);
 		data<<mainCreatureGenericId<<mainCreatureGrade;

@@ -20,12 +20,12 @@
 #define __STDAFX__
 
 #define GAME_VERSION_MAJOR 0
-#define GAME_VERSION_MINOR 9
+#define GAME_VERSION_MINOR 10
 #define GAME_VERSION_REVISION 0
 
 #define REQUIRED_SHARED_VERSION_MAJOR 0
-#define REQUIRED_SHARED_VERSION_MINOR 0
-#define REQUIRED_SHARED_VERSION_REVISION 4
+#define REQUIRED_SHARED_VERSION_MINOR 1
+#define REQUIRED_SHARED_VERSION_REVISION 0
 
 #include "../Shared/StdAfx.h"
 
@@ -97,6 +97,21 @@
 #include "../Models/MonsterInGroupInformations.h"
 #include "../Models/GroupMonsterStaticInformations.h"
 #include "../Models/GameRolePlayGroupMonsterInformations.h"
+
+#include "../Models/GameFightMinimalStats.h"
+#include "../Models/GameFightMinimalStatsPreparation.h"
+#include "../Models/GameFightFighterInformations.h"
+#include "../Models/GameFightFighterNamedInformations.h"
+#include "../Models/GameFightAIInformations.h"
+#include "../Models/GameFightMonsterInformations.h"
+#include "../Models/GameFightCharacterInformations.h"
+#include "../Models/FightEntityDispositionInformations.h"
+#include "../Models/IdentifiedEntityDispositionInformations.h"
+#include "../Models/AbstractFightTeamInformations.h"
+#include "../Models/FightTeamInformations.h"
+#include "../Models/FightTeamMemberInformations.h"
+#include "../Models/FightTeamMemberMonsterInformations.h"
+#include "../Models/FightTeamMemberCharacterInformations.h"
 
 #include "CharacterStats.h"
 #include "PlayerItem.h"
@@ -259,6 +274,18 @@
 #include "../Messages/PartyLeaderUpdateMessage.h"
 #include "../Messages/PartyNewMemberMessage.h"
 
+#include "../Messages/GameFightHumanReadyStateMessage.h"
+#include "../Messages/GameFightJoinMessage.h"
+#include "../Messages/GameFightStartingMessage.h"
+#include "../Messages/GameFightPlacementPossiblePositionsMessage.h"
+#include "../Messages/GameFightSynchronizeMessage.h"
+#include "../Messages/GameFightStartMessage.h"
+#include "../Messages/GameEntitiesDispositionMessage.h"
+#include "../Messages/GameFightNewRoundMessage.h"
+#include "../Messages/GameFightPlacementPositionRequestMessage.h"
+#include "../Messages/GameFightUpdateTeamMessage.h"
+#include "../Messages/GameFightShowFighterMessage.h"
+
 #include "SubArea.h"
 #include "Mount.h"
 #include "ItemSet.h"
@@ -266,6 +293,7 @@
 #include "Monster.h"
 #include "Map.h"
 #include "Character.h"
+#include "Fight.h"
 #include "Session.h"
 #include "Party.h"
 

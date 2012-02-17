@@ -44,7 +44,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		CharacterMinimalInformations::Serialize(data);
 		data<<breed<<sex<<rank<<givenExperience<<experienceGivenPercent<<rights<<connected<<alignmentSide<<hoursSinceLastConnection<<moodSmileyId;

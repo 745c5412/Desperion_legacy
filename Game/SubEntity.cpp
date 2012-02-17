@@ -25,7 +25,7 @@ SubEntity::SubEntity(int8 bindingPointCategory, int8 bindingPointIndex, EntityLo
 {
 }
 
-void SubEntity::Serialize(ByteBuffer& data)
+void SubEntity::Serialize(ByteBuffer& data) const
 {
 	data<<bindingPointCategory<<bindingPointIndex;
 	look->Serialize(data);

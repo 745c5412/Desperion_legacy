@@ -40,11 +40,11 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		int8 b = 0;
-		Desperion::BooleanByteWrapper::SetFlag(b, 0, enabled);
-		Desperion::BooleanByteWrapper::SetFlag(b, 1, abandonnedPaddock);
+		BooleanByteWrapper::SetFlag(b, 0, enabled);
+		BooleanByteWrapper::SetFlag(b, 1, abandonnedPaddock);
 		data<<b<<level<<expLevelFloor<<experience<<expNextLevelFloor;
 	}
 
@@ -52,8 +52,8 @@ public:
 	{
 		int8 b;
 		data>>b;
-		enabled = Desperion::BooleanByteWrapper::GetFlag(b, 0);
-		abandonnedPaddock = Desperion::BooleanByteWrapper::GetFlag(b, 1);
+		enabled = BooleanByteWrapper::GetFlag(b, 0);
+		abandonnedPaddock = BooleanByteWrapper::GetFlag(b, 1);
 		data>>level>>expLevelFloor>>experience>>expNextLevelFloor;
 	}
 };

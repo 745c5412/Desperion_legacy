@@ -23,6 +23,9 @@
 // SERVER.PROPERTIES
 //------------------------------------
 
+#define LOCAL_DATABASE_TYPE_STRING "LocalDatabaseType"
+#define LOCAL_DATABASE_TYPE_DEFAULT static_cast<int>(POSTGRE_SQL_DATABASE)
+
 #define LOCAL_DATABASE_HOST_STRING "LocalDatabaseHost"
 #define LOCAL_DATABASE_HOST_DEFAULT "127.0.0.1"
 
@@ -30,13 +33,13 @@
 #define LOCAL_DATABASE_NAME_DEFAULT "desperion"
 
 #define LOCAL_DATABASE_USER_STRING "LocalDatabaseUser"
-#define LOCAL_DATABASE_USER_DEFAULT "root"
+#define LOCAL_DATABASE_USER_DEFAULT "postgres"
 
 #define LOCAL_DATABASE_PASSWORD_STRING "LocalDatabasePassword"
-#define LOCAL_DATABASE_PASSWORD_DEFAULT ""
+#define LOCAL_DATABASE_PASSWORD_DEFAULT "postgres"
 
 #define LOCAL_DATABASE_PORT_STRING "LocalDatabasePort"
-#define LOCAL_DATABASE_PORT_DEFAULT 3306
+#define LOCAL_DATABASE_PORT_DEFAULT 5432
 
 #define LOCAL_SERVER_PORT_STRING "LocalServerPort"
 #define LOCAL_SERVER_PORT_DEFAULT 443

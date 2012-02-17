@@ -37,7 +37,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		CharacterBaseInformations::Serialize(data);
 		data<<deathState<<deathCount<<deathMaxLevel;

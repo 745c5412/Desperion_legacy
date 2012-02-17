@@ -40,9 +40,51 @@ namespace Desperion
 	{
 		switch(protocol)
 		{
+		case FIGHT_ENTITY_DISPOSITION_INFORMATIONS:
+			return new FightEntityDispositionInformations;
 		default:
 		case ENTITY_DISPOSITION_INFORMATIONS:
 			return new EntityDispositionInformations;
+		}
+	}
+
+	GameFightFighterInformations* ProtocolTypeManager::GetGameFightFighterInformations(uint16 protocol)
+	{
+		switch(protocol)
+		{
+		case GAME_FIGHT_CHARACTER_INFORMATIONS:
+			return new GameFightCharacterInformations;
+		case GAME_FIGHT_FIGHTER_NAMED_INFORMATIONS:
+			return new GameFightFighterNamedInformations;
+		case GAME_FIGHT_MONSTER_INFORMATIONS:
+			return new GameFightMonsterInformations;
+		case GAME_FIGHT_A_I_INFORMATIONS:
+			return new GameFightAIInformations;
+		default:
+		case GAME_FIGHT_FIGHTER_INFORMATIONS:
+			return new GameFightFighterInformations;
+		}
+	}
+
+	GameFightMinimalStats* ProtocolTypeManager::GetGameFightMinimalStats(uint16 protocol)
+	{
+		switch(protocol)
+		{
+		case GAME_FIGHT_MINIMAL_STATS_PREPARATION:
+			return new GameFightMinimalStatsPreparation;
+		default:
+		case GAME_FIGHT_MINIMAL_STATS:
+			return new GameFightMinimalStats;
+		}
+	}
+
+	IdentifiedEntityDispositionInformations* ProtocolTypeManager::GetIdentifiedEntityDispositionInformations(uint16 protocol)
+	{
+		switch(protocol)
+		{
+		default:
+		case IDENTIFIED_ENTITY_DISPOSITION_INFORMATIONS:
+			return new IdentifiedEntityDispositionInformations;
 		}
 	}
 

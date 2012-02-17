@@ -41,7 +41,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		FriendInformations::Serialize(data);
 		data<<playerName<<level<<alignmentSide<<breed<<sex;

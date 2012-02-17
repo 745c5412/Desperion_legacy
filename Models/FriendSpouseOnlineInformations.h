@@ -39,13 +39,13 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		FriendSpouseInformations::Serialize(data);
 		int8 b = 0;
-		Desperion::BooleanByteWrapper::SetFlag(b, 0, inFight);
-		Desperion::BooleanByteWrapper::SetFlag(b, 1, followSpouse);
-		Desperion::BooleanByteWrapper::SetFlag(b, 2, pvpEnabled);
+		BooleanByteWrapper::SetFlag(b, 0, inFight);
+		BooleanByteWrapper::SetFlag(b, 1, followSpouse);
+		BooleanByteWrapper::SetFlag(b, 2, pvpEnabled);
 		data<<b<<mapId<<subAreaId;
 	}
 
@@ -54,9 +54,9 @@ public:
 		FriendSpouseInformations::Deserialize(data);
 		int8 b;
 		data>>b;
-		inFight = Desperion::BooleanByteWrapper::GetFlag(b, 0);
-		followSpouse = Desperion::BooleanByteWrapper::GetFlag(b, 1);
-		pvpEnabled = Desperion::BooleanByteWrapper::GetFlag(b, 2);
+		inFight = BooleanByteWrapper::GetFlag(b, 0);
+		followSpouse = BooleanByteWrapper::GetFlag(b, 1);
+		pvpEnabled = BooleanByteWrapper::GetFlag(b, 2);
 		data>>mapId>>subAreaId;
 	}
 };

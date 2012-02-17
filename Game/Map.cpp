@@ -169,7 +169,7 @@ void Map::AddActor(DisplayableEntity* actor)
 	Send(GameRolePlayShowActorMessage(actor->ToActor()), actor->GetGuid());
 }
 
-void Map::Send(DofusMessage& data, int guid)
+void Map::Send(const DofusMessage& data, int guid)
 {
 	for(std::list<DisplayableEntity*>::iterator it = m_actors.begin(); it != m_actors.end(); ++it)
 	{
@@ -192,7 +192,7 @@ Cell Map::GetCell(uint16 index) const
 		c.id = index;
 	}catch(const std::out_of_range&)
 	{ 
-		Log::Instance().outError("Invalid cell %u", index);
+		Log::Instance().OutError("Invalid cell %u", index);
 		c.id = -1; 
 	}
 	uint8* bytes = (uint8*)&number;

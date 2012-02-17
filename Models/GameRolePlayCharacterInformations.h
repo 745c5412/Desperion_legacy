@@ -35,7 +35,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		GameRolePlayHumanoidInformations::Serialize(data);
 		alignmentInfos->Serialize(data);

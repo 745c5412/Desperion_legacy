@@ -121,6 +121,12 @@
     <ClCompile Include="PartyHandler.cpp">
       <Filter>Handlers</Filter>
     </ClCompile>
+    <ClCompile Include="Fight.cpp">
+      <Filter>Objects\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="FightHandler.cpp">
+      <Filter>Handlers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StdAfx.h">
@@ -190,6 +196,9 @@
       <Filter>Objects\H</Filter>
     </ClInclude>
     <ClInclude Include="Party.h">
+      <Filter>Objects\H</Filter>
+    </ClInclude>
+    <ClInclude Include="Fight.h">
       <Filter>Objects\H</Filter>
     </ClInclude>
   </ItemGroup>

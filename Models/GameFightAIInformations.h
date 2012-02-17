@@ -29,8 +29,12 @@ public:
 	GameFightAIInformations()
 	{
 	}
+	
+	GameFightAIInformations(int contextualId, EntityLook* look, EntityDispositionInformations* disposition, int8 teamId, bool alive, GameFightMinimalStats* stats) : GameFightFighterInformations(contextualId, look, disposition, teamId, alive, stats)
+	{
+	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		GameFightFighterInformations::Serialize(data);
 	}

@@ -64,7 +64,7 @@ void Party::FillGuests(std::vector<PartyGuestInformationsPtr>& members)
 	}
 }
 
-std::list<Session*>::iterator Party::Get(std::list<Session*> Party::*list, int guid)
+std::list<Session*>::iterator Party::_Get(std::list<Session*> Party::*list, int guid)
 {
 	for(std::list<Session*>::iterator it = (this->*list).begin(); it != (this->*list).end(); ++it)
 		if((*it)->GetCharacter()->GetGuid() == guid)
@@ -72,7 +72,7 @@ std::list<Session*>::iterator Party::Get(std::list<Session*> Party::*list, int g
 	return (this->*list).end();
 }
 
-void Party::Delete(std::list<Session*> Party::*list, int guid, bool isGuestCancel)
+void Party::_Delete(std::list<Session*> Party::*list, int guid, bool isGuestCancel)
 {
 	if(guid == m_leader->GetCharacter()->GetGuid())
 	{
@@ -121,7 +121,7 @@ void Party::Delete(std::list<Session*> Party::*list, int guid, bool isGuestCance
 	}
 }
 
-void Party::Send(DofusMessage& message, int self)
+void Party::Send(const DofusMessage& message, int self)
 {
 	for(std::list<Session*>::iterator it = m_players.begin(); it != m_players.end(); ++it)
 	{

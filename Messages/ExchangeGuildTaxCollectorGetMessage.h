@@ -42,7 +42,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<collectorName<<worldX<<worldY<<mapId<<subAreaId<<userName<<experience;
 		uint16 size = objectsInfos.size();

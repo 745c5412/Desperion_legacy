@@ -50,12 +50,20 @@ public:
 	void SetDirection(int8 dir)
 	{ m_direction = dir; }
 
-	virtual GameRolePlayActorInformations* ToActor()
+	virtual GameRolePlayActorInformations* ToActor() const
 	{
-		return new GameRolePlayActorInformations(m_guid, GetLook(), new EntityDispositionInformations(m_cell, m_direction));
+		return new GameRolePlayActorInformations(m_guid, GetLook(), GetEntityDispositionInformations());
+	}
+
+	virtual EntityDispositionInformations* GetEntityDispositionInformations() const
+	{
+		return new EntityDispositionInformations(m_cell, m_direction);
 	}
 
 	virtual bool IsCharacter() const
+	{ return false; }
+
+	virtual bool IsMonsterGroup() const
 	{ return false; }
 protected:
 	int8 m_direction;
@@ -73,7 +81,7 @@ public:
 	std::string GetName() const
 	{ return m_name; }
 
-	virtual GameRolePlayActorInformations* ToActor()
+	virtual GameRolePlayActorInformations* ToActor() const
 	{
 		return new GameRolePlayNamedActorInformations(m_guid, GetLook(), new EntityDispositionInformations(m_cell, m_direction),
 			m_name);
@@ -140,7 +148,7 @@ public:
 	const std::vector<EntityLookPtr>& GetFollowingCharacters() const
 	{ return m_followingCharacters; }
 
-	HumanInformations* GetHumanInfos()
+	HumanInformations* GetHumanInfos() const
 	{
 		return new HumanInformations(m_followingCharacters, m_emoteId, m_emoteStartTime, 
 			new ActorRestrictionsInformations(m_restrictions[cantBeAggressed], m_restrictions[cantBeChallenged], 
@@ -153,7 +161,7 @@ public:
 			m_title, "");
 	}
 
-	virtual GameRolePlayActorInformations* ToActor()
+	virtual GameRolePlayActorInformations* ToActor() const
 	{ 
 		return new GameRolePlayHumanoidInformations(m_guid, GetLook(), new EntityDispositionInformations(m_cell, m_direction),
 			m_name, GetHumanInfos()); 

@@ -31,25 +31,30 @@ class InteractiveElementSkill;
 class FightTeamInformations;
 class FightTeamMemberInformations;
 class PartyInvitationMemberInformations;
+class IdentifiedEntityDispositionInformations;
+class GameFightMinimalStats;
+class GameFightFighterInformations;
 
 namespace Desperion
 {
-	class ProtocolTypeManager
+	namespace ProtocolTypeManager
 	{
-	public:
-		static EntityDispositionInformations* GetEntityDispositionInformations(uint16);
-		static HumanInformations* GetHumanInformations(uint16);
-		static ObjectEffect* GetObjectEffect(uint16);
-		static GameRolePlayActorInformations* GetGameRolePlayActorInformations(uint16);
-		static IgnoredInformations* GetIgnoredInformations(uint16);
-		static FriendInformations* GetFriendInformations(uint16);
-		static CharacterBaseInformations* GetCharacterBaseInformations(uint16);
-		static HouseInformations* GetHouseInformations(uint16);
-		static InteractiveElementSkill* GetInteractiveElementSkill(uint16);
-		static FightTeamInformations* GetFightTeamInformations(uint16);
-		static FightTeamMemberInformations* GetFightTeamMemberInformations(uint16);
-		static PartyInvitationMemberInformations* GetPartyInvitationMemberInformations(uint16);
-	};
-};
+		EntityDispositionInformations* GetEntityDispositionInformations(uint16);
+		HumanInformations* GetHumanInformations(uint16);
+		ObjectEffect* GetObjectEffect(uint16);
+		GameRolePlayActorInformations* GetGameRolePlayActorInformations(uint16);
+		IgnoredInformations* GetIgnoredInformations(uint16);
+		FriendInformations* GetFriendInformations(uint16);
+		CharacterBaseInformations* GetCharacterBaseInformations(uint16);
+		HouseInformations* GetHouseInformations(uint16);
+		InteractiveElementSkill* GetInteractiveElementSkill(uint16);
+		FightTeamInformations* GetFightTeamInformations(uint16);
+		FightTeamMemberInformations* GetFightTeamMemberInformations(uint16);
+		PartyInvitationMemberInformations* GetPartyInvitationMemberInformations(uint16);
+		IdentifiedEntityDispositionInformations* GetIdentifiedEntityDispositionInformations(uint16);
+		GameFightMinimalStats* GetGameFightMinimalStats(uint16);
+		GameFightFighterInformations* GetGameFightFighterInformations(uint16);
+	}
+}
 
 #endif

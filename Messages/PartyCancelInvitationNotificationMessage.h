@@ -36,7 +36,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		AbstractPartyEventMessage::Serialize(data);
 		data<<cancelerId<<guestId;

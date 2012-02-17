@@ -39,7 +39,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		FightTeamMemberInformations::Serialize(data);
 		data<<firstNameId<<lastNameId<<level<<guildId<<uid;

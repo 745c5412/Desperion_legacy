@@ -106,7 +106,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<experience<<experienceLevelFloor<<experienceNextLevelFloor<<kamas<<statsPoints<<spellsPoints;
 		alignmentInfos->Serialize(data);

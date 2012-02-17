@@ -24,7 +24,7 @@ void ItemSet::Init(Field* fields)
 	Desperion::FastSplit<':'>(m_effects, std::string(fields[1].GetString()), H);
 }
 
-const std::vector<EffectInstance*>& ItemSet::GetEffect(uint8 pos) const
+const std::vector<PlayerItemEffect*>& ItemSet::GetEffect(uint8 pos) const
 {
 	try
 	{ 
@@ -41,18 +41,13 @@ const std::vector<EffectInstance*>& ItemSet::GetEffect(uint8 pos) const
 ItemSet::~ItemSet()
 {
 	for(SetEffectsMap::iterator it = m_effects.begin(); it != m_effects.end(); ++it)
-		for(std::vector<EffectInstance*>::iterator it2 = it->begin(); it2 != it->end(); ++it2)
+		for(std::vector<PlayerItemEffect*>::iterator it2 = it->begin(); it2 != it->end(); ++it2)
 			delete *it2;
 }
 
-void ItemSet::ApplyEffects(Character* ch, const std::vector<EffectInstance*>& effects, bool add)
+void ItemSet::ApplyEffects(Character* ch, const std::vector<PlayerItemEffect*>& effects, bool add)
 {
-	for(std::vector<EffectInstance*>::const_iterator it = effects.begin(); it != effects.end(); ++it)
-	{
+	for(std::vector<PlayerItemEffect*>::const_iterator it = effects.begin(); it != effects.end(); ++it)
 		if((*it)->IsInteger())
-		{
-			const EffectInstanceInteger* e = (const EffectInstanceInteger*)(*it);
-			ch->ApplyEffect(&StatsRow::objects, (*it)->effectId, e->value, add);
-		}
-	}
+			ch->ApplyEffect(&StatsRow::objects, *it, add);
 }

@@ -20,111 +20,75 @@
 
 template<> Desperion::Master* Singleton<Desperion::Master>::m_singleton = NULL;
 
-void OnCrash();
+void SignalShutDown()
+{
+	Desperion::Master::Instance().ShutDown(SHUTDOWN_NORMAL);
+}
 
 namespace Desperion
 {
-	Database sDatabase(3);
-	Database eDatabase(3);
+	TypeErasureDatabase* sDatabase = NULL;
+	TypeErasureDatabase* eDatabase = NULL;
 
-	void OnSignal(int s)
+	Master::Master()
 	{
-		switch (s)
-		{
-		case SIGINT:
-		case SIGTERM:
-		case SIGABRT:
-#ifdef _WIN32
-		case SIGBREAK:
-#endif
-			ThreadPool::Instance().GetIoService().stop();
-			Master::Instance().MasterCondition.notify_all();
-			break;
-		}
-		signal(s, OnSignal);
-	}
-
-	void HookSignals()
-	{
-		signal(SIGINT, OnSignal);
-		signal(SIGTERM, OnSignal);
-		signal(SIGABRT, OnSignal);
-#ifdef _WIN32
-		signal(SIGBREAK, OnSignal);
-#else
-		signal(SIGSEGV, ::OnCrash);
-		signal(SIGFPE, ::OnCrash);
-		signal(SIGILL, ::OnCrash);
-		signal(SIGBUS, ::OnCrash);
-#endif
-	}
-
-	void UnHookSignals()
-	{
-		signal(SIGINT, 0);
-		signal(SIGTERM, 0);
-		signal(SIGABRT, 0);
-#ifdef _WIN32
-		signal(SIGBREAK, 0);
-#else
-		signal(SIGSEGV, 0);
-		signal(SIGFPE, 0);
-		signal(SIGILL, 0);
-		signal(SIGBUS, 0);
-#endif
-	}
-
-	Master::Master() : m_startTime(getMSTime())
-	{
+		m_shutdown = SHUTDOWN_NOT_REQUESTED;
 		InitRandomNumberGenerators();
-		new ThreadPool;
-		new Config;
-		new Log;
-		new World;
-		new GameClient;
+		new ThreadPool(m_service);
 	}
 
 	Master::~Master()
 	{
 		CleanupRandomNumberGenerators();
-		delete Desperion::Config::InstancePtr();
-		delete Log::InstancePtr();
+		delete Config::InstancePtr();
 		delete GameClient::InstancePtr();
+		delete ThreadPool::InstancePtr();
+		delete World::InstancePtr();
+		delete sDatabase;
+		delete eDatabase;
+		delete Log::InstancePtr();
 	}
 
 	bool Master::StartUpDatabase()
 	{
-		Log::Instance().outNotice("Database", "Connecting to the local database...");
+		sDatabase = ConstructDatabase(m_service,
+			Config::Instance().GetParam(LOCAL_DATABASE_TYPE_STRING, LOCAL_DATABASE_TYPE_DEFAULT), 3);
+		if(sDatabase == NULL)
 		{
-			barGoLink bar(1);
-			if(!sDatabase.Init(Config::Instance().GetParam<std::string>(LOCAL_DATABASE_HOST_STRING, LOCAL_DATABASE_HOST_DEFAULT), 
-				Config::Instance().GetParam(LOCAL_DATABASE_PORT_STRING, LOCAL_DATABASE_PORT_DEFAULT), 
-				Config::Instance().GetParam<std::string>(LOCAL_DATABASE_USER_STRING, LOCAL_DATABASE_USER_DEFAULT), 
-				Config::Instance().GetParam<std::string>(LOCAL_DATABASE_PASSWORD_STRING, LOCAL_DATABASE_PASSWORD_DEFAULT), 
-				Config::Instance().GetParam<std::string>(LOCAL_DATABASE_NAME_STRING, LOCAL_DATABASE_NAME_DEFAULT)))
-				return false;
-			bar.step();
+			Log::Instance().OutError("Local database: unknown database type");
+			return false;
 		}
-		Log::Instance().outNotice("Database", "Connection successful!\n\n");
+		Log::Instance().OutNotice("Database", "Connecting to the local database...");
+		if(!sDatabase->Init(Config::Instance().GetParam<std::string>(LOCAL_DATABASE_HOST_STRING, LOCAL_DATABASE_HOST_DEFAULT), 
+			Config::Instance().GetParam(LOCAL_DATABASE_PORT_STRING, LOCAL_DATABASE_PORT_DEFAULT), 
+			Config::Instance().GetParam<std::string>(LOCAL_DATABASE_USER_STRING, LOCAL_DATABASE_USER_DEFAULT), 
+			Config::Instance().GetParam<std::string>(LOCAL_DATABASE_PASSWORD_STRING, LOCAL_DATABASE_PASSWORD_DEFAULT), 
+			Config::Instance().GetParam<std::string>(LOCAL_DATABASE_NAME_STRING, LOCAL_DATABASE_NAME_DEFAULT)))
+			return false;
+		Log::Instance().OutNotice("Database", "Connection successful!\n");
 
-		Log::Instance().outNotice("Database", "Connecting to the distant database...");
+		eDatabase = ConstructDatabase(m_service,
+			Config::Instance().GetParam(DISTANT_DATABASE_TYPE_STRING, DISTANT_DATABASE_TYPE_DEFAULT), 3);
+		if(eDatabase == NULL)
 		{
-			barGoLink bar(1);
-			if(!eDatabase.Init(Config::Instance().GetParam<std::string>(DISTANT_DATABASE_HOST_STRING, DISTANT_DATABASE_HOST_DEFAULT), 
-				Config::Instance().GetParam(DISTANT_DATABASE_PORT_STRING, DISTANT_DATABASE_PORT_DEFAULT), 
-				Config::Instance().GetParam<std::string>(DISTANT_DATABASE_USER_STRING, DISTANT_DATABASE_USER_DEFAULT), 
-				Config::Instance().GetParam<std::string>(DISTANT_DATABASE_PASSWORD_STRING, DISTANT_DATABASE_PASSWORD_DEFAULT), 
-				Config::Instance().GetParam<std::string>(DISTANT_DATABASE_NAME_STRING, DISTANT_DATABASE_NAME_DEFAULT)))
-				return false;
-			bar.step();
+			Log::Instance().OutError("Distant database: unknown database type");
+			return false;
 		}
-		Log::Instance().outNotice("Database", "Connection successful!\n\n");
+		Log::Instance().OutNotice("Database", "Connecting to the distant database...");
+		if(!eDatabase->Init(Config::Instance().GetParam<std::string>(DISTANT_DATABASE_HOST_STRING, DISTANT_DATABASE_HOST_DEFAULT), 
+			Config::Instance().GetParam(DISTANT_DATABASE_PORT_STRING, DISTANT_DATABASE_PORT_DEFAULT), 
+			Config::Instance().GetParam<std::string>(DISTANT_DATABASE_USER_STRING, DISTANT_DATABASE_USER_DEFAULT), 
+			Config::Instance().GetParam<std::string>(DISTANT_DATABASE_PASSWORD_STRING, DISTANT_DATABASE_PASSWORD_DEFAULT), 
+			Config::Instance().GetParam<std::string>(DISTANT_DATABASE_NAME_STRING, DISTANT_DATABASE_NAME_DEFAULT)))
+			return false;
+		Log::Instance().OutNotice("Database", "Connection successful!\n\n");
 
 		return true;
 	}
 
-	bool Master::Run(int argc, char **argv)
+	ShutDownType Master::Run(int argc, char **argv)
 	{
+		new Config;
 		std::vector<const char*> files;
 		files.push_back("server.properties"), files.push_back("misc.properties"),
 			files.push_back("character.properties");
@@ -133,52 +97,81 @@ namespace Desperion
 			path = argv[1];
 		Config::Instance().Init(path, files);
 
-		Log::Instance().Init(Config::Instance().GetParam<std::string>(LOGS_PATH_STRING, LOGS_PATH_DEFAULT),
+		new Log(m_service);
+		Log::Instance().Init(Config::Instance().GetParam<std::string>(LOGS_PATH_STRING, LOGS_PATH_DEFAULT).c_str(),
 			Config::Instance().GetParam<uint8>(LOGS_LEVEL_STRING, LOGS_LEVEL_DEFAULT));
 
 		SetApplicationTitle("Desperion GameServer v%u.%u.%u", GAME_VERSION_MAJOR, GAME_VERSION_MINOR, GAME_VERSION_REVISION);
-		Log::Instance().outColor(TBLUE, 	",------,  ,-----. ,-----, ,------. ,-----. ,------.  ,------. ,------, ,,    ,,");
-		Log::Instance().outColor(TBLUE, 	"| ,--,  ` | .---' |  ,--` | ,--, | | .---' | ,--, |  `--||--' | ,--, | ||\\   ||");
-		Log::Instance().outColor(TBLUE, 	"| |  |  | | |--.  |  `--, | |  | | | |--.  | |  | |     ||    | |  | | || \\  ||");
-		Log::Instance().outColor(TBLUE, 	"| |  |  | | |--'  `---, | | `--` | | |--'  | `--` ,     ||    | |  | | ||  \\ ||");
-		Log::Instance().outColor(TBLUE, 	"| '--'  , | '---, ,---| | | ,----` | '---, | ,-\\  \\  .--||--, | '--' | ||   \\||");
-		Log::Instance().outColor(TBLUE, 	"`------`  `-----' `-----` `-`      `-----' `-`  '--' `------` `------` ``    `'\n");
-		Log::Instance().outColor(TWHITE, "Dofus v%u.%u.%u.%u.%u.%u, protocol %u/%u", DOFUS_VERSION_MAJOR, 
+		Log::Instance().OutColor(TBLUE, 	",------,  ,-----. ,-----, ,------. ,-----. ,------.  ,------. ,------, ,,    ,,");
+		Log::Instance().OutColor(TBLUE, 	"| ,--,  ` | .---' |  ,--` | ,--, | | .---' | ,--, |  `--||--' | ,--, | ||\\   ||");
+		Log::Instance().OutColor(TBLUE, 	"| |  |  | | |--.  |  `--, | |  | | | |--.  | |  | |     ||    | |  | | || \\  ||");
+		Log::Instance().OutColor(TBLUE, 	"| |  |  | | |--'  `---, | | `--` | | |--'  | `--` ,     ||    | |  | | ||  \\ ||");
+		Log::Instance().OutColor(TBLUE, 	"| '--'  , | '---, ,---| | | ,----` | '---, | ,-\\  \\  .--||--, | '--' | ||   \\||");
+		Log::Instance().OutColor(TBLUE, 	"`------`  `-----' `-----` `-`      `-----' `-`  '--' `------` `------` ``    `'\n");
+		Log::Instance().OutColor(TWHITE, "Dofus v%u.%u.%u.%u.%u.%u, protocol %u/%u", DOFUS_VERSION_MAJOR, 
 			DOFUS_VERSION_MINOR, DOFUS_VERSION_RELEASE, DOFUS_VERSION_REVISION, DOFUS_VERSION_PATCH, DOFUS_VERSION_BUILD_TYPE,
 			PROTOCOL_BUILD, PROTOCOL_REQUIRED_BUILD);
-		Log::Instance().outColor(TWHITE, "GameServer v%u.%u.%u", GAME_VERSION_MAJOR, GAME_VERSION_MINOR, GAME_VERSION_REVISION);
-		Log::Instance().outColor(TWHITE, "Shared v%u.%u.%u\n\n", SHARED_VERSION_MAJOR, SHARED_VERSION_MINOR, SHARED_VERSION_REVISION);
+		Log::Instance().OutColor(TWHITE, "GameServer v%u.%u.%u", GAME_VERSION_MAJOR, GAME_VERSION_MINOR, GAME_VERSION_REVISION);
+		Log::Instance().OutColor(TWHITE, "Shared v%u.%u.%u\n\n", SHARED_VERSION_MAJOR, SHARED_VERSION_MINOR, SHARED_VERSION_REVISION);
 
 		if(!StartUpDatabase())
-			return false;
+			return SHUTDOWN_NORMAL;
 
+		/*ResultPtr QR = sDatabase->Query("SELECT id, effects FROM d2o_item_set;");
+		barGoLink go(QR->GetRowCount());
+		while(QR->NextRow())
+		{
+			Field* fields = QR->Fetch();
+			std::vector<std::string> table;
+			std::ostringstream effects;
+			Desperion::FastSplitString<':'>(table, std::string(fields[1].GetString()));
+			effects<<table.size();
+			for(size_t a = 0; a < table.size(); ++a)
+			{
+				effects<<":";
+				std::vector<std::string> table2;
+				Desperion::FastSplitString<';'>(table2, table[a]);
+				effects<<table2.size();
+				for(size_t b = 0; b < table2.size(); ++b)
+				{
+					effects<<";";
+					std::vector<int> table3;
+					Desperion::FastSplit<','>(table3, table2[b], Desperion::SplitInt);
+					effects<<3<<","<<OBJECT_EFFECT_INTEGER<<","<<table3[2]<<","<<table3[6];
+				}
+			}
+			sDatabase->Execute("UPDATE d2o_item_set SET effects='%s' WHERE id=%u;", effects.str().c_str(),
+				fields[0].GetInt32());
+			go.step();
+		}
+		return SHUTDOWN_NORMAL;*/
+
+		new World;
 		World::Instance().Init();
-		sListener.Init(Config::Instance().GetParam(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
-		if(sListener.IsOpen())
-		{
-			Log::Instance().outNotice("Network", "Local socket listening on port %u",
-				Config::Instance().GetParam(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
-			sListener.Run();
-		}
-		else
-		{
-			Log::Instance().outError("Error: Local socket");
-			return false;
-		}
-		GameClient::Instance().Init(new boost::asio::ip::tcp::socket(ThreadPool::Instance().GetIoService()));
+		
+		SocketListener<Session> sListener(ThreadPool::Instance().GetService(),
+			Config::Instance().GetParam(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
+		Log::Instance().OutNotice("Network", "Listening for Dofus clients on port %u",
+			Config::Instance().GetParam(LOCAL_SERVER_PORT_STRING, LOCAL_SERVER_PORT_DEFAULT));
 
-		std::cout<<std::endl;
-		Log::Instance().outString("Uptime: %ums", getMSTime() - m_startTime);
-		Log::Instance().outColor(TBLUE, "Type Ctrl+C to safely shutdown the server.\n");
-
+		new GameClient(ThreadPool::Instance().GetService());
 		GameClient::Instance().Launch();
 
+		std::cout<<std::endl;
+		Log::Instance().OutString("Uptime: %ums", GetUpTime());
+		Log::Instance().OutColor(TBLUE, "Type Ctrl+C to safely shutdown the server.\n");
+
 		HookSignals();
-		boost::mutex::scoped_lock lock(m_mutex);
-		while(!ThreadPool::Instance().GetIoService().stopped())
-			MasterCondition.wait(lock);
+		HookSignals();
+		while(m_shutdown == SHUTDOWN_NOT_REQUESTED)
+		{
+			m_service.reset();
+			ThreadPool::Instance().SpawnWorkerThreads();
+			m_service.run();
+			ThreadPool::Instance().ClearWorkerThreads();
+		}
 		UnHookSignals();
-		return true;
+		return m_shutdown;
 	}
 
 }

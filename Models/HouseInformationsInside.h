@@ -42,7 +42,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<houseId<<modelId<<ownerId<<ownerName<<worldX<<worldY<<price<<isLocked;
 	}

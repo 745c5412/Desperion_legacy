@@ -16,8 +16,8 @@
     along with Desperion.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PLAYER_ITEM__
-#define __PLAYER_ITEM__
+#ifndef __OBJECT__
+#define __OBJECT__
 
 enum CharacterInventoryPosition
 {
@@ -75,6 +75,16 @@ struct PlayerItemEffect
 		return new PlayerItemEffect(actionId);
 	}
 
+	virtual bool Compare(PlayerItemEffect* effect) const
+	{
+		return actionId == effect->actionId;
+	}
+
+	virtual void ToString(std::ostringstream& s) const
+	{
+		s<<OBJECT_EFFECT<<","<<actionId;
+	}
+
 	virtual bool IsInteger() const
 	{ return false; }
 
@@ -124,6 +134,17 @@ struct PlayerItemEffectInteger : public PlayerItemEffect
 		return new PlayerItemEffectInteger(actionId, value);
 	}
 
+	bool Compare(PlayerItemEffect* e) const
+	{
+		PlayerItemEffectInteger* effect = (PlayerItemEffectInteger*)e;
+		return actionId == effect->actionId && value == effect->value;
+	}
+
+	void ToString(std::ostringstream& s) const
+	{
+		s<<OBJECT_EFFECT_INTEGER<<","<<actionId<<","<<value;
+	}
+
 	bool IsInteger() const
 	{ return true; }
 };
@@ -149,6 +170,18 @@ struct PlayerItemEffectDice : public PlayerItemEffect
 		return new PlayerItemEffectDice(actionId, diceNum, diceSide, diceConst);
 	}
 
+	bool Compare(PlayerItemEffect* e) const
+	{
+		PlayerItemEffectDice* effect = (PlayerItemEffectDice*)e;
+		return actionId == effect->actionId && diceNum == effect->diceNum
+			&& diceSide == effect->diceSide && diceConst == effect->diceConst;
+	}
+
+	void ToString(std::ostringstream& s) const
+	{
+		s<<OBJECT_EFFECT_DICE<<","<<actionId<<","<<diceNum<<","<<diceSide<<","<<diceConst;
+	}
+
 	bool IsDice() const
 	{ return true; }
 };
@@ -172,6 +205,17 @@ struct PlayerItemEffectString : public PlayerItemEffect
 	PlayerItemEffect* Clone()
 	{
 		return new PlayerItemEffectString(actionId, value);
+	}
+
+	bool Compare(PlayerItemEffect* e) const
+	{
+		PlayerItemEffectString* effect = (PlayerItemEffectString*)e;
+		return actionId == effect->actionId && value == effect->value;
+	}
+
+	void ToString(std::ostringstream& s) const
+	{
+		s<<OBJECT_EFFECT_STRING<<","<<actionId<<","<<value;
 	}
 
 	bool IsString() const
@@ -201,6 +245,18 @@ struct PlayerItemEffectMount : public PlayerItemEffect
 		return new PlayerItemEffectMount(actionId, mountId, date, modelId);
 	}
 
+	bool Compare(PlayerItemEffect* e) const
+	{
+		PlayerItemEffectMount* effect = (PlayerItemEffectMount*)e;
+		return actionId == effect->actionId && mountId == effect->mountId
+			&& date == effect->date && modelId == effect->modelId;
+	}
+
+	void ToString(std::ostringstream& s) const
+	{
+		s<<OBJECT_EFFECT_MOUNT<<","<<actionId<<","<<mountId<<","<<date<<","<<modelId;
+	}
+
 	bool IsMount() const
 	{ return true; }
 };
@@ -224,6 +280,18 @@ struct PlayerItemEffectMinMax : public PlayerItemEffect
 	PlayerItemEffect* Clone()
 	{
 		return new PlayerItemEffectMinMax(actionId, min, max);
+	}
+
+	bool Compare(PlayerItemEffect* e) const
+	{
+		PlayerItemEffectMinMax* effect = (PlayerItemEffectMinMax*)e;
+		return actionId == effect->actionId && min == effect->min
+			&& max == effect->max;
+	}
+
+	void ToString(std::ostringstream& s) const
+	{
+		s<<OBJECT_EFFECT_MIN_MAX<<","<<actionId<<","<<min<<","<<max;
 	}
 
 	bool IsMinMax() const
@@ -251,6 +319,17 @@ struct PlayerItemEffectCreature : public PlayerItemEffect
 		return new PlayerItemEffectCreature(actionId, monsterFamilyId);
 	}
 
+	bool Compare(PlayerItemEffect* e) const
+	{
+		PlayerItemEffectCreature* effect = (PlayerItemEffectCreature*)e;
+		return actionId == effect->actionId && monsterFamilyId == effect->monsterFamilyId;
+	}
+
+	void ToString(std::ostringstream& s) const
+	{
+		s<<OBJECT_EFFECT_CREATURE<<","<<actionId<<","<<monsterFamilyId;
+	}
+
 	bool IsCreature() const
 	{ return true; }
 };
@@ -274,6 +353,18 @@ struct PlayerItemEffectLadder : public PlayerItemEffectCreature
 	PlayerItemEffect* Clone()
 	{
 		return new PlayerItemEffectLadder(actionId, monsterFamilyId, monsterCount);
+	}
+
+	bool Compare(PlayerItemEffect* e) const
+	{
+		PlayerItemEffectLadder* effect = (PlayerItemEffectLadder*)e;
+		return actionId == effect->actionId && monsterFamilyId == effect->monsterFamilyId
+			&& monsterCount == effect->monsterCount;
+	}
+
+	void ToString(std::ostringstream& s) const
+	{
+		s<<OBJECT_EFFECT_LADDER<<","<<actionId<<","<<monsterFamilyId<<","<<monsterCount;
 	}
 	
 	bool IsLadder() const
@@ -301,6 +392,18 @@ struct PlayerItemEffectDuration : public PlayerItemEffect
 		return new PlayerItemEffectDuration(actionId, days, hours, minutes);
 	}
 
+	bool Compare(PlayerItemEffect* e) const
+	{
+		PlayerItemEffectDuration* effect = (PlayerItemEffectDuration*)e;
+		return actionId == effect->actionId && days == effect->days
+			&& hours == effect->hours && minutes == effect->minutes;
+	}
+
+	void ToString(std::ostringstream& s) const
+	{
+		s<<OBJECT_EFFECT_DURATION<<","<<actionId<<","<<days<<","<<hours<<","<<minutes;
+	}
+
 	bool IsDuration() const
 	{ return true; }
 };
@@ -324,6 +427,20 @@ struct PlayerItemEffectDate : public PlayerItemEffect
 	PlayerItemEffect* Clone()
 	{
 		return new PlayerItemEffectDate(actionId, year, month, day, hour, minute);
+	}
+
+	bool Compare(PlayerItemEffect* e) const
+	{
+		PlayerItemEffectDate* effect = (PlayerItemEffectDate*)e;
+		return actionId == effect->actionId && year == effect->year
+			&& month == effect->month && day == effect->day
+			&& hour == effect->hour && minute == effect->minute;
+	}
+
+	void ToString(std::ostringstream& s) const
+	{
+		s<<OBJECT_EFFECT_DATE<<","<<actionId<<","<<year<<","<<month<<","<<day<<","<<hour;
+		s<<","<<minute;
 	}
 
 	bool IsDate() const
@@ -369,7 +486,6 @@ class Item;
 class PlayerItem
 {
 private:
-	static Mutex m_guidLock;
 	int m_guid;
 	int m_quantity;
 	uint8 m_pos;
@@ -380,13 +496,12 @@ public:
 	~PlayerItem();
 	void Init(Field*);
 	void Init(int, const Item*, int, uint8, const std::vector<PlayerItemEffect*>&, Character*);
-	void Save();
+	void Save(std::vector<boost::shared_array<const char> >&) const;
 	void SetPos(int);
-	static int GetNextItemGuid();
 	static void InsertIntoDB(PlayerItem*);
 	static void DeleteFromDB(int);
-	static bool SameStats(PlayerItem*, PlayerItem*);
-	std::string StatsToString();
+	static bool SameStats(const PlayerItem*, const PlayerItem*);
+	std::string StatsToString() const;
 	PlayerItemEffect* GetEffect(int16);
 	void DeleteEffect(int16);
 	ObjectItem* ToObjectItem() const;

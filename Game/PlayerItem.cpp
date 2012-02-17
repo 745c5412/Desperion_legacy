@@ -18,8 +18,6 @@
 
 #include "StdAfx.h"
 
-Mutex PlayerItem::m_guidLock;
-
 void PlayerItem::Init(Field* fields)
 {
 	m_guid = fields[0].GetInt32();
@@ -48,18 +46,16 @@ void PlayerItem::SetPos(int pos)
 {
 	if(m_pos == pos)
 		return;
-
 	if(m_pos == INVENTORY_POSITION_NOT_EQUIPED && pos != INVENTORY_POSITION_NOT_EQUIPED && m_owner)
 	{
 		for(std::vector<PlayerItemEffect*>::iterator it = m_effects.begin(); it != m_effects.end(); ++it)
-			m_owner->ApplyEffect(&StatsRow::objects, (*it)->actionId, ((PlayerItemEffectInteger*)*it)->value, true);
+			m_owner->ApplyEffect(&StatsRow::objects, *it, true);
 	}
 	else if(m_pos != INVENTORY_POSITION_NOT_EQUIPED && pos == INVENTORY_POSITION_NOT_EQUIPED && m_owner)
 	{
 		for(std::vector<PlayerItemEffect*>::iterator it = m_effects.begin(); it != m_effects.end(); ++it)
-			m_owner->ApplyEffect(&StatsRow::objects, (*it)->actionId, ((PlayerItemEffectInteger*)*it)->value, false);
+			m_owner->ApplyEffect(&StatsRow::objects, *it, false);
 	}
-	
 	m_pos = pos;
 }
 
@@ -71,26 +67,14 @@ ObjectItem* PlayerItem::ToObjectItem() const
 	return new ObjectItem(m_pos, m_item->GetId(), 0, false, effects, m_guid, m_quantity);
 }
 
-int PlayerItem::GetNextItemGuid()
-{
-	int guid = 1;
-	m_guidLock.lock();
-	ResultPtr QR = Desperion::sDatabase.Query("SELECT guid FROM character_items ORDER BY guid DESC;");
-	if(QR)
-		guid = (QR->Fetch()[0].GetInt32()) + 1;
-	
-	m_guidLock.unlock();
-	return guid;
-}
-
 void PlayerItem::InsertIntoDB(PlayerItem* item)
 {
-	Desperion::sDatabase.Execute("INSERT INTO character_items VALUES(%u, %u, %u, %u, '%s', %u);", item->GetGuid(),
+	Desperion::sDatabase->AsyncExecute("INSERT INTO \"character_items\" VALUES(%u, %u, %u, %u, '%s', %u);", item->GetGuid(),
 		item->GetItem()->GetId(), item->GetQuantity(), item->GetPos(), item->StatsToString().c_str(), 
 		item->GetOwner() ? item->GetOwner()->GetGuid() : 0);
 }
 
-bool PlayerItem::SameStats(PlayerItem* i1, PlayerItem* i2)
+bool PlayerItem::SameStats(const PlayerItem* i1, const PlayerItem* i2)
 {
 	typedef std::vector<PlayerItemEffect*> E;
 	const E& e1 = i1->GetEffects();
@@ -102,92 +86,8 @@ bool PlayerItem::SameStats(PlayerItem* i1, PlayerItem* i2)
 	{
 		if((*f1)->actionId != (*f2)->actionId)
 			return false;
-		else if((*f1)->IsInteger())
-		{
-			if(!(*f2)->IsInteger())
-				return false;
-			PlayerItemEffectInteger* ff1 = (PlayerItemEffectInteger*)(*f1), 
-				* ff2 = (PlayerItemEffectInteger*)(*f2);
-			if(ff1->value != ff2->value)
-				return false;
-		}
-		else if((*f1)->IsDice())
-		{
-			if(!(*f2)->IsDice())
-				return false;
-			PlayerItemEffectDice* ff1 = (PlayerItemEffectDice*)(*f1), 
-				* ff2 = (PlayerItemEffectDice*)(*f2);
-			if(ff1->diceConst != ff2->diceConst || ff1->diceNum != ff2->diceNum
-				|| ff1->diceSide != ff2->diceSide)
-				return false;
-		}
-		else if((*f1)->IsCreature())
-		{
-			if(!(*f2)->IsCreature())
-				return false;
-			PlayerItemEffectCreature* ff1 = (PlayerItemEffectCreature*)(*f1), 
-				* ff2 = (PlayerItemEffectCreature*)(*f2);
-			if(ff1->monsterFamilyId != ff2->monsterFamilyId)
-				return false;
-		}
-		else if((*f1)->IsDate())
-		{
-			if(!(*f2)->IsDate())
-				return false;
-			PlayerItemEffectDate* ff1 = (PlayerItemEffectDate*)(*f1), 
-				* ff2 = (PlayerItemEffectDate*)(*f2);
-			if(ff1->year != ff2->year || ff1->month != ff2->month
-				|| ff1->day != ff2->day || ff1->hour != ff2->hour
-				|| ff1->minute != ff2->minute)
-				return false;
-		}
-		else if((*f1)->IsDuration())
-		{
-			if(!(*f2)->IsDuration())
-				return false;
-			PlayerItemEffectDuration* ff1 = (PlayerItemEffectDuration*)(*f1), 
-				* ff2 = (PlayerItemEffectDuration*)(*f2);
-			if(ff1->days != ff2->days || ff1->hours != ff2->hours
-				|| ff1->minutes != ff2->minutes)
-				return false;
-		}
-		else if((*f1)->IsLadder())
-		{
-			if(!(*f2)->IsLadder())
-				return false;
-			PlayerItemEffectLadder* ff1 = (PlayerItemEffectLadder*)(*f1), 
-				* ff2 = (PlayerItemEffectLadder*)(*f2);
-			if(ff1->monsterCount != ff2->monsterCount)
-				return false;
-		}
-		else if((*f1)->IsMinMax())
-		{
-			if(!(*f2)->IsMinMax())
-				return false;
-			PlayerItemEffectMinMax* ff1 = (PlayerItemEffectMinMax*)(*f1), 
-				* ff2 = (PlayerItemEffectMinMax*)(*f2);
-			if(ff1->min != ff2->min || ff1->max != ff2->max)
-				return false;
-		}
-		else if((*f1)->IsMount())
-		{
-			if(!(*f2)->IsMount())
-				return false;
-			PlayerItemEffectMount* ff1 = (PlayerItemEffectMount*)(*f1), 
-				* ff2 = (PlayerItemEffectMount*)(*f2);
-			if(ff1->mountId != ff2->mountId || ff1->date != ff2->date
-				|| ff1->modelId != ff2->modelId)
-				return false;
-		}
-		else if((*f1)->IsString())
-		{
-			if(!(*f2)->IsString())
-				return false;
-			PlayerItemEffectString* ff1 = (PlayerItemEffectString*)(*f1), 
-				* ff2 = (PlayerItemEffectString*)(*f2);
-			if(ff1->value != ff2->value)
-				return false;
-		}
+		if(!(*f1)->Compare(*f2))
+			return false;
 	}
 	return true;
 }
@@ -219,91 +119,25 @@ PlayerItemEffect* PlayerItem::GetEffect(int16 actionId)
 	return NULL;
 }
 
-std::string PlayerItem::StatsToString()
+std::string PlayerItem::StatsToString() const
 {
 	std::ostringstream str;
-	for(std::vector<PlayerItemEffect*>::iterator it = m_effects.begin(); it != m_effects.end(); ++it)
+	for(std::vector<PlayerItemEffect*>::const_iterator it = m_effects.begin(); it != m_effects.end(); ++it)
 	{
 		if(it != m_effects.begin())
 			str<<";";
-
-		switch((*it)->ToObjectEffect()->GetProtocol())
-		{
-		case OBJECT_EFFECT_STRING:
-			{
-				PlayerItemEffectString* effect = (PlayerItemEffectString*)(*it);
-				str<<OBJECT_EFFECT_STRING<<","<<effect->actionId<<","<<effect->value;
-			}
-			break;
-		case OBJECT_EFFECT_MOUNT:
-			{
-				PlayerItemEffectMount* effect = (PlayerItemEffectMount*)(*it);
-				str<<OBJECT_EFFECT_MOUNT<<","<<effect->actionId<<","<<effect->mountId<<","<<effect->date;
-				str<<","<<effect->modelId;
-			}
-			break;
-		case OBJECT_EFFECT_MIN_MAX:
-			{
-				PlayerItemEffectMinMax* effect = (PlayerItemEffectMinMax*)(*it);
-				str<<OBJECT_EFFECT_MIN_MAX<<","<<effect->actionId<<","<<effect->min<<","<<effect->max;
-			}
-			break;
-		case OBJECT_EFFECT_LADDER:
-			{
-				PlayerItemEffectLadder* effect = (PlayerItemEffectLadder*)(*it);
-				str<<OBJECT_EFFECT_LADDER<<","<<effect->actionId<<","<<effect->monsterCount;
-			}
-			break;
-		case OBJECT_EFFECT_DURATION:
-			{
-				PlayerItemEffectDuration* effect = (PlayerItemEffectDuration*)(*it);
-				str<<OBJECT_EFFECT_DURATION<<","<<effect->actionId<<","<<effect->days<<","<<effect->hours;
-				str<<","<<effect->minutes;
-			}
-			break;
-		case OBJECT_EFFECT_DATE:
-			{
-				PlayerItemEffectDate* effect = (PlayerItemEffectDate*)(*it);
-				str<<OBJECT_EFFECT_DATE<<","<<effect->actionId<<","<<effect->year<<","<<effect->month;
-				str<<","<<effect->day<<","<<effect->hour<<","<<effect->minute;
-			}
-			break;
-		case OBJECT_EFFECT_CREATURE:
-			{
-				PlayerItemEffectCreature* effect = (PlayerItemEffectCreature*)(*it);
-				str<<OBJECT_EFFECT_CREATURE<<","<<effect->actionId<<","<<effect->monsterFamilyId;
-			}
-			break;
-		case OBJECT_EFFECT_DICE:
-			{
-				PlayerItemEffectDice* effect = (PlayerItemEffectDice*)(*it);
-				str<<OBJECT_EFFECT_DICE<<","<<effect->actionId<<","<<effect->diceNum<<","<<effect->diceSide<<","<<effect->diceConst;
-			}
-			break;
-		case OBJECT_EFFECT_INTEGER:
-			{
-				PlayerItemEffectInteger* effect = (PlayerItemEffectInteger*)(*it);
-				str<<OBJECT_EFFECT_INTEGER<<","<<effect->actionId<<","<<effect->value;
-			}
-			break;
-		case OBJECT_EFFECT:
-			{
-				PlayerItemEffect* effect = (PlayerItemEffect*)(*it);
-				str<<OBJECT_EFFECT<<","<<effect->actionId;
-			}
-			break;
-		}
+		(*it)->ToString(str);
 	}
 	return str.str();
 }
 
-void PlayerItem::Save()
+void PlayerItem::Save(std::vector<boost::shared_array<const char> >& queries) const
 {
-	Desperion::sDatabase.Execute("UPDATE character_items SET quantity=%u, pos=%u, stats='%s', owner=%u WHERE guid=%u LIMIT 1;",
-		m_quantity, m_pos, StatsToString().c_str(), m_owner ? m_owner->GetGuid() : -1, m_guid);
+	queries.push_back(Desperion::FormatString("UPDATE \"character_items\" SET \"quantity\"=%u, \"pos\"=%u, \"stats\"='%s', \"owner\"=%u WHERE \"guid\"=%u;",
+		m_quantity, m_pos, StatsToString().c_str(), m_owner ? m_owner->GetGuid() : -1, m_guid));
 }
 
 void PlayerItem::DeleteFromDB(int guid)
 {
-	Desperion::sDatabase.Execute("DELETE FROM character_items WHERE guid=%u LIMIT 1;", guid);
+	Desperion::sDatabase->AsyncExecute("DELETE FROM \"character_items\" WHERE \"guid\"=%u;", guid);
 }

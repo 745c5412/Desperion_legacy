@@ -43,7 +43,7 @@ void Session::InitCommandsTable()
 	m_commands["additem"].handler = &Session::HandleAddItemCommand;
 	m_commands["additem"].level = 3;
 	m_commands["additem"].argc = 3;
-	m_commands["additem"].description = "Create specified item";
+	m_commands["additem"].description = "Create specified item. Conditions: 0 <= quantity <= 10000";
 	m_commands["additem"].arguments = "[id] [quantity] [max=true/false] {playername}";
 
 	m_commands["nameannounce"].handler = &Session::HandleNameAnnounceCommand;
@@ -57,6 +57,62 @@ void Session::InitCommandsTable()
 	m_commands["infomessage"].argc = 2;
 	m_commands["infomessage"].description = "(DEBUG) Send specified info message to client";
 	m_commands["infomessage"].arguments = "[typeId] [messageId] {param 1} {param 2} ... {param n}";
+
+	m_commands["shutdown"].handler = &Session::HandleShutDownMessageCommand;
+	m_commands["shutdown"].level = 4;
+	m_commands["shutdown"].argc = 2;
+	m_commands["shutdown"].description = "(SUPERADMIN) Shutdown or reboot the server. Conditions: 0 <= time (in seconds) <= 86400";
+	m_commands["shutdown"].arguments = "[sendMessage=true/false] [reboot=true/false] {time}";
+}
+
+void Session::HandleShutDownMessageCommand(std::vector<std::string>& args, bool quiet)
+{
+	std::string send = args[0], reboot = args[1];
+	bool bsend, breboot;
+	if(send == "true")
+		bsend = true;
+	else if(send == "false")
+		bsend = false;
+	else
+	{
+		if(!quiet)
+			Send(ConsoleMessage(CONSOLE_ERR_MESSAGE, "Invalid argument #1."));
+		return;
+	}
+	if(reboot == "true")
+		breboot = true;
+	else if(reboot == "false")
+		breboot = false;
+	else
+	{
+		if(!quiet)
+			Send(ConsoleMessage(CONSOLE_ERR_MESSAGE, "Invalid argument #2."));
+		return;
+	}
+
+	uint32 time = 0;
+	if(args.size() > 2)
+	{
+		time = atoi(args[2].c_str());
+		if(time > 86400)
+		{
+			if(!quiet)
+				Send(ConsoleMessage(CONSOLE_ERR_MESSAGE, "Invalid argument #3"));
+			return;
+		}
+	}
+
+	if(bsend)
+		; // todo: send
+
+	ShutDownType s = breboot ? SHUTDOWN_REBOOT : SHUTDOWN_NORMAL;
+	if(time > 0)
+	{
+		ThreadPool::Instance().TimedSchedule(boost::bind(&Desperion::Master::ShutDown,
+			Desperion::Master::InstancePtr(), s), boost::posix_time::seconds(time));
+	}
+	else
+		Desperion::Master::Instance().ShutDown(s);
 }
 
 void Session::HandleInfoMessageCommand(std::vector<std::string>& args, bool quiet)
@@ -275,7 +331,7 @@ void Session::HandleAdminCommandMessage(ByteBuffer& packet)
 	if(m_data[FLAG_LEVEL].intValue < 1)
 	{
 		LOG("Unauthorized access %s", __FUNCTION__);
-		m_socket->close();
+		CloseSocket();
 		return;
 	}
 	AdminCommandMessage data;
@@ -288,7 +344,7 @@ void Session::HandleAdminQuietCommandMessage(ByteBuffer& packet)
 	if(m_data[FLAG_LEVEL].intValue < 1)
 	{
 		LOG("Unauthorized access %s", __FUNCTION__);
-		m_socket->close();
+		CloseSocket();
 		return;
 	}
 	AdminQuietCommandMessage data;

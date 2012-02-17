@@ -39,7 +39,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<areaId<<atLeastNbRoom<<atLeastNbChest<<skillRequested<<maxPrice;
 	}

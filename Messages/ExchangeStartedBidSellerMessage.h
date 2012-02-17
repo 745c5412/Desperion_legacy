@@ -36,7 +36,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		sellerDescriptor->Serialize(data);
 		uint16 size = objectsInfos.size();

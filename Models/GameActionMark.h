@@ -39,7 +39,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<markAuthorId<<markSpellId<<markId<<markType;
 		uint16 size = cells.size();

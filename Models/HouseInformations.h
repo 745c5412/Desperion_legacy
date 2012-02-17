@@ -24,11 +24,11 @@ public:
 	{
 	}
 	
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		int8 b = 0;
-		Desperion::BooleanByteWrapper::SetFlag(b, 0, isOnSale);
-		Desperion::BooleanByteWrapper::SetFlag(b, 1, isSaleLocked);
+		BooleanByteWrapper::SetFlag(b, 0, isOnSale);
+		BooleanByteWrapper::SetFlag(b, 1, isSaleLocked);
 		data<<b<<houseId;
 		uint16 size = doorsOnMap.size();
 		data<<size;
@@ -41,8 +41,8 @@ public:
 	{
 		int8 b;
 		data>>b;
-		isOnSale = Desperion::BooleanByteWrapper::GetFlag(b, 0);
-		isSaleLocked = Desperion::BooleanByteWrapper::GetFlag(b, 1);
+		isOnSale = BooleanByteWrapper::GetFlag(b, 0);
+		isSaleLocked = BooleanByteWrapper::GetFlag(b, 1);
 		data>>houseId;
 		doorsOnMap.clear();
 		uint16 size;

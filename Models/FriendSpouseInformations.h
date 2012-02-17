@@ -43,7 +43,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<spouseAccountId<<spouseId<<spouseName<<spouseLevel<<breed<<sex;
 		spouseEntityLook->Serialize(data);

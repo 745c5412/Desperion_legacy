@@ -39,7 +39,7 @@ public:
 	{
 	}
 
-	void Serialize(ByteBuffer& data)
+	void Serialize(ByteBuffer& data) const
 	{
 		data<<name<<breed<<sex;
 		for(uint16 a = 0; a < 5; ++a)

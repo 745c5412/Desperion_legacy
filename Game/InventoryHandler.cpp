@@ -275,7 +275,8 @@ void Session::HandleObjectDropMessage(ByteBuffer& packet)
 	else
 	{
 		PlayerItem* toDrop = new PlayerItem;
-		toDrop->Init(PlayerItem::GetNextItemGuid(), item->GetItem(), data.quantity, -1, item->GetEffects(), NULL);
+		toDrop->Init(World::Instance().GetNextItemGuid(), item->GetItem(), data.quantity, -1, item->GetEffects(),
+			NULL);
 		PlayerItem::InsertIntoDB(toDrop);
 		item->SetQuantity(newqua);
 
@@ -284,7 +285,9 @@ void Session::HandleObjectDropMessage(ByteBuffer& packet)
 	}
 	item->SetOwner(NULL);
 	item->SetPos(INVENTORY_POSITION_NOT_EQUIPED);
-	item->Save();
+	std::vector<boost::shared_array<const char> > queries;
+	item->Save(queries);
+	Desperion::sDatabase->AsyncExecute(queries);
 	m_char->GetMap()->AddItem(item, cellID);
 	m_char->GetMap()->Send(ObjectGroundAddedMessage(cellID, item->GetItem()->GetId()));
 
