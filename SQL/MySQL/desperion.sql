@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50508
 File Encoding         : 65001
 
-Date: 2012-01-15 00:26:08
+Date: 2012-02-17 18:23:28
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -43,9 +43,9 @@ CREATE TABLE `accounts` (
 -- ----------------------------
 -- Records of accounts
 -- ----------------------------
-INSERT INTO `accounts` VALUES ('jemoche', 'aae3e86ce2a2b28906e0db977262b860', '1', 'DELETE?', 'DELETE', 'ALEX', '1', '::ffff:127.0.0.1', '1326561861', '5', 'martin.alex32@hotmail.fr', '', '1', '4700000000000000000', '0,1,2,4,5,9,10,12,13', '', '0');
+INSERT INTO `accounts` VALUES ('jemoche', 'aae3e86ce2a2b28906e0db977262b860', '1', 'DELETE?', 'DELETE', 'ALEX', '0', '::ffff:127.0.0.1', '1326914579', '5', 'martin.alex32@hotmail.fr', '', '1', '4700000000000000000', '0,1,2,4,9,10,12,13', '', '0');
 INSERT INTO `accounts` VALUES ('jemoche2', 'aae3e86ce2a2b28906e0db977262b860', '2', 'DELETE?', 'DELETE', 'TEST', '0', '::ffff:127.0.0.1', '1326561656', '5', 'martin.alex32@hotmail.fr', '', '1', '1', '0,1,2,4,5,9,10,12,13', '', '0');
-INSERT INTO `accounts` VALUES ('jemoche3', 'aae3e86ce2a2b28906e0db977262b860', '3', 'DELETE?', 'DELETE', 'TEST2', '1', '::ffff:127.0.0.1', '1326561646', '5', 'martin.alex32@hotmail.fr', '', '1', '0', '', '', '0');
+INSERT INTO `accounts` VALUES ('jemoche3', 'aae3e86ce2a2b28906e0db977262b860', '3', 'DELETE?', 'DELETE', 'TEST2', '0', '::ffff:127.0.0.1', '1326561646', '5', 'martin.alex32@hotmail.fr', '', '1', '0', '', '', '0');
 
 -- ----------------------------
 -- Table structure for `account_social`
@@ -74,7 +74,7 @@ INSERT INTO `account_social` VALUES ('3', '', '', '0', '0', '0');
 DROP TABLE IF EXISTS `character_counts`;
 CREATE TABLE `character_counts` (
   `accountGuid` int(11) NOT NULL,
-  `serverID` int(11) NOT NULL
+  `serverId` int(11) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- ----------------------------
@@ -90,14 +90,14 @@ INSERT INTO `character_counts` VALUES ('3', '1');
 -- ----------------------------
 DROP TABLE IF EXISTS `game_servers`;
 CREATE TABLE `game_servers` (
-  `ID` int(11) NOT NULL AUTO_INCREMENT,
-  `ServerIP` text NOT NULL,
-  `ServerPort` int(11) NOT NULL,
-  `State` int(11) NOT NULL DEFAULT '0',
-  `PlayersLimit` int(11) NOT NULL,
-  `Key` text NOT NULL,
-  `MinLevel` int(11) NOT NULL,
-  PRIMARY KEY (`ID`)
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `serverIp` text NOT NULL,
+  `serverPort` int(11) NOT NULL,
+  `state` int(11) NOT NULL DEFAULT '0',
+  `playersLimit` int(11) NOT NULL,
+  `key` text NOT NULL,
+  `minLevel` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=20001 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
@@ -111,7 +111,7 @@ INSERT INTO `game_servers` VALUES ('7', '127.0.0.1', '5557', '1', '500', 'defaul
 -- ----------------------------
 DROP TABLE IF EXISTS `ip_bans`;
 CREATE TABLE `ip_bans` (
-  `IP` text NOT NULL,
+  `ip` text NOT NULL,
   `banEnd` bigint(18) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
