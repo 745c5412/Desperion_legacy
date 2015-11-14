@@ -1,18 +1,20 @@
-Bienvenue sur le repository de Desperion!
+#Disclaimer - Legacy code
+Ceci est une ancienne version de mon émulateur en C++ Desperion, qui contient entre autres le serveur de jeu. Elle était jusqu’ici herbergée sur un repo privé Assembla. Suite aux nombreuses demandes, je la mets en ligne publiquement sur github.
 
-Desperion est un Èmulateur pour le MMORPG Dofus 2.0 Ècrit en C++, actuellement compatible avec la version:
+#Desperion
+
+Desperion est un émulateur pour le MMORPG Dofus 2.0 écrit en C++, actuellement compatible avec la version:
 2.5.5.55487.2
 
-L'Èquipe de dÈveloppement de Desperion est composÈe de:
-- LittleScaraby AKA Alexandre Martin, fondateur du projet et dÈveloppeur en chef
-- Nekkro, dÈveloppeur
+L’équipe de développement de Desperion est composée de:
+- LittleScaraby
+- Nekkro, développeur
 
-L'Èmulateur utilise la cÈlËbre collection de bibliothËques boost (notamment boost.asio), l'API C MySQL pour les interactions avec la base de donnÈes, ainsi que la trËs complËte bibliothËque CryptoPP pour le cryptage RSA et MD5.
-De par leur quantitÈ, les fichiers utilisÈs par l'Èmulateur relatifs ‡ boost ne sont pas inclus dans le rÈpertoire "Libs". Il vous faudra tÈlÈcharger boost sur le site officiel pour pouvoir compiler Desperion:
+L’émulateur utilise la collection de bibliothèques boost (notamment boost.asio), l'API C MySQL pour les interactions avec la base de donnÈes, ainsi que la bibliothèque CryptoPP pour le cryptage RSA et MD5.
+De par leur quantité, les fichiers utilisés par l’émulateur relatifs à boost ne sont pas inclus dans le répertoire "Libs". Il vous faudra télécharger boost sur le site officiel pour pouvoir compiler Desperion:
 <http://www.boost.org/>
 
-Les tables contenant les fichiers de cache du client (.D2O) sont mises ‡ jour rÈguliËrement pour assurer une parfaite concordance de contenu avec le serveur officiel.
-Pour faire fonctionner l'Èmulateur, vous devez sÈlectionner les DLL se situant dans le rÈpertoire "Libs/bin/" et les copier dans ce rÈpertoire: "C:/Windows/System32/".
+Les tables contenant les fichiers de cache du client (.D2O) sont mises à jour régulièrement pour assurer une parfaite concordance de contenu avec le serveur officiel.
 
 Contact:
 Mail -> <martin.alex32@hotmail.fr>
